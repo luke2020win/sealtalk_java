@@ -186,10 +186,13 @@
         </configuration>
       </plugin>
 
+
+      <!--      指定了插件依赖于mybatis-generator-maven-plugin，同时通过<configuration>标签指定了代码生成器的配置文件全路径-->
       <plugin>
         <groupId>org.mybatis.generator</groupId>
         <artifactId>mybatis-generator-maven-plugin</artifactId>
         <version>1.3.6</version>
+
         <configuration>
           <!-- 配置文件 -->
           <configurationFile>src/main/resources/mybatis-generator.xml</configurationFile>
@@ -197,6 +200,7 @@
           <verbose>true</verbose>
           <overwrite>true</overwrite>
         </configuration>
+
         <dependencies>
           <dependency>
             <groupId>mysql</groupId>
@@ -209,10 +213,11 @@
             <artifactId>mapper</artifactId>
             <version>4.1.5</version>
           </dependency>
+
         </dependencies>
+
       </plugin>
+
     </plugins>
   </build>
-
-
 </project>
