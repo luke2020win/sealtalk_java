@@ -199,6 +199,12 @@ public class UserManager extends BaseManager {
      * @throws ServiceException
      */
     private void checkRequestFrequency(ServerApiParams serverApiParams) throws ServiceException {
+        Integer yunpianLimitedTime = sealtalkConfig.getYunpianLimitedTime();
+        Integer yunpianLimitedCount = sealtalkConfig.getYunpianLimitedCount();
+
+        if(yunpianLimitedTime==null || yunpianLimitedCount==null){
+            return;
+        }
         String ip = serverApiParams.getRequestUriInfo().getIp();
 
         VerificationViolations verificationViolations = verificationViolationsService.getByPrimaryKey(ip);
@@ -206,8 +212,6 @@ public class UserManager extends BaseManager {
             return;
         }
 
-        Integer yunpianLimitedTime = sealtalkConfig.getYunpianLimitedTime();
-        Integer yunpianLimitedCount = sealtalkConfig.getYunpianLimitedCount();
 
         DateTime dateTime = new DateTime(new Date());
         Date sendDate = dateTime.minusHours(yunpianLimitedTime).toDate();
