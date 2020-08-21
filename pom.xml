@@ -166,7 +166,6 @@
       <artifactId>qiniu-java-sdk</artifactId>
       <version>7.2.29</version>
     </dependency>
-
   </dependencies>
 
   <build>
