@@ -26,8 +26,8 @@ sealtalk-config:
   rongcloud_app_key: bmdehs6pbaauls             
   # 融云颁发的 App Secret，请访问融云开发者后台：https://developer.rongcloud.cn
   rongcloud_app_secret: xvQhSJbagYBtwF
-  # 融云颁发的 Api Url
-  rongcloud_api_url: api-sg01.ronghub.com           
+  # 融云颁发的 Api Url, 逗号分割，第一个为主域名，后面的为备份域名
+  rongcloud_api_url: api-sg01.ronghub.com,api-xxx.ronghub.com       
   # 融云短信服务提供的注册用户短信模板 Id
   rongcloud_sms_register_template_id: 3910922   # 短信模版ID
   # 七牛颁发的 Access Key，请访问七牛开发者后台：https://portal.qiniu.com
