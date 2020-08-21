@@ -28,6 +28,8 @@ public class SealtalkConfig {
     private String rongcloudAppKey;
     @Value("${sealtalk-config.rongcloud_app_secret}")
     private String rongcloudAppSecret;
+    @Value("${sealtalk-config.rongcloud_api_url}")
+    private String rongcloudApiUrl;
     @Value("${sealtalk-config.qiniu_access_key}")
     private String qiniuAccessKey;
     @Value("${sealtalk-config.qiniu_secret_key}")

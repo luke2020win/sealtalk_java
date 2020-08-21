@@ -38,6 +38,7 @@ sealtalk-config:
   rongcloud_sms_register_template_id: 3910922
   rongcloud_app_key: '<-- 此处填写融云颁发的 App Key -->'
   rongcloud_app_secret: '<-- 此处填写融云颁发的 App Secret -->'
+  rongcloud_api_url: '<-- 此处填写融云 Api Url -->'
   qiniu_access_key: '<-- 此处填写七牛颁发的 Access Key -->'
   qiniu_secret_key: '<-- 此处填写七牛颁发的 Secret Key -->'
   qiniu_bucket_name: '<-- 此处填写七牛创建的空间名称 -->'
@@ -67,6 +68,7 @@ sealtalk-config:
 #    rongcloud_sms_register_template_id: 3910922
 #    rongcloud_app_key: bmdehs6apbauls
 #    rongcloud_app_secret: xvQhSJbgYBtwF
+#    rongcloud_api_url: api-sg01.ronghub.com
 #    qiniu_access_key: ctk1VIyQlx5CFr_EQMqrQkF5c1PKGuqC2SNTR749
 #    qiniu_secret_key: MRuJJ6AcBkaFQrgm16ayDtv_4L0M2jsQe-QuMBfiw
 #    qiniu_bucket_name: devtalk-image

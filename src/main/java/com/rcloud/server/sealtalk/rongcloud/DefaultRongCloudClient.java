@@ -52,7 +52,7 @@ public class DefaultRongCloudClient implements RongCloudClient {
 
     @PostConstruct
     public void postConstruct() {
-        rongCloud = RongCloud.getInstance(sealtalkConfig.getRongcloudAppKey(), sealtalkConfig.getRongcloudAppSecret());
+        rongCloud = RongCloud.getInstance(sealtalkConfig.getRongcloudAppKey(), sealtalkConfig.getRongcloudAppSecret(),sealtalkConfig.getRongcloudApiUrl());
         User = rongCloud.user;
         BlackList = rongCloud.user.blackList;
         Private = rongCloud.message.msgPrivate;
