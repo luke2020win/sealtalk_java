@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd" >
+<generatorConfiguration>
+    <classPathEntry location="src/main/resources/lib/mysql-connector-java-5.1.31.jar"/>
+
+    <context id="Mysql" targetRuntime="MyBatis3Simple" defaultModelType="flat">
+        <property name="javaFileEncoding" value="UTF-8"/>
+        <property name="beginningDelimiter" value="`"/>
+        <property name="endingDelimiter" value="`"/>
+
+        <plugin type="tk.mybatis.mapper.generator.MapperPlugin">
+            <property name="mappers" value="tk.mybatis.mapper.common.Mapper"/>
+            <property name="caseSensitive" value="true"/>
+        </plugin>
+        <plugin type="org.mybatis.generator.plugins.SerializablePlugin" />
+
+        <commentGenerator>
+            <property name="suppressAllComments" value="true" />
+            <property name="suppressDate" value="true"/>
+        </commentGenerator>
+
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+          connectionURL="jdbc:mysql://127.0.0.1:3306/sealtalk?useUnicode=true&amp;useSSL=false"
+          userId="root"
+          password="123456">
+        </jdbcConnection>
+
+        <javaModelGenerator
+          targetPackage="com.rcloud.server.sealtalk.domain"
+          targetProject="src/main/java">
+        </javaModelGenerator>
+        <sqlMapGenerator
+          targetPackage="mybatis"
+          targetProject="src/main/resources">
+        </sqlMapGenerator>
+
+        <javaClientGenerator type="XMLMAPPER"
+          targetPackage="com.rcloud.server.sealtalk.dao"
+          targetProject="src/main/java">
+            <property name="suppressAllComments" value="true"/>
+        </javaClientGenerator>
+
+        <!-- ============= all model ============= -->
+        <table tableName="blacklists" domainObjectName="BlackLists">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="data_versions" domainObjectName="DataVersions">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="friendships" domainObjectName="Friendships">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="group_bulletins" domainObjectName="GroupBulletins">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="group_exited_lists" domainObjectName="GroupExitedLists">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="group_favs" domainObjectName="GroupFavs">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="group_members" domainObjectName="GroupMembers">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="group_receivers" domainObjectName="GroupReceivers">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="group_syncs" domainObjectName="GroupSyncs">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="groups" domainObjectName="Groups">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="login_logs" domainObjectName="LoginLogs">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="screen_statuses" domainObjectName="ScreenStatuses">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="users" domainObjectName="Users">
+            <property name="useActualColumnNames" value="true"/>
+            <generatedKey column="id" sqlStatement="JDBC"/>
+        </table>
+        <table tableName="verification_codes" domainObjectName="VerificationCodes">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+        <table tableName="verification_violations" domainObjectName="VerificationViolations">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+    </context>
+</generatorConfiguration>
+
+
+
+
+
+
+
+
+
+
+
+
