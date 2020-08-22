@@ -41,7 +41,6 @@ import java.util.Map;
 @Api(tags = "用户相关")
 @RestController
 @RequestMapping("/user")
-@Timed(percentiles = {0.9, 0.95, 0.99})
 public class UserController extends BaseController {
 
     @Resource

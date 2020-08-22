@@ -34,7 +34,6 @@ import java.util.List;
 @Api(tags = "好友相关")
 @RestController
 @RequestMapping("/friendship")
-@Timed(percentiles = {0.9, 0.95, 0.99})
 @Slf4j
 public class FriendshipController extends BaseController {
 

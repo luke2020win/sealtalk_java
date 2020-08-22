@@ -50,7 +50,6 @@ import java.util.Map;
 @Api(tags = "其他相关")
 @RestController
 @RequestMapping("/misc")
-@Timed(percentiles = {0.9, 0.95, 0.99})
 @Slf4j
 public class MiscController extends BaseController {
 

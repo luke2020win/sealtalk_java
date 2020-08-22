@@ -37,7 +37,6 @@ import java.util.*;
 @Api(tags = "群组相关")
 @RestController
 @RequestMapping("/group")
-@Timed(percentiles = {0.9, 0.95, 0.99})
 @Slf4j
 public class GroupController extends BaseController {
 

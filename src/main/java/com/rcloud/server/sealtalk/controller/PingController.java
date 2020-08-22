@@ -30,7 +30,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/")
-@Timed(percentiles = {0.9, 0.95, 0.99})
 public class PingController {
 
     @ApiOperation(value = "Ping")
