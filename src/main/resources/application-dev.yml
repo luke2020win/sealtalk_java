@@ -27,6 +27,8 @@ sealtalk-config:
   rongcloud_app_key: 'cpj2xarlche4n'
   #  融云颁发的 App Secret
   rongcloud_app_secret: 'QUtrcndCsZm7GU'
+  #融云 Api Url
+  rongcloud_api_url: 'api-sg01.ronghub.com'
 
   #*************************************存储--七牛******************************************************#
   #七牛颁发的 Access Key
