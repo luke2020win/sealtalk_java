@@ -190,6 +190,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <mainClass>com.rcloud.server.sealtalk.SealtalkServerApplication</mainClass>
+          <executable>true</executable>
         </configuration>
 <!--        <version>2.3.1.RELEASE</version>-->
       </plugin>

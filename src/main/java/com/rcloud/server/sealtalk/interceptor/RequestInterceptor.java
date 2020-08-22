@@ -43,7 +43,7 @@ public class RequestInterceptor implements HandlerInterceptor {
     public static final String WL_PROXY_CLIENT_IP = "WL-Proxy-Client-IP";
     public static final String HTTP_CLIENT_IP = "HTTP_CLIENT_IP";
     public static final String HTTP_X_FORWARDED_FOR = "HTTP_X_FORWARDED_FOR";
-    public static final Set<String> excludeUrlSet = new CopyOnWriteArraySet<String>();
+    public static final Set<String> excludeUrlSet = new CopyOnWriteArraySet<>();
 
     @Resource
     private SealtalkConfig sealtalkConfig;
