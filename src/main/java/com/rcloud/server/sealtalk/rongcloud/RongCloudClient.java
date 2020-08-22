@@ -1,5 +1,6 @@
 package com.rcloud.server.sealtalk.rongcloud;
 
+import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.rongcloud.message.GrpApplyMessage;
 import io.rong.models.Result;
@@ -110,7 +111,7 @@ public interface RongCloudClient {
      * @param encodeMemberIds 成员ID
      * @param name            群名称
      */
-    Result createGroup(String encodeGroupId,String[] encodeMemberIds, String name) throws ServiceException;
+    Result createGroup(String encodeGroupId, String[] encodeMemberIds, String name) throws ServiceException;
 
 
     /**
@@ -167,7 +168,7 @@ public interface RongCloudClient {
      * @param groupName
      * @return
      */
-    Result quitGroup(String[] encodedMemberIds, String encodedGroupId ,String groupName) throws ServiceException;
+    Result quitGroup(String[] encodedMemberIds, String encodedGroupId, String groupName) throws ServiceException;
 
     /**
      * 取消群组禁言
@@ -209,4 +210,13 @@ public interface RongCloudClient {
      * @throws ServiceException
      */
     Result sendGroupApplyMessage(String senderId, String[] targetId, GrpApplyMessage grpApplyMessage) throws ServiceException;
+
+    /**
+     * 同步用户组群信息
+     *
+     * @param encodeUserId
+     * @param groupsList
+     * @return
+     */
+    Result syncGroupInfo(String encodeUserId, List<Groups> groupsList) throws ServiceException;
 }

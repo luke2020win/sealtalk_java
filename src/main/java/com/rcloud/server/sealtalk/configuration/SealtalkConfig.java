@@ -18,8 +18,8 @@ public class SealtalkConfig {
     private String authCookieName;
     @Value("${sealtalk-config.auth_cookie_key}")
     private String authCookieKey;
-    @Value("${sealtalk-config.nickname_cookie_name}")
-    private String nicknameCookieName;
+//    @Value("${sealtalk-config.nickname_cookie_name}")
+//    private String nicknameCookieName;
     @Value("${sealtalk-config.auth_cookie_max_age}")
     private String authCookieMaxAge;
     @Value("${sealtalk-config.rongcloud_sms_register_template_id}")

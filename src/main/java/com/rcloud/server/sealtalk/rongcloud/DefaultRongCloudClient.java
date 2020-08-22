@@ -2,9 +2,11 @@ package com.rcloud.server.sealtalk.rongcloud;
 
 import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.constant.Constants;
+import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.rongcloud.message.GrpApplyMessage;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
+import com.rcloud.server.sealtalk.util.N3d;
 import io.rong.RongCloud;
 import io.rong.messages.ContactNtfMessage;
 import io.rong.messages.GroupNotificationMessage;
@@ -15,6 +17,7 @@ import io.rong.methods.user.blacklist.Blacklist;
 import io.rong.models.Result;
 import io.rong.models.group.GroupMember;
 import io.rong.models.group.GroupModel;
+import io.rong.models.group.UserGroup;
 import io.rong.models.message.GroupMessage;
 import io.rong.models.message.PrivateMessage;
 import io.rong.models.message.SystemMessage;
@@ -28,6 +31,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -267,6 +271,30 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
+    public Result syncGroupInfo(String encodeUserId, List<Groups> groupsList) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+
+            @Override
+            public Result doInvoker() throws Exception {
+                GroupModel[] groupModelsArray = new GroupModel[groupsList.size()];
+
+                for (int i = 0; i < groupsList.size(); i++) {
+                    GroupModel groupModel = new GroupModel();
+                    groupModel.setId(N3d.encode(groupsList.get(i).getId()));
+                    groupModel.setName(groupsList.get(i).getName());
+                    groupModelsArray[i] = groupModel;
+                }
+
+                UserGroup user = new UserGroup()
+                        .setId(encodeUserId)
+                        .setGroups(groupModelsArray);
+
+                return rongCloud.group.sync(user);
+            }
+        });
+    }
+
+    @Override
     public Result joinGroup(String[] memberIds, String groupId, String groupName) throws ServiceException {
         return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
             @Override
@@ -313,25 +341,22 @@ public class DefaultRongCloudClient implements RongCloudClient {
                 GroupModel group = new GroupModel()
                         .setId(encodedGroupId)
                         .setMembers(members);
-                return (Result)rongCloud.group.dismiss(group);
+                return (Result) rongCloud.group.dismiss(group);
             }
         });
-
-
-
 
 
     }
 
     @Override
-    public Result quitGroup(String[] encodedMemberIds, String encodedGroupId,String groupName) throws ServiceException {
+    public Result quitGroup(String[] encodedMemberIds, String encodedGroupId, String groupName) throws ServiceException {
 
         return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
             @Override
             public Result doInvoker() throws Exception {
 
                 GroupMember[] groupMemberArray = new GroupMember[encodedMemberIds.length];
-                for(int i=0;i<encodedMemberIds.length;i++){
+                for (int i = 0; i < encodedMemberIds.length; i++) {
                     GroupMember groupMember = new GroupMember();
                     groupMember.setId(encodedMemberIds[i]);
                     groupMemberArray[i] = groupMember;

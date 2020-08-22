@@ -39,7 +39,9 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: xiuwei.nie
@@ -202,7 +204,7 @@ public class UserManager extends BaseManager {
         Integer yunpianLimitedTime = sealtalkConfig.getYunpianLimitedTime();
         Integer yunpianLimitedCount = sealtalkConfig.getYunpianLimitedCount();
 
-        if(yunpianLimitedTime==null || yunpianLimitedCount==null){
+        if (yunpianLimitedTime == null || yunpianLimitedCount == null) {
             return;
         }
         String ip = serverApiParams.getRequestUriInfo().getIp();
@@ -355,20 +357,29 @@ public class UserManager extends BaseManager {
         CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
 
         //查询该用户所属的所有组,同步到融云
-        Map<String, String> groupIdNameMap = new HashMap<>();
+        List<Groups> groupsList = new ArrayList<>();
         List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithGroupByMemberId(u.getId());
         if (!CollectionUtils.isEmpty(groupMembersList)) {
             for (GroupMembers gm : groupMembersList) {
                 Groups groups = gm.getGroups();
                 if (groups != null) {
-                    groupIdNameMap.put(N3d.encode(groups.getId()), groups.getName());
+                    groupsList.add(groups);
                 }
             }
         }
 
         //同步前记录日志
-        log.info("'Sync groups: {}", groupIdNameMap);
-        //调用融云sdk 将登录用户的userid，与groupIdName信息同步到融云 TODO TODO
+        log.info("'Sync groups: {}", groupsList);
+        //调用融云sdk 将登录用户的userid，与groupIdName信息同步到融云
+        try {
+            Result result = rongCloudClient.syncGroupInfo(N3d.encode(u.getId()), groupsList);
+            if (!Constants.CODE_OK.equals(result.getCode())) {
+                log.error("Error sync user's group list failed,code:" + result.getCode());
+            }
+        } catch (Exception e) {
+            log.error("Error sync user's group list error:" + e.getMessage(), e);
+        }
+
 
         String token = u.getRongCloudToken();
         if (StringUtils.isEmpty(token)) {
