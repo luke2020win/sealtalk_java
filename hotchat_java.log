@@ -1,0 +1,117 @@
+2020-八月-22 09:26:41.778 WARN  [main] o.s.b.StartupInfoLogger - InetAddress.getLocalHost().getHostName() took 5003 milliseconds to respond. Please verify your network configuration (macOS machines may need to add entries to /etc/hosts).
+2020-八月-22 09:26:46.790 INFO  [main] c.r.s.s.SealtalkServerApplication - Starting SealtalkServerApplication on Mac-mini.local with PID 12186 (/Users/apple/Desktop/worksapce/sealtalk/sealtalk_java/target/classes started by apple in /Users/apple/Desktop/worksapce/sealtalk/sealtalk_java)
+2020-八月-22 09:26:46.790 INFO  [main] c.r.s.s.SealtalkServerApplication - The following profiles are active: dev
+2020-八月-22 09:26:47.587 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'blackListsMapper' and 'com.rcloud.server.sealtalk.dao.BlackListsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'dataVersionsMapper' and 'com.rcloud.server.sealtalk.dao.DataVersionsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'friendshipsMapper' and 'com.rcloud.server.sealtalk.dao.FriendshipsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupBulletinsMapper' and 'com.rcloud.server.sealtalk.dao.GroupBulletinsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupExitedListsMapper' and 'com.rcloud.server.sealtalk.dao.GroupExitedListsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupFavsMapper' and 'com.rcloud.server.sealtalk.dao.GroupFavsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupMembersMapper' and 'com.rcloud.server.sealtalk.dao.GroupMembersMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupReceiversMapper' and 'com.rcloud.server.sealtalk.dao.GroupReceiversMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupSyncsMapper' and 'com.rcloud.server.sealtalk.dao.GroupSyncsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupsMapper' and 'com.rcloud.server.sealtalk.dao.GroupsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'loginLogsMapper' and 'com.rcloud.server.sealtalk.dao.LoginLogsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'screenStatusesMapper' and 'com.rcloud.server.sealtalk.dao.ScreenStatusesMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'usersMapper' and 'com.rcloud.server.sealtalk.dao.UsersMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'verificationCodesMapper' and 'com.rcloud.server.sealtalk.dao.VerificationCodesMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.588 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'verificationViolationsMapper' and 'com.rcloud.server.sealtalk.dao.VerificationViolationsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 09:26:47.589 WARN  [main] o.m.s.m.ClassPathMapperScanner - No MyBatis mapper was found in '[com.rcloud.server.sealtalk.dao]' package. Please check your configuration.
+2020-八月-22 09:26:47.914 INFO  [main] o.s.b.w.e.t.TomcatWebServer - Tomcat initialized with port(s): 8585 (http)
+2020-八月-22 09:26:47.921 INFO  [main] o.a.c.c.StandardService - Starting service [Tomcat]
+2020-八月-22 09:26:47.922 INFO  [main] o.a.c.c.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.36]
+2020-八月-22 09:26:47.988 INFO  [main] o.a.c.c.C.[.[.[/] - Initializing Spring embedded WebApplicationContext
+2020-八月-22 09:26:47.988 INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1164 ms
+2020-八月-22 09:26:48.833 INFO  [main] c.y.s.YunpianClient - YunpianClient is initing!
+2020-八月-22 09:26:48.833 INFO  [main] c.y.s.YunpianConf - apikey-25c4f32628c2140bd2d1573fcc90c279 conf-{yp.flow.host=https://flow.yunpian.com, yp.sign.host=https://sms.yunpian.com, yp.tpl.host=https://sms.yunpian.com, http.conn.maxperroute=50, yp.user.host=https://sms.yunpian.com, yp.version=v2, yp.call.host=https://call.yunpian.com, yp.short_url.host=https://sms.yunpian.com, http.charset=utf-8, http.conn.timeout=10000, yp.voice.host=https://voice.yunpian.com, http.so.timeout=30000, yp.sms.host=https://sms.yunpian.com, http.conn.maxtotal=200}
+2020-八月-22 09:26:49.263 INFO  [main] o.s.b.a.e.w.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
+2020-八月-22 09:26:49.316 INFO  [main] s.d.s.w.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2Controller#getDocumentation(String, HttpServletRequest)]
+2020-八月-22 09:26:49.347 INFO  [main] o.s.s.c.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
+2020-八月-22 09:26:49.431 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear tk.mybatis.mapper.util.MsUtil CLASS_CACHE cache.
+2020-八月-22 09:26:49.431 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear tk.mybatis.mapper.genid.GenIdUtil CACHE cache.
+2020-八月-22 09:26:49.432 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear tk.mybatis.mapper.version.VersionUtil CACHE cache.
+2020-八月-22 09:26:49.432 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear EntityHelper entityTableMap cache.
+2020-八月-22 09:26:49.505 INFO  [main] o.f.c.i.l.VersionPrinter - Flyway Community Edition 5.2.4 by Boxfuse
+2020-八月-22 09:26:49.506 INFO  [main] c.z.h.HikariDataSource - HikariPool-1 - Starting...
+2020-八月-22 09:26:49.659 INFO  [main] c.z.h.HikariDataSource - HikariPool-1 - Start completed.
+2020-八月-22 09:26:49.662 INFO  [main] o.f.c.i.d.DatabaseFactory - Database: jdbc:mysql://127.0.0.1:3306/hotchat (MySQL 5.6)
+2020-八月-22 09:26:49.707 INFO  [main] o.f.c.i.c.DbValidate - Successfully validated 1 migration (execution time 00:00.014s)
+2020-八月-22 09:26:49.726 INFO  [main] o.f.c.i.s.JdbcTableSchemaHistory - Creating Schema History table: `hotchat`.`flyway_schema_history`
+2020-八月-22 09:26:49.758 INFO  [main] o.f.c.i.c.DbMigrate - Current version of schema `hotchat`: << Empty Schema >>
+2020-八月-22 09:26:49.758 INFO  [main] o.f.c.i.c.DbMigrate - Migrating schema `hotchat` to version 1 - init schema
+2020-八月-22 09:26:49.760 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.blacklists' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.794 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.data_versions' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.845 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.friendships' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.856 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.group_bulletins' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.866 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.group_exited_lists' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.877 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.group_favs' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.887 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.group_members' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.898 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.groups' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.908 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.users' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.918 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.group_receivers' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.929 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.group_syncs' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.938 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.login_logs' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.949 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.screen_statuses' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.960 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.verification_codes' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.970 WARN  [main] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Unknown table 'hotchat.verification_violations' (SQL State: 42S02 - Error Code: 1051)
+2020-八月-22 09:26:49.984 INFO  [main] o.f.c.i.c.DbMigrate - Successfully applied 1 migration to schema `hotchat` (execution time 00:00.258s)
+2020-八月-22 09:26:50.084 INFO  [main] o.s.b.w.e.t.TomcatWebServer - Tomcat started on port(s): 8585 (http) with context path ''
+2020-八月-22 09:26:50.085 INFO  [main] s.d.s.w.p.DocumentationPluginsBootstrapper - Context refreshed
+2020-八月-22 09:26:50.096 INFO  [main] s.d.s.w.p.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-八月-22 09:26:50.096 INFO  [main] s.d.s.w.p.DocumentationPluginsBootstrapper - Skipping initializing disabled plugin bean swagger v2.0
+2020-八月-22 09:26:50.108 INFO  [main] c.r.s.s.SealtalkServerApplication - Started SealtalkServerApplication in 18.636 seconds (JVM running for 24.062)
+2020-八月-22 09:26:50.222 INFO  [RMI TCP Connection(3)-192.168.1.9] o.a.c.c.C.[.[.[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2020-八月-22 09:26:50.223 INFO  [RMI TCP Connection(3)-192.168.1.9] o.s.w.s.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2020-八月-22 09:26:50.229 INFO  [RMI TCP Connection(3)-192.168.1.9] o.s.w.s.DispatcherServlet - Completed initialization in 6 ms
+2020-八月-22 10:03:26.892 INFO  [SpringContextShutdownHook] o.s.s.c.ThreadPoolTaskExecutor - Shutting down ExecutorService 'applicationTaskExecutor'
+2020-八月-22 10:03:26.893 INFO  [SpringContextShutdownHook] c.y.s.YunpianClient - YunpianClient is closing!
+2020-八月-22 10:03:26.894 INFO  [SpringContextShutdownHook] c.z.h.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2020-八月-22 10:03:26.897 INFO  [SpringContextShutdownHook] c.z.h.HikariDataSource - HikariPool-1 - Shutdown completed.
+2020-八月-22 10:04:00.168 WARN  [main] o.s.b.StartupInfoLogger - InetAddress.getLocalHost().getHostName() took 5004 milliseconds to respond. Please verify your network configuration (macOS machines may need to add entries to /etc/hosts).
+2020-八月-22 10:04:05.176 INFO  [main] c.r.s.s.SealtalkServerApplication - Starting SealtalkServerApplication on Mac-mini.local with PID 12295 (/Users/apple/Desktop/worksapce/sealtalk/sealtalk_java/target/classes started by apple in /Users/apple/Desktop/worksapce/sealtalk/sealtalk_java)
+2020-八月-22 10:04:05.176 INFO  [main] c.r.s.s.SealtalkServerApplication - The following profiles are active: dev
+2020-八月-22 10:04:05.922 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'blackListsMapper' and 'com.rcloud.server.sealtalk.dao.BlackListsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'dataVersionsMapper' and 'com.rcloud.server.sealtalk.dao.DataVersionsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'friendshipsMapper' and 'com.rcloud.server.sealtalk.dao.FriendshipsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupBulletinsMapper' and 'com.rcloud.server.sealtalk.dao.GroupBulletinsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupExitedListsMapper' and 'com.rcloud.server.sealtalk.dao.GroupExitedListsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupFavsMapper' and 'com.rcloud.server.sealtalk.dao.GroupFavsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupMembersMapper' and 'com.rcloud.server.sealtalk.dao.GroupMembersMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupReceiversMapper' and 'com.rcloud.server.sealtalk.dao.GroupReceiversMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupSyncsMapper' and 'com.rcloud.server.sealtalk.dao.GroupSyncsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'groupsMapper' and 'com.rcloud.server.sealtalk.dao.GroupsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'loginLogsMapper' and 'com.rcloud.server.sealtalk.dao.LoginLogsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'screenStatusesMapper' and 'com.rcloud.server.sealtalk.dao.ScreenStatusesMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'usersMapper' and 'com.rcloud.server.sealtalk.dao.UsersMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'verificationCodesMapper' and 'com.rcloud.server.sealtalk.dao.VerificationCodesMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - Skipping MapperFactoryBean with name 'verificationViolationsMapper' and 'com.rcloud.server.sealtalk.dao.VerificationViolationsMapper' mapperInterface. Bean already defined with the same name!
+2020-八月-22 10:04:05.923 WARN  [main] o.m.s.m.ClassPathMapperScanner - No MyBatis mapper was found in '[com.rcloud.server.sealtalk.dao]' package. Please check your configuration.
+2020-八月-22 10:04:06.222 INFO  [main] o.s.b.w.e.t.TomcatWebServer - Tomcat initialized with port(s): 8585 (http)
+2020-八月-22 10:04:06.230 INFO  [main] o.a.c.c.StandardService - Starting service [Tomcat]
+2020-八月-22 10:04:06.230 INFO  [main] o.a.c.c.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.36]
+2020-八月-22 10:04:06.294 INFO  [main] o.a.c.c.C.[.[.[/] - Initializing Spring embedded WebApplicationContext
+2020-八月-22 10:04:06.294 INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1089 ms
+2020-八月-22 10:04:07.113 INFO  [main] c.y.s.YunpianClient - YunpianClient is initing!
+2020-八月-22 10:04:07.113 INFO  [main] c.y.s.YunpianConf - apikey-25c4f32628c2140bd2d1573fcc90c279 conf-{yp.flow.host=https://flow.yunpian.com, yp.sign.host=https://sms.yunpian.com, yp.tpl.host=https://sms.yunpian.com, http.conn.maxperroute=50, yp.user.host=https://sms.yunpian.com, yp.version=v2, yp.call.host=https://call.yunpian.com, yp.short_url.host=https://sms.yunpian.com, http.charset=utf-8, http.conn.timeout=10000, yp.voice.host=https://voice.yunpian.com, http.so.timeout=30000, yp.sms.host=https://sms.yunpian.com, http.conn.maxtotal=200}
+2020-八月-22 10:04:07.497 INFO  [main] o.s.b.a.e.w.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
+2020-八月-22 10:04:07.547 INFO  [main] s.d.s.w.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2Controller#getDocumentation(String, HttpServletRequest)]
+2020-八月-22 10:04:07.577 INFO  [main] o.s.s.c.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
+2020-八月-22 10:04:07.647 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear tk.mybatis.mapper.util.MsUtil CLASS_CACHE cache.
+2020-八月-22 10:04:07.648 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear tk.mybatis.mapper.genid.GenIdUtil CACHE cache.
+2020-八月-22 10:04:07.648 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear tk.mybatis.mapper.version.VersionUtil CACHE cache.
+2020-八月-22 10:04:07.648 INFO  [main] t.m.m.a.MapperCacheDisabler - Clear EntityHelper entityTableMap cache.
+2020-八月-22 10:04:07.720 INFO  [main] o.f.c.i.l.VersionPrinter - Flyway Community Edition 5.2.4 by Boxfuse
+2020-八月-22 10:04:07.722 INFO  [main] c.z.h.HikariDataSource - HikariPool-1 - Starting...
+2020-八月-22 10:04:07.857 INFO  [main] c.z.h.HikariDataSource - HikariPool-1 - Start completed.
+2020-八月-22 10:04:07.860 INFO  [main] o.f.c.i.d.DatabaseFactory - Database: jdbc:mysql://127.0.0.1:3306/hotchat (MySQL 5.6)
+2020-八月-22 10:04:07.904 INFO  [main] o.f.c.i.c.DbValidate - Successfully validated 1 migration (execution time 00:00.019s)
+2020-八月-22 10:04:07.909 INFO  [main] o.f.c.i.c.DbMigrate - Current version of schema `hotchat`: 1
+2020-八月-22 10:04:07.910 INFO  [main] o.f.c.i.c.DbMigrate - Schema `hotchat` is up to date. No migration necessary.
+2020-八月-22 10:04:08.023 INFO  [main] o.s.b.w.e.t.TomcatWebServer - Tomcat started on port(s): 8585 (http) with context path ''
+2020-八月-22 10:04:08.024 INFO  [main] s.d.s.w.p.DocumentationPluginsBootstrapper - Context refreshed
+2020-八月-22 10:04:08.034 INFO  [main] s.d.s.w.p.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-八月-22 10:04:08.035 INFO  [main] s.d.s.w.p.DocumentationPluginsBootstrapper - Skipping initializing disabled plugin bean swagger v2.0
+2020-八月-22 10:04:08.045 INFO  [main] c.r.s.s.SealtalkServerApplication - Started SealtalkServerApplication in 18.162 seconds (JVM running for 23.539)
+2020-八月-22 10:04:08.179 INFO  [RMI TCP Connection(1)-192.168.1.9] o.a.c.c.C.[.[.[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2020-八月-22 10:04:08.179 INFO  [RMI TCP Connection(1)-192.168.1.9] o.s.w.s.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2020-八月-22 10:04:08.184 INFO  [RMI TCP Connection(1)-192.168.1.9] o.s.w.s.DispatcherServlet - Completed initialization in 5 ms
