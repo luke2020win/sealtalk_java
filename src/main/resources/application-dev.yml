@@ -3,8 +3,7 @@
 logging:
   level:
     com.rcloud.server.sealtalk:
-      dao: error
-      controller: error
+      dao: debug
   file:
     path: /Users/apple/logs/server
     name: hotchat_java.log
