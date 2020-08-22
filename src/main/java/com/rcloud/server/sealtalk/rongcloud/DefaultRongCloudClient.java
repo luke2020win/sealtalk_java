@@ -52,7 +52,7 @@ public class DefaultRongCloudClient implements RongCloudClient {
 
     @PostConstruct
     public void postConstruct() {
-        rongCloud = RongCloud.getInstance(sealtalkConfig.getRongcloudAppKey(), sealtalkConfig.getRongcloudAppSecret(),sealtalkConfig.getRongcloudApiUrl());
+        rongCloud = RongCloud.getInstance(sealtalkConfig.getRongcloudAppKey(), sealtalkConfig.getRongcloudAppSecret());
         User = rongCloud.user;
         BlackList = rongCloud.user.blackList;
         Private = rongCloud.message.msgPrivate;
@@ -304,13 +304,46 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
-    public Result dismiss(String encodeUserId, String encodedGroupId) {
-        return null;
+    public Result dismiss(String encodeUserId, String encodedGroupId) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                GroupMember[] members = new GroupMember[]{new GroupMember().setId(encodeUserId)};
+
+                GroupModel group = new GroupModel()
+                        .setId(encodedGroupId)
+                        .setMembers(members);
+                return (Result)rongCloud.group.dismiss(group);
+            }
+        });
+
+
+
+
+
     }
 
     @Override
-    public Result quitGroup(String[] encodedMemberIds, String encodedGroupId) {
-        return null;
+    public Result quitGroup(String[] encodedMemberIds, String encodedGroupId,String groupName) throws ServiceException {
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+
+                GroupMember[] groupMemberArray = new GroupMember[encodedMemberIds.length];
+                for(int i=0;i<encodedMemberIds.length;i++){
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.setId(encodedMemberIds[i]);
+                    groupMemberArray[i] = groupMember;
+                }
+                GroupModel groupModel = new GroupModel()
+                        .setId(encodedGroupId)
+                        .setMembers(groupMemberArray)
+                        .setName(groupName);
+
+                return rongCloud.group.quit(groupModel);
+            }
+        });
     }
 
     @Override

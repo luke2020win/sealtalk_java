@@ -227,8 +227,12 @@ public class GroupManager extends BaseManager {
         return groupAddStatusDTO;
     }
 
-    private void sendGroupNotificationMessage(Integer currentUserId, Integer groupId, Map<String, Object> messageData, String groupNotificationType) throws ServiceException {
-        rongCloudClient.sendGroupNotificationMessage(N3d.encode(currentUserId), N3d.encode(groupId), groupNotificationType, messageData, "", "");
+    private Result sendGroupNotificationMessage(Integer currentUserId, Integer groupId, Map<String, Object> messageData, String groupNotificationType) throws ServiceException {
+        return rongCloudClient.sendGroupNotificationMessage(N3d.encode(currentUserId), N3d.encode(groupId), groupNotificationType, messageData, "", "");
+    }
+
+    private Result sendGroupNotificationMessageBySystem(Integer groupId, Map<String, Object> messageData, String groupNotificationType) throws ServiceException {
+        return rongCloudClient.sendGroupNotificationMessage("__system__", N3d.encode(groupId), groupNotificationType, messageData, "", "");
     }
 
     /**
@@ -1437,9 +1441,17 @@ public class GroupManager extends BaseManager {
         groups.setCreatorId(userId);
         groupsService.updateByPrimaryKeySelective(groups);
         //变更当前用户角色为群组成员
-        groupMembersService.updateRoleAndTimestamp(groupId, currentUserId, GroupRole.MEMBER, timestamp);
+        GroupMembers groupMembers = new GroupMembers();
+        groupMembers.setRole(GroupRole.MEMBER.getCode());
+        groupMembers.setTimestamp(timestamp);
+        groupMembers.setUpdatedAt(new Date());
+        groupMembersService.updateByGroupIdAndMemberId(groupId, currentUserId, groupMembers);
         //变更被转让用户角色为群主
-        groupMembersService.updateRoleAndTimestamp(groupId, userId, GroupRole.CREATOR, timestamp);
+        GroupMembers groupMembers2 = new GroupMembers();
+        groupMembers2.setRole(GroupRole.CREATOR.getCode());
+        groupMembers2.setTimestamp(timestamp);
+        groupMembers2.setUpdatedAt(new Date());
+        groupMembersService.updateByGroupIdAndMemberId(groupId, userId, groupMembers2);
     }
 
 
@@ -1464,12 +1476,22 @@ public class GroupManager extends BaseManager {
     public void dismiss(Integer currentUserId, Integer groupId, String encodedGroupId) throws ServiceException {
 
         long timestamp = System.currentTimeMillis();
-        //TODO
+
         String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
+
+        //TODO
+        Example groupExample = new Example(Groups.class);
+        groupExample.createCriteria().andEqualTo("id", groupId)
+                .andEqualTo("creatorId", currentUserId);
+        Groups groups = groupsService.getOneByExample(groupExample);
+        if (groups == null) {
+            throw new ServiceException(ErrorCode.GROUP_OR_CREATOR_UNKNOW);
+        }
+
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("operatorNickname", nickname);
         messageData.put("timestamp", timestamp);
-        sendGroupNotificationMessage(currentUserId, groupId, messageData, GroupOperationType.GROUP_OPERATION_DISMISS);
+        Result res = sendGroupNotificationMessageBySystem(groupId, messageData, GroupOperationType.GROUP_OPERATION_DISMISS);
 
         try {
             Result result = rongCloudClient.dismiss(N3d.encode(currentUserId), encodedGroupId);
@@ -1477,7 +1499,12 @@ public class GroupManager extends BaseManager {
                 log.error("Error: dismiss group failed on IM server, code: {},errorMessage: {}", result.getCode(), result.getErrorMessage());
                 throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
             } else {
-                dismiss0(currentUserId, groupId, timestamp);
+                try {
+                    dismiss0(currentUserId, groupId, timestamp);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    throw new ServiceException(ErrorCode.GROUP_OR_CREATOR_UNKNOW);
+                }
                 //刷新数据版本
                 dataVersionsService.updateGroupMemberVersion(groupId, timestamp);
                 //清除相关缓存
@@ -1492,10 +1519,7 @@ public class GroupManager extends BaseManager {
                 CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
                 CacheUtil.delete(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
 
-                Example example1 = new Example(GroupFavs.class);
-                example1.createCriteria().andEqualTo("groupId", groupId);
-                groupFavsService.deleteByExample(example1);
-
+                groupFavsService.deleteByGroupIdAndUserId(groupId, null);
 
                 Example example2 = new Example(GroupReceivers.class);
                 example2.createCriteria().andEqualTo("groupId", groupId);
@@ -1513,44 +1537,45 @@ public class GroupManager extends BaseManager {
                     for (GroupReceivers groupReceivers1 : groupReceiversList) {
                         userIdList.add(groupReceivers1.getUserId());
                     }
-                    //TODO
-                    //发送群申请消息sendGroupApplyMessage TODO
-//                    sendGroupApplyMessage(currentUserId, userIdList, 0, GroupReceivers.GROUP_RECEIVE_STATUS_EXPIRED, groupId);
+                    sendGroupApplyMessage(N3d.encode(currentUserId), GroupOperationType.GROUP_OPERATION_DISMISS, nickname, MiscUtils.encodeIds(userIdList), encodedGroupId, groups.getName(), GroupReceivers.GROUP_RECEIVE_STATUS_EXPIRED, 0);
 
                     return;
                 }
             }
-
         } catch (Exception e) {
-            if (e instanceof ServiceException) {
-                throw e;
-            } else {
-                log.error("rongCloudClient dismiss error: " + e.getMessage(), e);
-                throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
-            }
+            log.error("rongCloudClient dismiss error: " + e.getMessage(), e);
+            throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
         }
     }
 
-    //Todo 事务控制
+
     public void dismiss0(Integer currentUserId, Integer groupId, long timestamp) throws ServiceException {
-        Groups groups = new Groups();
-        groups.setMemberCount(0);
-        Example example = new Example(Groups.class);
-        example.createCriteria().andEqualTo("id", groupId)
-                .andEqualTo("creatorId", currentUserId);
-        int affectedCount = groupsService.updateByExampleSelective(groups, example);
-        if (affectedCount == 0) {
-            throw new ServiceException(ErrorCode.GROUP_OR_CREATOR_UNKNOW);
-        }
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 
-        groupsService.deleteByPrimaryKey(groupId);
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                Groups groups = new Groups();
+                groups.setMemberCount(0);
+                Example example = new Example(Groups.class);
+                example.createCriteria().andEqualTo("id", groupId)
+                        .andEqualTo("creatorId", currentUserId);
+                int affectedCount = groupsService.updateByExampleSelective(groups, example);
+                if (affectedCount == 0) {
+                    throw new RuntimeException(ErrorCode.GROUP_OR_CREATOR_UNKNOW.getErrorMessage());
+                }
 
-        GroupMembers groupMembers = new GroupMembers();
-        groupMembers.setTimestamp(timestamp);
-        groupMembers.setIsDeleted(GroupMembers.IS_DELETED_YES);
-        Example example1 = new Example(GroupMembers.class);
-        example1.createCriteria().andEqualTo("groupId", groupId);
-        groupMembersService.updateByExampleSelective(groupMembers, example);
+                groupsService.deleteByPrimaryKey(groupId);
+
+                GroupMembers groupMembers = new GroupMembers();
+                groupMembers.setTimestamp(timestamp);
+                groupMembers.setIsDeleted(GroupMembers.IS_DELETED_YES);
+                groupMembers.setUpdatedAt(new Date());
+                Example example1 = new Example(GroupMembers.class);
+                example1.createCriteria().andEqualTo("groupId", groupId);
+                groupMembersService.updateByExampleSelective(groupMembers, example1);
+            }
+        });
+
     }
 
     /**
@@ -1582,7 +1607,7 @@ public class GroupManager extends BaseManager {
      * 8、然后刷新数据版本GroupMemberVersion
      * 9、清除相关缓存 user_groups_、group_、group_members_
      * 10、根据groupId,currentUserId 删除GroupFav表
-     * 11、根据groupId,currentUserId 保存或更新群组退出列表GroupExitedList
+     * 11、根据groupId,currentUserId 保存群组退出列表GroupExitedList
      *
      * @param currentUserId
      * @param groupId
@@ -1592,6 +1617,8 @@ public class GroupManager extends BaseManager {
     public String quitGroup(Integer currentUserId, Integer groupId, String encodedGroupId) throws ServiceException {
 
         long timestamp = System.currentTimeMillis();
+        Users currentUser = usersService.getByPrimaryKey(currentUserId);
+
         Groups groups = groupsService.getByPrimaryKey(groupId);
         if (groups == null) {
             throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR);
@@ -1600,7 +1627,7 @@ public class GroupManager extends BaseManager {
         Example example = new Example(GroupMembers.class);
         example.createCriteria().andEqualTo("groupId", groupId);
         List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
-
+        //判断退出者必须是群成员
         if (!isInGroupMember(groupMembersList, currentUserId)) {
             throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_3);
         }
@@ -1611,10 +1638,11 @@ public class GroupManager extends BaseManager {
             for (GroupMembers groupMembers : groupMembersList) {
                 if (!groupMembers.getMemberId().equals(currentUserId)) {
                     newCreatorId = groupMembers.getMemberId();
+                    break;
                 }
             }
         }
-        String nickName = usersService.getCurrentUserNickNameWithCache(currentUserId);
+        String nickName = currentUser.getNickname();
 
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("operatorNickname", nickName);
@@ -1624,25 +1652,21 @@ public class GroupManager extends BaseManager {
         messageData.put("newCreatorId", newCreatorId);
         messageData.put("timestamp", timestamp);
 
-        //发送退群通知 TODO
-        sendGroupNotificationMessage(currentUserId, groupId, messageData, GroupOperationType.GROUP_OPERATION_QUIT);
+        Result res = sendGroupNotificationMessage(currentUserId, groupId, messageData, GroupOperationType.GROUP_OPERATION_QUIT);
 
         //调用融云退群接口
-        Result result = null;
         try {
-            result = rongCloudClient.quitGroup(encodedMemberIds, encodedGroupId);
+            Result result = rongCloudClient.quitGroup(encodedMemberIds, encodedGroupId, groups.getName());
+            if (result != null && !Constants.CODE_OK.equals(result.getCode())) {
+                log.error("Error: quit group failed on IM server, code: {}", result.getCode());
+                throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
+            }
         } catch (Exception e) {
-            log.error("rongCloudClient quitGroup error: " + e.getMessage(), e);
+            log.error("Error: quit group failed on IM server, error:" + e.getMessage(), e);
             throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
         }
 
-
-        if (result != null && result.getCode() != 200) {
-            log.error("Error: quit group failed on IM server, code: {}", result.getCode());
-            throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
-        }
-
-        //分三种情况处理   (1)-(2)-(3) 在同一个事务里
+        //分三种情况处理
         String resultMessage = quitGroup0(currentUserId, groupId, timestamp, groups, newCreatorId);
 
         //刷新GroupMemberVersion数据版本
@@ -1653,45 +1677,67 @@ public class GroupManager extends BaseManager {
         CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
         CacheUtil.delete(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
 
-        Example example1 = new Example(GroupFavs.class);
-        example1.createCriteria().andEqualTo("groupId", groupId)
-                .andEqualTo("userId", currentUserId);
-        groupFavsService.deleteByExample(example1);
+        //删除群组通许录
+        groupFavsService.deleteByGroupIdAndUserId(groupId, ImmutableList.of(currentUserId));
 
-        //保存或更新群组退出列表
-        processGroupExitedList(groupId, currentUserId, currentUserId, Constants.KICK_STATUS_SELF);
+        //保存群组退出列表
+        groupExitedListsService.saveGroupExitedListItems(groups, ImmutableList.of(currentUser), currentUser, GroupExitedLists.QUITE_REASON_SELF);
         return resultMessage;
     }
 
-    //TODO 事务处理
     private String quitGroup0(Integer currentUserId, Integer groupId, long timestamp, Groups groups, Integer newCreatorId) {
-        String resultMessage = null;
-        if (!groups.getCreatorId().equals(currentUserId)) {
-            // (1)如果当前退出用户不是创建者
-            resultMessage = "Quit.";
-            groupsService.updateMemberCount(groupId, groups.getMemberCount() - 1, timestamp);
-            groupMembersService.updateDeleteStatus(groupId, currentUserId, true);
+        return transactionTemplate.execute(new TransactionCallback<String>() {
+            @Override
+            public String doInTransaction(TransactionStatus transactionStatus) {
+                String resultMessage = null;
+                if (!groups.getCreatorId().equals(currentUserId)) {
+                    // (1)如果当前退出用户不是创建者
+                    resultMessage = "Quit.";
+                    groupsService.updateMemberCount(groupId, groups.getMemberCount() - 1, timestamp);
 
-        } else if (groups.getMemberCount() > 1) {
-            //(2)如果当前退出用户是创建者，并且群成员数量大于1
-            resultMessage = "Quit and group owner transfered.";
-            groupsService.updateMemberCountAndCreatorId(groupId, groups.getMemberCount() - 1, timestamp, newCreatorId);
-            groupMembersService.updateDeleteStatusAndRole(groupId, currentUserId, GroupRole.MEMBER, timestamp, true);
-            groupMembersService.updateRoleAndTimestamp(groupId, currentUserId, GroupRole.CREATOR, timestamp);
+                    GroupMembers groupMembers = new GroupMembers();
+                    groupMembers.setTimestamp(timestamp);
+                    groupMembers.setIsDeleted(GroupMembers.IS_DELETED_YES);
+                    groupMembers.setUpdatedAt(new Date());
+                    groupMembersService.updateByGroupIdAndMemberId(groupId, currentUserId, groupMembers);
+                } else if (groups.getMemberCount() > 1) {
+                    //(2)如果当前退出用户是创建者，并且群成员数量大于1
+                    resultMessage = "Quit and group owner transfered.";
+                    groupsService.updateMemberCountAndCreatorId(groupId, groups.getMemberCount() - 1, timestamp, newCreatorId);
 
-        } else {
-            //(3)如果当前退出用户是创建者，并且群成员数量不大于1(只有群主自己),那么退群并解散！
-            resultMessage = "Quit and group dismissed.";
-            groupsService.updateMemberCount(groupId, 0, timestamp);
-            groupsService.deleteByPrimaryKey(groupId);
-            groupMembersService.updateDeleteStatus(groupId, true, timestamp);
-        }
+                    GroupMembers groupMembers = new GroupMembers();
+                    groupMembers.setRole(GroupRole.MEMBER.getCode());
+                    groupMembers.setTimestamp(timestamp);
+                    groupMembers.setIsDeleted(GroupMembers.IS_DELETED_YES);
+                    groupMembers.setUpdatedAt(new Date());
+                    groupMembersService.updateByGroupIdAndMemberId(groupId, currentUserId, groupMembers);
 
-        return resultMessage;
+                    GroupMembers groupMembers2 = new GroupMembers();
+                    groupMembers2.setRole(GroupRole.CREATOR.getCode());
+                    groupMembers2.setTimestamp(timestamp);
+                    groupMembers2.setUpdatedAt(new Date());
+                    groupMembersService.updateByGroupIdAndMemberId(groupId, newCreatorId, groupMembers2);
+
+                } else {
+                    //(3)如果当前退出用户是创建者，并且群成员数量不大于1(只有群主自己),那么退群并解散！
+                    resultMessage = "Quit and group dismissed.";
+                    groupsService.updateMemberCount(groupId, 0, timestamp);
+                    groupsService.deleteByPrimaryKey(groupId);
+
+                    GroupMembers groupMembers = new GroupMembers();
+                    groupMembers.setTimestamp(timestamp);
+                    groupMembers.setIsDeleted(GroupMembers.IS_DELETED_YES);
+                    groupMembers.setUpdatedAt(new Date());
+                    groupMembersService.updateByGroupId(groupId, groupMembers);
+                }
+
+                return resultMessage;
+            }
+        });
     }
 
     /**
-     * 群主或群管理将群成员踢出群组
+     * 群主或群管理员将群成员踢出群组
      * 1、校验参数合法性，不能踢出自己、不能踢出创建者
      * 2、根据groupId 查询 GroupMember，判断当前用户是否有权限踢人(只有群创建者或管理者才有权限踢人)
      * 3、校验memberIds 是否有空的情况、是否存在不是当前群的的成员Id
@@ -1705,7 +1751,7 @@ public class GroupManager extends BaseManager {
      * ====》调用失败，返回500错误，Quit failed on IM server.  调用失败不用回滚本地数据库！！！ 打印日志！！！！
      * 11、清除相关缓存 user_groups_、group_、group_members_
      * 12、根据groupId, memberIds 删除GroupFav表
-     * 13、根据memberIds 循环保存或更新群组退出列表GroupExitedList
+     * 13、保存群组退出列表GroupExitedList
      *
      * @param currentUserId
      * @param groupId
@@ -1720,6 +1766,7 @@ public class GroupManager extends BaseManager {
             throw new ServiceException(ErrorCode.CAN_NOT_KICK_YOURSELF);
         }
 
+        //查询群组信息
         Groups groups = groupsService.getByPrimaryKey(groupId);
 
         if (groups == null) {
@@ -1735,14 +1782,15 @@ public class GroupManager extends BaseManager {
 
         List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
 
-        Integer role = null;
+        Integer currentUserRole = null;
         if (!CollectionUtils.isEmpty(groupMembersList)) {
             for (GroupMembers groupMembers : groupMembersList) {
                 if (groupMembers.getMemberId().equals(currentUserId)) {
-                    role = groupMembers.getRole();
+                    currentUserRole = groupMembers.getRole();
+                    break;
                 }
             }
-            if (!GroupRole.MANAGER.getCode().equals(role) && !GroupRole.CREATOR.getCode().equals(role)) {
+            if (!GroupRole.MANAGER.getCode().equals(currentUserRole) && !GroupRole.CREATOR.getCode().equals(currentUserRole)) {
                 throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_3);
             }
         } else {
@@ -1771,10 +1819,11 @@ public class GroupManager extends BaseManager {
         dataVersionsService.updateGroupMemberVersion(groupId, timestamp);
 
         String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
-        List<Users> usersList = usersService.getUsers(memberIdList);
+        //被踢用户信息
+        List<Users> memberUserList = usersService.getUsers(memberIdList);
 
         List<String> nicknameList = new ArrayList<>();
-        for (Users u : usersList) {
+        for (Users u : memberUserList) {
             nicknameList.add(u.getNickname());
         }
 
@@ -1784,15 +1833,18 @@ public class GroupManager extends BaseManager {
         messageData.put("targetUserIds", encodeMemberIds);
         messageData.put("targetUserDisplayNames", nicknameList);
         messageData.put("timestamp", timestamp);
+
         sendGroupNotificationMessage(currentUserId, groupId, messageData, GroupOperationType.GROUP_OPERATION_KICKED);
 
         //调用融云退群接口
         try {
-            Result result = rongCloudClient.quitGroup(encodeMemberIds, encodeGroupId);
+            Result result = rongCloudClient.quitGroup(encodeMemberIds, encodeGroupId, groups.getName());
             if (!Constants.CODE_OK.equals(result.getCode())) {
+                log.error("Error: quit group failed on IM server, code: {}", result.getCode());
                 throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
             }
         } catch (Exception e) {
+            log.error("Error: quit group failed on IM server, error:" + e.getMessage(), e);
             throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
         }
 
@@ -1804,38 +1856,24 @@ public class GroupManager extends BaseManager {
         CacheUtil.delete(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
 
         //删除groupFav
-        Example example1 = new Example(GroupFavs.class);
-        example1.createCriteria().andEqualTo("groupId", groupId)
-                .andEqualTo("memberId", memberIdList);
-        groupFavsService.deleteByExample(example1);
+        groupFavsService.deleteByGroupIdAndUserId(groupId, memberIdList);
 
-        //保存或更新 群退出列表
-        for (Integer memberId : memberIdList) {
-            processGroupExitedList(groupId, memberId, currentUserId, Constants.KICK_STATUS_MANAGER);
+        //保存群退出列表
+        Users operatorUser = new Users();
+        operatorUser.setId(currentUserId);
+        operatorUser.setNickname(nickname);
+        Integer quitReason = null;
+        if (GroupRole.CREATOR.getCode().equals(currentUserRole)) {
+            quitReason = GroupExitedLists.QUITE_REASON_CREATOR;
+        } else if (GroupRole.MANAGER.getCode().equals(currentUserRole)) {
+            quitReason = GroupExitedLists.QUITE_REASON_MANAGER;
+        } else {
+            throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_3);
         }
+        groupExitedListsService.saveGroupExitedListItems(groups, memberUserList, operatorUser, quitReason);
         return;
     }
 
-    /**
-     * 新增或修改退群列表
-     * <p>
-     * //退群有两种情况： 自己主动退出、管理员踢
-     *
-     * @param groupId    群组id
-     * @param quitUserId 退出用户id
-     * @param operatorId 操作用户id
-     * @param kickStatus kickStatus=0 自己主动退出，  kickStatus=1 管理员踢
-     */
-    private void processGroupExitedList(Integer groupId, Integer quitUserId, Integer operatorId, Integer kickStatus) {
-        if(Constants.KICK_STATUS_SELF.equals(kickStatus)){
-            //自己主动退出
-            //TODO
-
-        }else {
-            //被管理员踢
-
-        }
-    }
 
     private void kickMember0(Integer groupId, Integer[] memberIds, long timestamp, Groups groups) {
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {

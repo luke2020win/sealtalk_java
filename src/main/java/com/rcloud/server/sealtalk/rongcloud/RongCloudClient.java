@@ -157,16 +157,17 @@ public interface RongCloudClient {
      * @param encodedGroupId
      * @return
      */
-    Result dismiss(String encodeUserId, String encodedGroupId);
+    Result dismiss(String encodeUserId, String encodedGroupId) throws ServiceException;
 
     /**
      * 用户退群
      *
      * @param encodedMemberIds
      * @param encodedGroupId
+     * @param groupName
      * @return
      */
-    Result quitGroup(String[] encodedMemberIds, String encodedGroupId);
+    Result quitGroup(String[] encodedMemberIds, String encodedGroupId ,String groupName) throws ServiceException;
 
     /**
      * 取消群组禁言

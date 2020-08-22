@@ -118,19 +118,19 @@ public class GroupController extends BaseController {
             @RequestParam String groupId,
             @ApiParam(name = "memberIds", value = "userId 列表", required = true, type = "Array", example = "18811111111")
             @RequestParam String[] memberIds,
-            @ApiParam(name = "encodeGroupId", value = "编码群组ID", required = true, type = "String", example = "86")
-            @RequestParam String encodeGroupId,
-            @ApiParam(name = "encodeMemberIds", value = "编码userId 列表", required = true, type = "Array", example = "18811111111")
-            @RequestParam String[] encodeMemberIds,
+            @ApiParam(name = "encodedGroupId", value = "编码群组ID", required = true, type = "String", example = "86")
+            @RequestParam String encodedGroupId,
+            @ApiParam(name = "encodedMemberIds", value = "编码userId 列表", required = true, type = "Array", example = "18811111111")
+            @RequestParam String[] encodedMemberIds,
             HttpServletRequest request
     ) throws ServiceException {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(memberIds);
-        ValidateUtils.notEmpty(encodeGroupId);
-        ValidateUtils.notEmpty(encodeMemberIds);
+        ValidateUtils.notEmpty(encodedGroupId);
+        ValidateUtils.notEmpty(encodedMemberIds);
 
         Integer currentUserId = getCurrentUserId(request);
-        groupManager.kickMember(currentUserId, Integer.valueOf(groupId), encodeGroupId,MiscUtils.toInteger(memberIds),encodeMemberIds);
+        groupManager.kickMember(currentUserId, Integer.valueOf(groupId), encodedGroupId,MiscUtils.toInteger(memberIds),encodedMemberIds);
 
         return APIResultWrap.ok("");
     }
