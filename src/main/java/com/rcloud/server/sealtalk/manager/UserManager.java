@@ -98,10 +98,7 @@ public class UserManager extends BaseManager {
      */
     public void sendCode(String region, String phone, SmsServiceType smsServiceType, ServerApiParams serverApiParams) throws ServiceException {
         log.info("send code. region:[{}] phone:[{}] smsServiceType:[{}]", region, phone, smsServiceType.getCode());
-        //如果是开发环境，且是调用云片服务直接返回，不执行后续逻辑
-        if (Constants.ENV_DEV.equals(profileConfig.getEnv()) && SmsServiceType.YUNPIAN.equals(smsServiceType)) {
-            return;
-        }
+
         region = MiscUtils.removeRegionPrefix(region);
         ValidateUtils.checkRegion(region);
         ValidateUtils.checkCompletePhone(phone);
