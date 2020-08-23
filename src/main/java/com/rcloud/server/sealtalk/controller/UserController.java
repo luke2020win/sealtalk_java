@@ -16,7 +16,6 @@ import com.rcloud.server.sealtalk.model.dto.SyncInfoDTO;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.*;
-import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -27,7 +26,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +67,7 @@ public class UserController extends BaseController {
     public APIResult<Object> sendCodeYp(@RequestBody UserParam userParam) throws ServiceException {
 
         String region = userParam.getRegion();
-        String phone  = userParam.getPhone();
+        String phone = userParam.getPhone();
 
         region = MiscUtils.removeRegionPrefix(region);
         ValidateUtils.checkRegion(region);
@@ -224,14 +222,11 @@ public class UserController extends BaseController {
      */
     @ApiOperation(value = "用户登录")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public APIResult<Object> login(@ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
-                                   @RequestParam String region,
-                                   @ApiParam(name = "phone", value = "电话号", required = true, type = "String", example = "188xxxxxxxx")
-                                   @RequestParam String phone,
-                                   @ApiParam(name = "password", value = "密码", required = true, type = "String", example = "xxx")
-                                   @RequestParam String password,
-                                   HttpServletResponse response
-    ) throws ServiceException {
+    public APIResult<Object> login(@RequestBody UserParam userParam, HttpServletResponse response) throws ServiceException {
+        String region = userParam.getRegion();
+        String phone = userParam.getPhone();
+        String password = userParam.getPassword();
+
         region = MiscUtils.removeRegionPrefix(region);
         ValidateUtils.checkRegionName(MiscUtils.getRegionName(region));
         ValidateUtils.checkCompletePhone(phone);
@@ -639,7 +634,7 @@ public class UserController extends BaseController {
     private void setCookie(HttpServletResponse response, int userId) {
 
         int salt = RandomUtil.randomBetween(1000, 9999);
-        String text = salt+Constants.SEPARATOR_NO+userId+Constants.SEPARATOR_NO+System.currentTimeMillis();
+        String text = salt + Constants.SEPARATOR_NO + userId + Constants.SEPARATOR_NO + System.currentTimeMillis();
 
         byte[] value = AES256.encrypt(text, sealtalkConfig.getAuthCookieKey());
 

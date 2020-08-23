@@ -64,10 +64,17 @@ public class DefaultRongCloudClient implements RongCloudClient {
         }
         String[] apiUrlArray = apiUrlStr.split(",");
         String mainUrl = apiUrlArray[0].trim();
+        if (!mainUrl.startsWith("http://")) {
+            mainUrl = "http://" + mainUrl;
+        }
         List<String> backUpUrlList = new ArrayList<>();
         if (apiUrlArray.length > 1) {
             for (int i = 1; i < apiUrlArray.length; i++) {
-                backUpUrlList.add(apiUrlArray[i].trim());
+                String backApiUrl = apiUrlArray[i].trim();
+                if (!backApiUrl.startsWith("http://")) {
+                    backApiUrl = "http://" + backApiUrl;
+                }
+                backUpUrlList.add(backApiUrl);
             }
         }
         rongCloud = RongCloud.getInstance(sealtalkConfig.getRongcloudAppKey(), sealtalkConfig.getRongcloudAppSecret(), mainUrl, backUpUrlList);
