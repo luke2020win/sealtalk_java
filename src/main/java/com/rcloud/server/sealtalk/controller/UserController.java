@@ -127,12 +127,11 @@ public class UserController extends BaseController {
      */
     @ApiOperation(value = "校验验证码(云片服务)")
     @RequestMapping(value = "/verify_code_yp", method = RequestMethod.POST)
-    public APIResult<Object> verifyCodeYP(@ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
-                                          @RequestParam String region,
-                                          @ApiParam(name = "phone", value = "电话号", required = true, type = "String", example = "188xxxxxxxx")
-                                          @RequestParam String phone,
-                                          @ApiParam(name = "code", value = "验证码", required = true, type = "String", example = "xxxxxx")
-                                          @RequestParam String code) throws ServiceException {
+    public APIResult<Object> verifyCodeYP(@RequestBody UserParam userParam) throws ServiceException {
+        String region = userParam.getRegion();
+        String phone = userParam.getPhone();
+        String code = userParam.getCode();
+
         ValidateUtils.checkRegion(region);
         ValidateUtils.checkCompletePhone(phone);
 
@@ -185,13 +184,11 @@ public class UserController extends BaseController {
      */
     @ApiOperation(value = "注册新用户")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public APIResult<Object> register(@ApiParam(name = "nickname", value = "昵称", required = true, type = "String", example = "xxx")
-                                      @RequestParam String nickname,
-                                      @ApiParam(name = "password", value = "密码", required = true, type = "String", example = "xxx")
-                                      @RequestParam String password,
-                                      @ApiParam(name = "verification_token", value = "校验Token", required = true, type = "String", example = "xxx")
-                                      @RequestParam String verification_token,
+    public APIResult<Object> register(@RequestBody UserParam userParam,
                                       HttpServletResponse response) throws ServiceException {
+        String nickname = userParam.getNickname();
+        String password = userParam.getPassword();
+        String verification_token = userParam.getVerification_token();
 
         nickname = MiscUtils.xss(nickname, ValidateUtils.NICKNAME_MAX_LENGTH);
         checkRegisterParam(nickname, password, verification_token);
