@@ -843,6 +843,18 @@ public class UserManager extends BaseManager {
     }
 
     /**
+     * 根据stAccount查询用户信息
+     *
+     * @param stAccount
+     * @return
+     */
+    public Users getUserByStAccount(String stAccount) {
+        Users u = new Users();
+        u.setStAccount(stAccount);
+        return usersService.getOne(u);
+    }
+
+    /**
      * 根据手机号查询用户信息
      *
      * @param region

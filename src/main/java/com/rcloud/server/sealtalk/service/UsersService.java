@@ -45,9 +45,5 @@ public class UsersService extends AbstractBaseService<Users, Integer> {
         Example example = new Example(Users.class);
         example.createCriteria().andIn("id",ids);
         return this.getByExample(example);
-
     }
-
-
-
 }

@@ -67,7 +67,6 @@ public class ValidateUtils {
     }
 
     public static void checkCompletePhone(String completePhone) throws ServiceException {
-
         if (!RegexUtils.checkMobile(completePhone)) {
             throw new ServiceException(ErrorCode.INVALID_REGION_PHONE);
         }

@@ -39,13 +39,11 @@ public class APIResultWrap {
         int errorCode = ex.getErrorCode();
         String errorMessage = ex.getErrorMessage();
 
-        return new APIResult<>(String.valueOf(errorCode),
-            errorMessage);
+        return new APIResult<>(String.valueOf(errorCode), errorMessage);
     }
 
     public static APIResult error(ErrorCode errorCode) {
-        return new APIResult<>(String.valueOf(errorCode.getErrorCode()),
-            errorCode.getErrorMessage());
+        return new APIResult<>(String.valueOf(errorCode.getErrorCode()), errorCode.getErrorMessage());
     }
 
     public static APIResult error(int code, String msg) {

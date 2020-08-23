@@ -19,6 +19,7 @@ import com.rcloud.server.sealtalk.util.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.bind.annotation.*;
 
@@ -474,6 +475,44 @@ public class UserController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "根据手机号查找用户信息")
+    @RequestMapping(value = "/find_user", method = RequestMethod.GET)
+    public APIResult<Object> getUserByPhoneOrAccount(@ApiParam(name = "region", value = "region", type = "String", example = "xxx")
+                                            @RequestParam(value = "region", required = false) String region,
+                                            @ApiParam(name = "phone", value = "phone", type = "String", example = "xxx")
+                                            @RequestParam(value = "phone", required = false) String phone,
+                                            @ApiParam(name = "account", value = "account", type = "String", example = "xxx")
+                                            @RequestParam(value = "account", required = false) String account,
+                                            HttpServletRequest request) throws ServiceException {
+
+        if((!Constants.REGION_NUM.equals(region) || !RegexUtils.checkMobile(phone)) && StringUtils.isEmpty(account)){
+            throw new ServiceException(ErrorCode.EMPTY_PARAMETER);
+        }
+
+        Map<String, Object> map = new HashMap<>();
+        if(Constants.REGION_NUM.equals(region) && RegexUtils.checkMobile(phone)) {
+            Users users = userManager.getUser(region, phone);
+            if (users != null) {
+                map.put("id", users.getId());
+                map.put("nickname", users.getNickname());
+                map.put("portraitUri", users.getPortraitUri());
+                return APIResultWrap.ok(MiscUtils.encodeResults(map));
+            }
+        }
+
+        if(StringUtils.isNotEmpty(account)) {
+            Users users = userManager.getUserByStAccount(account);
+            if (users != null) {
+                map.put("id", users.getId());
+                map.put("nickname", users.getNickname());
+                map.put("portraitUri", users.getPortraitUri());
+                return APIResultWrap.ok(MiscUtils.encodeResults(map));
+            }
+        }
+
+        return APIResultWrap.ok(MiscUtils.encodeResults(map), "查无此人");
+    }
+
     @ApiOperation(value = "获取用户信息")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public APIResult<Object> getUserInfo(@ApiParam(name = "id", value = "用户ID", required = true, type = "Integer", example = "xxx")
@@ -495,7 +534,6 @@ public class UserController extends BaseController {
             throw new ServiceException(ErrorCode.UNKNOW_USER);
         }
     }
-
 
     @ApiOperation(value = "获取通讯录群组")
     @RequestMapping(value = "/favgroups", method = RequestMethod.GET)
@@ -619,7 +657,6 @@ public class UserController extends BaseController {
         result.put("pokeStatus", users.getPokeStatus());
         return APIResultWrap.ok(MiscUtils.encodeResults(result));
     }
-
 
     /**
      * 设置AuthCookie
