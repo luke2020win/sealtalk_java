@@ -27,9 +27,11 @@ import io.rong.models.response.TokenResult;
 import io.rong.models.response.UserResult;
 import io.rong.models.user.UserModel;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +58,19 @@ public class DefaultRongCloudClient implements RongCloudClient {
 
     @PostConstruct
     public void postConstruct() {
-        rongCloud = RongCloud.getInstance(sealtalkConfig.getRongcloudAppKey(), sealtalkConfig.getRongcloudAppSecret());
+        String apiUrlStr = sealtalkConfig.getRongcloudApiUrl();
+        if (StringUtils.isEmpty(apiUrlStr)) {
+            throw new RuntimeException("rongcloud client init exception");
+        }
+        String[] apiUrlArray = apiUrlStr.split(",");
+        String mainUrl = apiUrlArray[0].trim();
+        List<String> backUpUrlList = new ArrayList<>();
+        if (apiUrlArray.length > 1) {
+            for (int i = 1; i < apiUrlArray.length; i++) {
+                backUpUrlList.add(apiUrlArray[i].trim());
+            }
+        }
+        rongCloud = RongCloud.getInstance(sealtalkConfig.getRongcloudAppKey(), sealtalkConfig.getRongcloudAppSecret(), mainUrl, backUpUrlList);
         User = rongCloud.user;
         BlackList = rongCloud.user.blackList;
         Private = rongCloud.message.msgPrivate;

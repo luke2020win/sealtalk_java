@@ -106,13 +106,15 @@ public class UserManager extends BaseManager {
         ValidateUtils.checkRegion(region);
         ValidateUtils.checkCompletePhone(phone);
 
+        String ip = serverApiParams.getRequestUriInfo().getIp();
+
         VerificationCodes verificationCodes = verificationCodesService.getByRegionAndPhone(region, phone);
         if (verificationCodes != null) {
             checkLimitTime(verificationCodes);
         }
         if (SmsServiceType.YUNPIAN.equals(smsServiceType)) {
-            //云片服务获取验证码，检查请求频率限制
-            checkRequestFrequency(serverApiParams);
+            //云片服务获取验证码，检查IP请求频率限制
+            checkRequestFrequency(ip);
         }
 
         //保存或更新verificationCodes、 发送验证码
@@ -120,53 +122,51 @@ public class UserManager extends BaseManager {
 
         //云片服务获取验证码 刷新请求频率限制指标数据
         if (SmsServiceType.YUNPIAN.equals(smsServiceType)) {
-            refreshRequestFrequency(serverApiParams, verificationCodes);
+            refreshRequestFrequency(ip);
         }
     }
 
     /**
      * 刷新ip请求频率
      *
-     * @param serverApiParams
-     * @param verificationCodes
+     * @param ip
      */
-    private void refreshRequestFrequency(ServerApiParams serverApiParams, VerificationCodes verificationCodes) {
+    private void refreshRequestFrequency(String ip) {
         //更新verification_violations ip地址访问时间次和数
-        if (serverApiParams != null && serverApiParams.getRequestUriInfo() != null && !StringUtils.isEmpty(serverApiParams.getRequestUriInfo().getIp())) {
-            VerificationViolations verificationViolations = verificationViolationsService.getByPrimaryKey(serverApiParams.getRequestUriInfo().getIp());
-            if (verificationViolations == null) {
-                verificationViolations = new VerificationViolations();
-                verificationViolations.setIp(serverApiParams.getRequestUriInfo().getIp());
+        VerificationViolations verificationViolations = verificationViolationsService.getByPrimaryKey(ip);
+        if (verificationViolations == null) {
+            verificationViolations = new VerificationViolations();
+            verificationViolations.setIp(ip);
+            verificationViolations.setCount(1);
+            verificationViolations.setTime(new Date());
+            verificationViolationsService.saveSelective(verificationViolations);
+        } else {
+            DateTime dateTime = new DateTime(new Date());
+            dateTime = dateTime.minusHours(sealtalkConfig.getYunpianLimitedTime());
+            Date limitDate = dateTime.toDate();
+            if (limitDate.after(verificationViolations.getTime())) {
+                //如果上次记录时间已经是1小时前，重置计数和开始时间
                 verificationViolations.setCount(1);
                 verificationViolations.setTime(new Date());
-                verificationViolationsService.saveSelective(verificationViolations);
             } else {
-                DateTime dateTime = new DateTime(new Date());
-                dateTime = dateTime.minusHours(sealtalkConfig.getYunpianLimitedTime());
-                Date limitDate = dateTime.toDate();
-                if (limitDate.after(verificationCodes.getUpdatedAt())) {
-                    //如果上次记录时间已经是1小时前，重置计数和开始时间
-                    verificationViolations.setCount(1);
-                    verificationViolations.setTime(new Date());
-                } else {
-                    verificationViolations.setCount(verificationViolations.getCount() + 1);
-                }
-                verificationViolationsService.updateByPrimaryKeySelective(verificationViolations);
+                verificationViolations.setCount(verificationViolations.getCount() + 1);
             }
+            verificationViolationsService.updateByPrimaryKeySelective(verificationViolations);
         }
+
     }
 
     /**
      * 发送短信并更新数据库
      */
-    private void upsertAndSendToSms(String region, String phone, SmsServiceType smsServiceType) throws ServiceException {
+    private VerificationCodes upsertAndSendToSms(String region, String phone, SmsServiceType smsServiceType) throws ServiceException {
         if (Constants.ENV_DEV.equals(profileConfig.getEnv())) {
             //开发环境直接插入数据库，不调用短信接口
-            verificationCodesService.saveOrUpdate(region, phone, "");
+            return verificationCodesService.saveOrUpdate(region, phone, "");
         } else {
             SmsService smsService = SmsServiceFactory.getSmsService(smsServiceType);
             String sessionId = smsService.sendVerificationCode(region, phone);
-            verificationCodesService.saveOrUpdate(region, phone, sessionId);
+            return verificationCodesService.saveOrUpdate(region, phone, sessionId);
         }
     }
 
@@ -197,23 +197,24 @@ public class UserManager extends BaseManager {
     /**
      * IP请求频率限制检查
      *
-     * @param serverApiParams
+     * @param ip
      * @throws ServiceException
      */
-    private void checkRequestFrequency(ServerApiParams serverApiParams) throws ServiceException {
+    private void checkRequestFrequency(String ip) throws ServiceException {
         Integer yunpianLimitedTime = sealtalkConfig.getYunpianLimitedTime();
         Integer yunpianLimitedCount = sealtalkConfig.getYunpianLimitedCount();
-
-        if (yunpianLimitedTime == null || yunpianLimitedCount == null) {
-            return;
+        if (yunpianLimitedTime == null) {
+            yunpianLimitedTime = 1;
         }
-        String ip = serverApiParams.getRequestUriInfo().getIp();
+
+        if (yunpianLimitedCount == null) {
+            yunpianLimitedCount = 20;
+        }
 
         VerificationViolations verificationViolations = verificationViolationsService.getByPrimaryKey(ip);
         if (verificationViolations == null) {
             return;
         }
-
 
         DateTime dateTime = new DateTime(new Date());
         Date sendDate = dateTime.minusHours(yunpianLimitedTime).toDate();

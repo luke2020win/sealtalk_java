@@ -20,10 +20,10 @@ import java.util.*;
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
  */
 @Slf4j
-@WebFilter(urlPatterns = "/*", filterName = "modifyParamFilter")
+//@WebFilter(urlPatterns = "/*", filterName = "modifyParamFilter")
 public class ModifyParamFilter implements Filter {
 
-    private static final String CONTENT_TYPE = "application/json";
+    private static final String CONTENT_TYPE = "application/json;charset=UTF-8";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -83,6 +83,7 @@ public class ModifyParamFilter implements Filter {
         requestWrapper.setParameterMap(parameterMap);
         chain.doFilter(requestWrapper, response);
     }
+
 
     public void jsonLeaf(JsonNode node) {
         if (node.isValueNode()) {

@@ -27,7 +27,7 @@ public class VerificationCodesService extends AbstractBaseService<VerificationCo
         return mapper;
     }
 
-    public void saveOrUpdate(String region, String phone, String sessionId) {
+    public VerificationCodes saveOrUpdate(String region, String phone, String sessionId) {
 
         Example example = new Example(VerificationCodes.class);
         example.createCriteria().andEqualTo("region",region)
@@ -54,6 +54,7 @@ public class VerificationCodesService extends AbstractBaseService<VerificationCo
             newVerificationCodes.setId(verificationCodes.getId());
             this.updateByPrimaryKeySelective(newVerificationCodes);
         }
+        return verificationCodes;
     }
 
     public VerificationCodes getByRegionAndPhone(String region, String phone) {
