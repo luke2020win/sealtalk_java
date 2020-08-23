@@ -66,7 +66,8 @@ public class MiscUtils {
     public static String hash(String text, int salt) {
         if (StringUtils.isEmpty(text)) {
             return null;
-        } else {
+        }
+        else {
             text = text + "|" + salt;
             return DigestUtils.sha1Hex(text);
         }

@@ -23,11 +23,11 @@ sealtalk-config:
   #  融云短信服务提供的注册用户短信模板 Id
   rongcloud_sms_register_template_id: 3931946
   #  融云颁发的 App Key
-  rongcloud_app_key: 'cpj2xarlche4n'
+  rongcloud_app_key: 'pvxdm17jpea2r'
   #  融云颁发的 App Secret
-  rongcloud_app_secret: 'QUtrcndCsZm7GU'
+  rongcloud_app_secret: 'iFQ6n1C8Uo'
   #融云 Api Url
-  rongcloud_api_url: 'api-sg01.ronghub.com'
+  rongcloud_api_url: 'api-cn.ronghub.com'
 
   #*************************************存储--七牛******************************************************#
   #七牛颁发的 Access Key
@@ -51,7 +51,7 @@ sealtalk-config:
   #跨域支持所需配置的域名信息，包括请求服务器的域名和端口号，如果是 80 端口可以省略端口号。如：http://web.sealtalk.im
   cors_hosts: 'http://localhost:8585'
   # 默认配置不需要修改
-  exclude_url: /misc/demo_square,/misc/latest_update, /user/verify_code_yp_t,/misc/client_version,/misc/mobile_version,/user/login,/user/register,/user/reset_password, /user/send_code, /user/send_code_yp,/user/verify_code, /user/verify_code_yp, /user/delete, /user/get_sms_img_code,/user/check_username_available,/user/check_phone_available,/user/regionlist,/ping
+  exclude_url: /misc/demo_square, /misc/latest_update, /user/verify_code_yp_t, /misc/client_version, /misc/mobile_version, /user/login, /user/register, /user/reset_password, /user/send_code, /user/send_code_yp, /user/verify_code, /user/verify_code_yp, /user/delete, /user/get_sms_img_code, /user/check_username_available, /user/check_phone_available, /user/regionlist, /ping
   #本服务部署的 HTTP 端口号
   server_port: '8585'
 

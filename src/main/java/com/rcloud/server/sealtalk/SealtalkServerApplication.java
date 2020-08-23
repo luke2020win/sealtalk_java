@@ -21,8 +21,7 @@ public class SealtalkServerApplication extends SpringBootServletInitializer {
 
     //为了打包springboot项目
     @Override
-    protected SpringApplicationBuilder configure(
-            SpringApplicationBuilder builder) {
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
         return builder.sources(this.getClass());
     }
 }

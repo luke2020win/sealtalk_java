@@ -335,7 +335,7 @@ public class UserController extends BaseController {
 
 
     @ApiOperation(value = "获取融云token")
-    @RequestMapping(value = "/get_token", method = RequestMethod.POST)
+    @RequestMapping(value = "/get_token", method = RequestMethod.GET)
     public APIResult<Object> getToken(HttpServletRequest request) throws ServiceException {
 
         Integer currentUserId = getCurrentUserId(request);
@@ -452,7 +452,6 @@ public class UserController extends BaseController {
         return APIResultWrap.ok(syncInfoDTO);
     }
 
-
     @ApiOperation(value = "根据手机号查找用户信息")
     @RequestMapping(value = "/find/{region}/{phone}", method = RequestMethod.POST)
     public APIResult<Object> getUserByPhone(@ApiParam(name = "region", value = "region", required = true, type = "String", example = "xxx")
@@ -476,7 +475,7 @@ public class UserController extends BaseController {
     }
 
     @ApiOperation(value = "获取用户信息")
-    @RequestMapping(value = "/{id}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public APIResult<Object> getUserInfo(@ApiParam(name = "id", value = "用户ID", required = true, type = "Integer", example = "xxx")
                                          @PathVariable("id") String id,
                                          HttpServletRequest request) throws ServiceException {

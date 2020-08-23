@@ -58,10 +58,8 @@ public class VerificationCodesService extends AbstractBaseService<VerificationCo
     }
 
     public VerificationCodes getByRegionAndPhone(String region, String phone) {
-
         Example example = new Example(VerificationCodes.class);
-        example.createCriteria().andEqualTo("region",region)
-                .andEqualTo("phone",phone);
+        example.createCriteria().andEqualTo("region",region).andEqualTo("phone",phone);
         return this.getOneByExample(example);
     }
 

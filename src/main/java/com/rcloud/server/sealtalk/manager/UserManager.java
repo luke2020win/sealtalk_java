@@ -105,10 +105,12 @@ public class UserManager extends BaseManager {
 
         String ip = serverApiParams.getRequestUriInfo().getIp();
 
+        // 获取最近一次发送验证码记录
         VerificationCodes verificationCodes = verificationCodesService.getByRegionAndPhone(region, phone);
         if (verificationCodes != null) {
             checkLimitTime(verificationCodes);
         }
+
         if (SmsServiceType.YUNPIAN.equals(smsServiceType)) {
             //云片服务获取验证码，检查IP请求频率限制
             checkRequestFrequency(ip);
@@ -200,6 +202,7 @@ public class UserManager extends BaseManager {
     private void checkRequestFrequency(String ip) throws ServiceException {
         Integer yunpianLimitedTime = sealtalkConfig.getYunpianLimitedTime();
         Integer yunpianLimitedCount = sealtalkConfig.getYunpianLimitedCount();
+
         if (yunpianLimitedTime == null) {
             yunpianLimitedTime = 1;
         }
@@ -340,10 +343,12 @@ public class UserManager extends BaseManager {
         param.setRegion(region);
         param.setPhone(phone);
         Users u = usersService.getOne(param);
+
         //判断用户是否存在
         if (u == null) {
             throw new ServiceException(ErrorCode.USER_NOT_EXIST);
         }
+
         //校验密码是否正确
         String passwordHash = MiscUtils.hash(password, Integer.valueOf(u.getPasswordSalt()));
 
@@ -368,6 +373,7 @@ public class UserManager extends BaseManager {
 
         //同步前记录日志
         log.info("'Sync groups: {}", groupsList);
+
         //调用融云sdk 将登录用户的userid，与groupIdName信息同步到融云
         try {
             Result result = rongCloudClient.syncGroupInfo(N3d.encode(u.getId()), groupsList);
@@ -380,6 +386,10 @@ public class UserManager extends BaseManager {
 
 
         String token = u.getRongCloudToken();
+        log.error("login id:" + u.getId());
+        log.error("login n3d id:" + N3d.encode(u.getId()));
+        log.error("login nickname:" + u.getNickname());
+        log.error("login portraitUri:" + u.getPortraitUri());
         if (StringUtils.isEmpty(token)) {
             //如果user表中的融云token为空，
             //调用融云sdk 获取token
