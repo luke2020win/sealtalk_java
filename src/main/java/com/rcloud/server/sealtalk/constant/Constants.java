@@ -15,11 +15,6 @@ public class Constants {
     public final static String REGION_NAME = "zh-CN";
     public static final String STRING_ADD = "+";
 
-    public final static String SMS_YUNPIAN_URL = "sms.yunpian.com";
-    public final static String US_YUNPIAN_URL = "us.yunpian.com";
-    public final static String YUNPIAN_TPL_URI = "/v2/tpl/get.json";
-
-    public static final String SERVER_API_PARAMS = "serverApiParams";
     public static final String ENV_DEV = "dev";
     public static final String VERIFICATION_TOKEN_KEY = "verification_token";
 
@@ -49,11 +44,5 @@ public class Constants {
     public static final String GrpApplyMessage_fromUserId = "__group_apply__";
 
     public static final Integer CODE_OK = 200;
-    public static final Integer KICK_STATUS_SELF = 0;
-    public static final Integer KICK_STATUS_MANAGER = 1;
-
-
-
-
 
 }

@@ -131,11 +131,11 @@ public class UserController extends BaseController {
         String region = userParam.getRegion();
         String phone = userParam.getPhone();
         String code = userParam.getCode();
+        region = MiscUtils.removeRegionPrefix(region);
 
         ValidateUtils.checkRegion(region);
         ValidateUtils.checkCompletePhone(phone);
 
-        region = MiscUtils.removeRegionPrefix(region);
         String token = userManager.verifyCode(region, phone, code, SmsServiceType.YUNPIAN);
         Map<String, String> result = new HashMap<>();
         result.put(Constants.VERIFICATION_TOKEN_KEY, token);
