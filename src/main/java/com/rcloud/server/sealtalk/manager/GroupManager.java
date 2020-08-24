@@ -661,7 +661,7 @@ public class GroupManager extends BaseManager {
      *
      * @param currentUserId
      * @param groupId
-     * @param memberProtection
+     * @param memberProtection  成员保护模式: 0 关闭、1 开启
      */
     public void setMemberProtection(Integer currentUserId, Integer groupId, Integer memberProtection) throws ServiceException {
 
@@ -672,40 +672,36 @@ public class GroupManager extends BaseManager {
         Groups groups = new Groups();
         groups.setId(groupId);
         groups.setMemberProtection(memberProtection);
-        groupsService.updateByPrimaryKey(groups);
+        //选择更新群保护设置
+        groupsService.updateByPrimaryKeySelective(groups);
 
         CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
         //发送群组通知
-        try {
-            sendGroupNtfMsg(currentUserId, groupId, operation, MessageType.GROUP_NOTIFICATION);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+        sendCustomerGroupNotificationMessage(currentUserId, groupId, operation);
     }
 
     /**
-     * 发送群组消息
+     * 发送自定义群组消息
      *
-     * @param currentUserId
-     * @param groupId
+     * @param operatorId
+     * @param targetId
      * @param operation
-     * @param groupNotificationType
+     * @param clearTime
+     * @return
      * @throws ServiceException
      */
-    private void sendGroupNtfMsg(Integer currentUserId, Integer groupId, String operation, MessageType groupNotificationType) throws ServiceException {
+    private Result sendCustomerGroupNotificationMessage(Integer operatorId, Integer targetId, String operation) throws ServiceException {
 
-        String encodeUserId = N3d.encode(currentUserId);
-        GroupMessage groupMessage = new GroupMessage();
-        groupMessage.setSenderId(encodeUserId);
-        groupMessage.setTargetId(MiscUtils.one2Array(N3d.encode(groupId)));
-        groupMessage.setObjectName(MessageType.GROUP_NOTIFICATION.getObjectName());
-
-        GroupNotificationMessage groupNotificationMessage = new GroupNotificationMessage(encodeUserId, operation, null, null, null);
-        groupMessage.setContent(groupNotificationMessage);
-        groupMessage.setIsIncludeSender(1);
-//        isMentioned: 0, TODO  新版本没找到此字段
-        rongCloudClient.sendGroupMessage(groupMessage);
+        return rongCloudClient.sendCustomerGroupNtfMessage(N3d.encode(operatorId),N3d.encode(targetId),operation);
     }
+
+
+    private Result sendCustomerConNtfMessage(Integer operatorId, Integer targetId, String operation) throws ServiceException {
+
+        return rongCloudClient.sendCustomerConNtfMessage(N3d.encode(operatorId),N3d.encode(targetId),operation);
+    }
+
+
 
     /**
      * 获取退群列表
@@ -823,12 +819,7 @@ public class GroupManager extends BaseManager {
 
         groupsService.updateByPrimaryKeySelective(group);
         //发送群组通知信息
-        try {
-            sendGroupNtfMsg(currentUserId, groupId, operation, MessageType.CON_NOTIFICATION);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new ServiceException(ErrorCode.SERVER_ERROR);
-        }
+        sendCustomerConNtfMessage(currentUserId, groupId,operation);
 
     }
 

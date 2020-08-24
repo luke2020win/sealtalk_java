@@ -1,5 +1,6 @@
 package com.rcloud.server.sealtalk.rongcloud;
 
+import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.rongcloud.message.GrpApplyMessage;
@@ -188,7 +189,7 @@ public interface RongCloudClient {
     Result setMuteStatus(String encode);
 
     /**
-     * 发送组通知消息
+     * 发送群组通知消息
      *
      * @param encodeOperatorUserId
      * @param encodeGroupId
@@ -199,6 +200,29 @@ public interface RongCloudClient {
      * @return
      */
     Result sendGroupNotificationMessage(String encodeOperatorUserId, String encodeGroupId, String operationType, Map<String, Object> messageData, String message, String extra) throws ServiceException;
+
+
+    /**
+     * 发送群组通知消息 ST:GrpNtf
+     * @param encodeUserId
+     * @param encodeTargetId
+     * @param operation
+     * @return
+     * @throws ServiceException
+     */
+    Result sendCustomerGroupNtfMessage(String encodeUserId,String encodeTargetId,String operation) throws ServiceException;
+
+
+    /**
+     * 发送群组通知消息 ST:ConNtf
+     * @param encodeUserId
+     * @param encodeTargetId
+     * @param operation
+     * @return
+     * @throws ServiceException
+     */
+    Result sendCustomerConNtfMessage(String encodeUserId,String encodeTargetId,String operation) throws ServiceException;
+
 
 
     /**

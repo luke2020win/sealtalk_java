@@ -4,6 +4,8 @@ import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.rongcloud.message.CustomerConNtfMessage;
+import com.rcloud.server.sealtalk.rongcloud.message.CustomerGroupNtfMessage;
 import com.rcloud.server.sealtalk.rongcloud.message.GrpApplyMessage;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
 import com.rcloud.server.sealtalk.util.N3d;
@@ -267,6 +269,48 @@ public class DefaultRongCloudClient implements RongCloudClient {
                 groupMessage.setSenderId(encodeOperatorUserId);
                 groupMessage.setObjectName(groupNotificationMessage.getType());
                 groupMessage.setContent(groupNotificationMessage);
+                return rongCloud.message.group.send(groupMessage);
+            }
+        });
+    }
+
+    @Override
+    public Result sendCustomerGroupNtfMessage(String encodeUserId, String encodeTargetId, String operation) throws ServiceException {
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                CustomerGroupNtfMessage customerGroupNtfMessage = new CustomerGroupNtfMessage();
+                customerGroupNtfMessage.setOperatorUserId(encodeUserId);
+                customerGroupNtfMessage.setOperation(operation);
+
+
+                GroupMessage groupMessage = new GroupMessage();
+                groupMessage.setTargetId(new String[]{encodeTargetId});
+                groupMessage.setSenderId(encodeUserId);
+                groupMessage.setObjectName(customerGroupNtfMessage.getType());
+                groupMessage.setContent(customerGroupNtfMessage);
+                groupMessage.setIsIncludeSender(1);
+                return rongCloud.message.group.send(groupMessage);
+            }
+        });
+    }
+
+    @Override
+    public Result sendCustomerConNtfMessage(String encodeUserId, String encodeTargetId, String operation) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                CustomerConNtfMessage customerConNtfMessage = new CustomerConNtfMessage();
+                customerConNtfMessage.setOperatorUserId(encodeUserId);
+                customerConNtfMessage.setOperation(operation);
+
+                GroupMessage groupMessage = new GroupMessage();
+                groupMessage.setTargetId(new String[]{encodeTargetId});
+                groupMessage.setSenderId(encodeUserId);
+                groupMessage.setObjectName(customerConNtfMessage.getType());
+                groupMessage.setContent(customerConNtfMessage);
+                groupMessage.setIsIncludeSender(1);
                 return rongCloud.message.group.send(groupMessage);
             }
         });
