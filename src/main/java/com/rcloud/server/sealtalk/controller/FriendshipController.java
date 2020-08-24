@@ -1,6 +1,8 @@
 package com.rcloud.server.sealtalk.controller;
 
 import com.rcloud.server.sealtalk.constant.ErrorCode;
+import com.rcloud.server.sealtalk.controller.param.InviteFriendParam;
+import com.rcloud.server.sealtalk.controller.param.UserParam;
 import com.rcloud.server.sealtalk.domain.Friendships;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.FriendShipManager;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -40,20 +43,42 @@ public class FriendshipController extends BaseController {
     @Resource
     private FriendShipManager friendShipManager;
 
+//    @ApiOperation(value = "发起添加好友")
+//    @RequestMapping(value = "/invite", method = RequestMethod.POST)
+//    public APIResult<Object> invite(
+//            @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
+//            @RequestParam String friendId,
+//            @ApiParam(name = "message", value = "message", required = true, type = "String", example = "xxx")
+//            @RequestParam("message") String message,
+//            HttpServletRequest request
+//    ) throws ServiceException {
+//
+//        message = MiscUtils.xss(message, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
+//        ValidateUtils.checkInviteMessage(message);
+//        Integer currentUserId = getCurrentUserId(request);
+//        InviteDTO inviteResponse = friendShipManager.invite(currentUserId, Integer.valueOf(friendId), message);
+//        return APIResultWrap.ok(inviteResponse);
+//    }
+
     @ApiOperation(value = "发起添加好友")
     @RequestMapping(value = "/invite", method = RequestMethod.POST)
-    public APIResult<Object> invite(
-            @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
-            @RequestParam String friendId,
-            @ApiParam(name = "message", value = "message", required = true, type = "String", example = "xxx")
-            @RequestParam("message") String message,
-            HttpServletRequest request
-    ) throws ServiceException {
+    public APIResult<Object> invite(@RequestBody InviteFriendParam inviteFriendParam) throws ServiceException {
+
+        if(inviteFriendParam == null) {
+            throw new ServiceException(ErrorCode.PARAMETER_ERROR);
+        }
+
+        String friendId = inviteFriendParam.getFriendId();
+        if(StringUtils.isEmpty(friendId)) {
+            throw new ServiceException(ErrorCode.PARAMETER_ERROR);
+        }
+
+        String message = inviteFriendParam.getMessage();
 
         message = MiscUtils.xss(message, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
         ValidateUtils.checkInviteMessage(message);
-        Integer currentUserId = getCurrentUserId(request);
-        InviteDTO inviteResponse = friendShipManager.invite(currentUserId, Integer.valueOf(friendId), message);
+        Integer currentUserId = getCurrentUserId(null);
+        InviteDTO inviteResponse = friendShipManager.invite(currentUserId, N3d.decode(friendId), message);
         return APIResultWrap.ok(inviteResponse);
     }
 

@@ -245,7 +245,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "用户注销")
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    public APIResult<Object> logout(HttpServletResponse response) throws ServiceException {
+    public APIResult<Object> logout(HttpServletResponse response) {
 
         Cookie newCookie = new Cookie(getSealtalkConfig().getAuthCookieName(), null);
         newCookie.setMaxAge(0);

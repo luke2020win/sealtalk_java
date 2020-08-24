@@ -119,6 +119,7 @@ public class RequestInterceptor implements HandlerInterceptor {
             Integer currentUserId = null;
             try {
                 currentUserId = getCurrentUserId(authCookie);
+                log.info("preHandle currentUserId:"+currentUserId);
                 serverApiParams.setCurrentUserId(currentUserId);
             } catch (Exception e) {
                 log.error("获取currentUserId异常,error: " + e.getMessage(), e);
@@ -143,12 +144,17 @@ public class RequestInterceptor implements HandlerInterceptor {
 
     private Integer getCurrentUserId(Cookie authCookie) throws ServiceException {
         String cookieValue = authCookie.getValue();
+        log.info("getCurrentUserId cookieValue:"+cookieValue);
         String decrypt = AES256.decrypt(cookieValue.getBytes(), sealtalkConfig.getAuthCookieKey());
+        log.info("getCurrentUserId decrypt:"+decrypt);
         assert decrypt != null;
         String[] split = decrypt.split(Constants.SEPARATOR_ESCAPE);
         if (split.length != 3) {
             throw new ServiceException(ErrorCode.COOKIE_ERROR, "Invalid cookie value!");
         }
+        log.info("getCurrentUserId split[0]:"+split[0]);
+        log.info("getCurrentUserId split[1]:"+split[1]);
+        log.info("getCurrentUserId split[2]:"+split[2]);
         return Integer.parseInt(split[1]);
     }
 
@@ -156,6 +162,7 @@ public class RequestInterceptor implements HandlerInterceptor {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
+                log.info("getAuthCookie "+cookie.getName()+"="+cookie.getValue());
                 if (cookie.getName().equals(sealtalkConfig.getAuthCookieName())) {
                     return cookie;
                 }
