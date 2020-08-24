@@ -21,6 +21,10 @@ public class UserParam {
     private String oldPassword;
     private String newPassword;
 
+    private String portraitUri;
+
+    private String stAccount;
+
     private String friendId;
     private String version;
     private String gender;
