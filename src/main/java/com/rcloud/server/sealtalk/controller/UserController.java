@@ -385,7 +385,7 @@ public class UserController extends BaseController {
 
 
     @ApiOperation(value = "获取七牛云存储token")
-    @RequestMapping(value = "/get_image_token", method = RequestMethod.POST)
+    @RequestMapping(value = "/get_image_token", method = RequestMethod.GET)
     public APIResult<Object> getImageToken() throws ServiceException {
 
         String token = userManager.getImageToken();
