@@ -144,6 +144,17 @@ public class GroupMembersService extends AbstractBaseService<GroupMembers, Integ
         this.updateByExampleSelective(groupMembers,example);
     }
 
+    public void updateByGroupIdAndMemberIds(Integer groupId,List<Integer> memberIdList,GroupMembers groupMembers){
+        Assert.notNull(groupId,"groupId is null");
+        Assert.notEmpty(memberIdList,"memberId is null");
+
+        Example example = new Example(GroupMembers.class);
+        example.createCriteria().andEqualTo("groupId",groupId)
+                .andIn("memberId",memberIdList);
+
+        this.updateByExampleSelective(groupMembers,example);
+    }
+
     public void updateByGroupId(Integer groupId,GroupMembers groupMembers){
         Assert.notNull(groupId,"groupId is null");
 

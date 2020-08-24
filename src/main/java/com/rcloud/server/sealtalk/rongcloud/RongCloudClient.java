@@ -134,22 +134,22 @@ public interface RongCloudClient {
     Result refreshGroupName(String encodedGroupId, String name);
 
     /**
-     * 移除白名单 TODO
+     * 移除群禁言白名单
      *
      * @param encodedGroupId
      * @param encodedMemberIds
      * @return
      */
-    Result removeGroupWhiteList(String encodedGroupId, String[] encodedMemberIds);
+    Result removeGroupWhiteList(String encodedGroupId, String[] encodedMemberIds) throws ServiceException;
 
     /**
-     * 新增白名单 TODO
+     * 新增群禁言白名单
      *
      * @param encodedGroupId
      * @param encodedMemberIds
      * @return
      */
-    Result addGroupWhitelist(String encodedGroupId, String[] encodedMemberIds);
+    Result addGroupWhitelist(String encodedGroupId, String[] encodedMemberIds) throws ServiceException;
 
     /**
      * 解散群组
@@ -219,4 +219,22 @@ public interface RongCloudClient {
      * @return
      */
     Result syncGroupInfo(String encodeUserId, List<Groups> groupsList) throws ServiceException;
+
+
+    /**
+     * 发送群公告通知
+     *
+     * @param fromUserId
+     * @param toGroupId
+     * @param content
+     * @param content 公告内容
+     * @param type  类型，1 表示 @ 所有人、2 表示 @ 指定用户
+     * @param userIds type 为 2 时有效，为 1 时 userIdList 可以为空
+     * @param mentionedContent  @ 消息的自定义 Push 内容
+     *
+     * @return
+     * @throws ServiceException
+     */
+    Result sendBulletinNotification(String fromUserId,String[] toGroupId,String content, Integer type, String[] userIds, String mentionedContent) throws ServiceException;
+
 }

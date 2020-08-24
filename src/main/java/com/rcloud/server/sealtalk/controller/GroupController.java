@@ -192,12 +192,12 @@ public class GroupController extends BaseController {
         return APIResultWrap.ok("");
     }
 
-    @ApiOperation(value = "批量删除管理员")
+    @ApiOperation(value = "批量增加管理员")
     @RequestMapping(value = "/set_manager", method = RequestMethod.POST)
     public APIResult<?> batchSetManager(
             @ApiParam(name = "groupId", value = "群组ID", required = true, type = "String", example = "86")
             @RequestParam String groupId,
-            @ApiParam(name = "memberIds", value = "删除管理员权限的用户列表", required = true, type = "Array", example = "86")
+            @ApiParam(name = "memberIds", value = "增加管理员权限的用户列表", required = true, type = "Array", example = "86")
             @RequestParam String[] memberIds,
             HttpServletRequest request) throws ServiceException {
 
@@ -227,6 +227,7 @@ public class GroupController extends BaseController {
         Integer[] memberIdsInt = MiscUtils.toInteger(memberIds);
         String[] encodedMemberIds = MiscUtils.encodeIds(memberIds);
         groupManager.batchRemoveManager(currentUserId, Integer.valueOf(groupId), memberIdsInt, encodedMemberIds);
+
         return APIResultWrap.ok("");
     }
 
@@ -247,6 +248,7 @@ public class GroupController extends BaseController {
 
         Integer currentUserId = getCurrentUserId(request);
         groupManager.rename(currentUserId, Integer.valueOf(groupId), name, encodedGroupId);
+
         return APIResultWrap.ok("");
     }
 
@@ -264,8 +266,22 @@ public class GroupController extends BaseController {
         return APIResultWrap.ok("");
     }
 
+    @ApiOperation(value = "删除群组通讯录")
+    @RequestMapping(value = "/fav", method = RequestMethod.DELETE)
+    public APIResult<?> deleteGroupFav(
+            @ApiParam(name = "groupId", value = "群组ID", required = true, type = "String", example = "86")
+            @RequestParam String groupId,
+            HttpServletRequest request) throws ServiceException {
+
+        ValidateUtils.notEmpty(groupId);
+
+        Integer currentUserId = getCurrentUserId(request);
+        groupManager.deletefav(currentUserId, Integer.valueOf(groupId));
+        return APIResultWrap.ok("");
+    }
+
     @ApiOperation(value = "发布群公告")
-    @RequestMapping(value = "/set_bulletin", method = RequestMethod.GET)
+    @RequestMapping(value = "/set_bulletin", method = RequestMethod.POST)
     public APIResult<?> setBulletin(
             @ApiParam(name = "groupId", value = "群组ID", required = true, type = "String", example = "86")
             @RequestParam String groupId,
@@ -283,6 +299,7 @@ public class GroupController extends BaseController {
 
         Integer currentUserId = getCurrentUserId(request);
         groupManager.setBulletin(currentUserId, Integer.valueOf(groupId), bulletin);
+
         return APIResultWrap.ok("");
     }
 
@@ -295,9 +312,7 @@ public class GroupController extends BaseController {
 
         ValidateUtils.notEmpty(groupId);
 
-        Integer currentUserId = getCurrentUserId(request);
-
-        GroupBulletins groupBulletins = groupManager.getBulletin(currentUserId, N3d.decode(groupId));
+        GroupBulletins groupBulletins = groupManager.getBulletin(N3d.decode(groupId));
         if (groupBulletins == null) {
             throw new ServiceException(ErrorCode.NO_GROUP_BULLETIN);
         }
@@ -356,9 +371,7 @@ public class GroupController extends BaseController {
 
         ValidateUtils.notEmpty(groupId);
 
-        Integer currentUserId = getCurrentUserId(request);
-
-        Groups group = groupManager.getGroupInfo(currentUserId, N3d.decode(groupId));
+        Groups group = groupManager.getGroupInfo( N3d.decode(groupId));
         Object object = MiscUtils.encodeResults(group, "id", "creatorId");
         return APIResultWrap.ok(object);
     }

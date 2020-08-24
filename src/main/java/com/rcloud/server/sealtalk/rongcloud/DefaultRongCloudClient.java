@@ -10,6 +10,7 @@ import com.rcloud.server.sealtalk.util.N3d;
 import io.rong.RongCloud;
 import io.rong.messages.ContactNtfMessage;
 import io.rong.messages.GroupNotificationMessage;
+import io.rong.messages.TxtMessage;
 import io.rong.methods.message._private.Private;
 import io.rong.methods.message.system.MsgSystem;
 import io.rong.methods.user.User;
@@ -18,9 +19,7 @@ import io.rong.models.Result;
 import io.rong.models.group.GroupMember;
 import io.rong.models.group.GroupModel;
 import io.rong.models.group.UserGroup;
-import io.rong.models.message.GroupMessage;
-import io.rong.models.message.PrivateMessage;
-import io.rong.models.message.SystemMessage;
+import io.rong.models.message.*;
 import io.rong.models.response.BlackListResult;
 import io.rong.models.response.ResponseResult;
 import io.rong.models.response.TokenResult;
@@ -316,6 +315,31 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
+    public Result sendBulletinNotification(String fromUserId, String[] toGroupId, String content, Integer type, String[] userIds, String mentionedContent) throws ServiceException {
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                TxtMessage txtMessage = new TxtMessage(content, "");
+                //@内容
+                MentionedInfo mentionedInfo = new MentionedInfo(type, userIds, mentionedContent);
+                //@消息的消息内容
+                MentionMessageContent mentionMessageContent = new MentionMessageContent(txtMessage, mentionedInfo);
+
+                MentionMessage mentionMessage = new MentionMessage()
+                        .setSenderId(fromUserId)
+                        .setTargetId(toGroupId)
+                        .setObjectName(txtMessage.getType())
+                        .setContent(mentionMessageContent)
+                        .setIsIncludeSender(1);
+                return rongCloud.message.group.sendMention(mentionMessage);
+
+            }
+        });
+
+    }
+
+    @Override
     public Result joinGroup(String[] memberIds, String groupId, String groupName) throws ServiceException {
         return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
             @Override
@@ -343,13 +367,45 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
-    public Result removeGroupWhiteList(String encode, String[] encodedMemberIds) {
-        return null;
+    public Result removeGroupWhiteList(String encodedGroupId, String[] encodedMemberIds) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+
+                GroupMember[] groupMembers = new GroupMember[encodedMemberIds.length];
+                for (int i = 0; i < encodedMemberIds.length; i++) {
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.setId(encodedMemberIds[i]);
+                    groupMembers[i] = groupMember;
+                }
+
+                GroupModel groupModel = new GroupModel()
+                        .setId(encodedGroupId)
+                        .setMembers(groupMembers);
+                return rongCloud.group.ban.whitelist.user.remove(groupModel);
+            }
+        });
     }
 
     @Override
-    public Result addGroupWhitelist(String encodedGroupId, String[] encodedMemberIds) {
-        return null;
+    public Result addGroupWhitelist(String encodedGroupId, String[] encodedMemberIds) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+
+                GroupMember[] groupMembers = new GroupMember[encodedMemberIds.length];
+                for (int i = 0; i < encodedMemberIds.length; i++) {
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.setId(encodedMemberIds[i]);
+                    groupMembers[i] = groupMember;
+                }
+
+                GroupModel groupModel = new GroupModel()
+                        .setId(encodedGroupId)
+                        .setMembers(groupMembers);
+                return rongCloud.group.ban.whitelist.user.add(groupModel);
+            }
+        });
     }
 
     @Override

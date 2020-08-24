@@ -231,6 +231,15 @@ public class GroupManager extends BaseManager {
         return rongCloudClient.sendGroupNotificationMessage(N3d.encode(currentUserId), N3d.encode(groupId), groupNotificationType, messageData, "", "");
     }
 
+    /**
+     * 发送群组通知： 操作人固定=》"__system__"
+     *
+     * @param groupId
+     * @param messageData
+     * @param groupNotificationType
+     * @return
+     * @throws ServiceException
+     */
     private Result sendGroupNotificationMessageBySystem(Integer groupId, Map<String, Object> messageData, String groupNotificationType) throws ServiceException {
         return rongCloudClient.sendGroupNotificationMessage("__system__", N3d.encode(groupId), groupNotificationType, messageData, "", "");
     }
@@ -970,10 +979,9 @@ public class GroupManager extends BaseManager {
 
     public List<GroupMembers> getGroupMembers(Integer currentUserId, int groupId) throws ServiceException {
 
-        String members = CacheUtil.get(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
-        if (members != null) {
-//            return JacksonUtil.jsonToBean(members,null); TODO
-            return null;
+        String membersJson = CacheUtil.get(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
+        if (!StringUtils.isEmpty(membersJson)) {
+            return JacksonUtil.fromJson(membersJson,List.class,GroupMembers.class);
         }
 
         Example example = new Example(GroupMembers.class);
@@ -1008,16 +1016,14 @@ public class GroupManager extends BaseManager {
     /**
      * 根据groupId获取群信息
      *
-     * @param currentUserId
      * @param groupId
      * @return
      */
-    public Groups getGroupInfo(Integer currentUserId, Integer groupId) throws ServiceException {
+    public Groups getGroupInfo( Integer groupId) throws ServiceException {
 
         String groupJson = CacheUtil.get(CacheUtil.GROUP_CACHE_PREFIX + groupId);
         if (groupJson != null) {
-//            return JacksonUtil.jsonToBean(groupJson,Groups.class); TODO
-            return null;
+            return JacksonUtil.fromJson(groupJson,Groups.class);
         }
 
         Groups groups = groupsService.getByPrimaryKey(groupId);
@@ -1052,7 +1058,7 @@ public class GroupManager extends BaseManager {
             throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR);
         }
 
-        dataVersionsService.updateGroupVersion(currentUserId, timestamp);
+        dataVersionsService.updateGroupVersion(groupId, timestamp);
 
         CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
 
@@ -1081,7 +1087,7 @@ public class GroupManager extends BaseManager {
         }
 
         //刷新数据版本
-        dataVersionsService.updateGroupVersion(currentUserId, timestamp);
+        dataVersionsService.updateGroupVersion(groupId, timestamp);
 
         //删除缓存
         Example example1 = new Example(GroupMembers.class);
@@ -1100,11 +1106,10 @@ public class GroupManager extends BaseManager {
     /**
      * 获取群公告
      *
-     * @param currentUserId
      * @param groupId
      * @return
      */
-    public GroupBulletins getBulletin(Integer currentUserId, Integer groupId) {
+    public GroupBulletins getBulletin(Integer groupId) {
 
         Example example = new Example(GroupBulletins.class);
         example.createCriteria().andEqualTo("groupId", groupId);
@@ -1119,12 +1124,14 @@ public class GroupManager extends BaseManager {
      * @param groupId
      * @param bulletin
      */
-    public void setBulletin(Integer currentUserId, Integer groupId, String bulletin) {
+    public void setBulletin(Integer currentUserId, Integer groupId, String bulletin) throws ServiceException {
         long timestamp = System.currentTimeMillis();
         GroupBulletins groupBulletins = new GroupBulletins();
         groupBulletins.setGroupId(groupId);
         groupBulletins.setContent(bulletin);
         groupBulletins.setTimestamp(timestamp);
+        groupBulletins.setCreatedAt(new Date());
+        groupBulletins.setUpdatedAt(groupBulletins.getCreatedAt());
         groupBulletinsService.saveSelective(groupBulletins);
 
         Example example = new Example(GroupMembers.class);
@@ -1137,25 +1144,17 @@ public class GroupManager extends BaseManager {
         }
 
         CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
-        if (!StringUtils.isEmpty(bulletin)) {
-            //获取当前用户昵称并发消息
-            String nickName = usersService.getCurrentUserNickNameWithCache(currentUserId);
-            //nickName没有用到？ TODO
-            sendBulletinNotification(currentUserId, groupId, bulletin);
+
+        String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
+        if (!StringUtils.isEmpty(bulletin) && !StringUtils.isEmpty(nickname)) {
+            //发布群通知
+            rongCloudClient.sendBulletinNotification(N3d.encode(currentUserId), new String[]{N3d.encode(groupId)}, bulletin, 1, null, "");
         }
 
         return;
     }
 
-    /**
-     * 发送公告通知
-     *
-     * @param currentUserId
-     * @param groupId
-     * @param bulletin
-     */
-    private void sendBulletinNotification(Integer currentUserId, Integer groupId, String bulletin) {
-    }
+
 
     /**
      * 保存群组到通信录
@@ -1206,35 +1205,39 @@ public class GroupManager extends BaseManager {
         Example example = new Example(Groups.class);
         example.createCriteria().andEqualTo("id", groupId)
                 .andEqualTo("creatorId", currentUserId);
-        int affectedCount = groupsService.updateByExample(groups, example);
+        //更新名称
+        int affectedCount = groupsService.updateByExampleSelective(groups, example);
 
         if (affectedCount == 0) {
             throw new ServiceException(ErrorCode.GROUP_OR_CREATOR_UNKNOW);
         }
-        dataVersionsService.updateGroupVersion(currentUserId, timestamp);
+        //刷新群数据版本
+        dataVersionsService.updateGroupVersion(groupId, timestamp);
 
         try {
+            //调用融云接口刷新群名称
             Result result = rongCloudClient.refreshGroupName(encodedGroupId, name);
 
             if (result.getCode() != 200) {
                 log.error("Error: refresh group info failed on IM server, code: {}", result.getCode());
             }
-
-
         } catch (Exception e) {
             log.error("Error: refresh group info failed on IM server, error: " + e.getMessage(), e);
         }
 
         groupSyncsService.saveOrUpdate(groups.getId(), GroupSyncs.VALID, null);
 
-        //TODO
+
         String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("operatorNickname", nickname);
         messageData.put("targetGroupName", name);
         messageData.put("timestamp", timestamp);
-        sendGroupNotificationMessage(currentUserId, groupId, messageData, GroupOperationType.GROUP_OPERATION_RENAME);
 
+        //发送群组重命名通知
+        sendGroupNotificationMessageBySystem(groupId, messageData, GroupOperationType.GROUP_OPERATION_RENAME);
+
+        // 清除相关缓存
         Example example1 = new Example(GroupMembers.class);
         example1.createCriteria().andEqualTo("groupId", groupId);
         List<GroupMembers> groupMembersList = groupMembersService.getByExample(example1);
@@ -1246,6 +1249,7 @@ public class GroupManager extends BaseManager {
 
         CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
 
+        //更新groupreceive中群名称
         Example example2 = new Example(GroupReceivers.class);
         example.createCriteria().andEqualTo("groupId", groupId);
         GroupReceivers groupReceivers = new GroupReceivers();
@@ -1267,7 +1271,9 @@ public class GroupManager extends BaseManager {
     public void batchRemoveManager(Integer currentUserId, Integer groupId, Integer[] memberIds, String[] encodedMemberIds) throws ServiceException {
 
         long timestamp = System.currentTimeMillis();
+
         setGroupMemberRole(groupId, memberIds, GroupRole.MEMBER, currentUserId, GroupOperationType.GROUP_OPERATION_REMOVEMANAGER);
+
         dataVersionsService.updateGroupMemberVersion(groupId, timestamp);
 
         CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
@@ -1296,16 +1302,77 @@ public class GroupManager extends BaseManager {
     }
 
     /**
-     * 设置群成员角色
+     * 批量设置群成员角色
      *
      * @param groupId
      * @param memberIds
-     * @param member
+     * @param role
      * @param currentUserId
-     * @param groupOperationRemovemanager
+     * @param operation
      */
-    // TODO
-    private void setGroupMemberRole(Integer groupId, Integer[] memberIds, GroupRole member, Integer currentUserId, String groupOperationRemovemanager) {
+    private void setGroupMemberRole(Integer groupId, Integer[] memberIds, GroupRole role, Integer currentUserId, String operation) throws ServiceException {
+        long timestamp = System.currentTimeMillis();
+
+        List<Integer> memberIdList = CollectionUtils.arrayToList(memberIds);
+
+        List<Integer> memberIdListWithMe = new ArrayList<>(memberIdList);
+        memberIdListWithMe.add(currentUserId);
+
+        Example example = new Example(GroupMembers.class);
+        example.createCriteria().andEqualTo("groupId", groupId)
+                .andIn("memberId", memberIdListWithMe);
+
+        List<GroupMembers> groupMemberList = groupMembersService.getByExample(example);
+
+        if (CollectionUtils.isEmpty(groupMemberList)) {
+            throw new ServiceException(ErrorCode.PARAMETER_ERROR);
+        }
+
+        boolean selfInGroup = false;
+        for (GroupMembers groupMembers : groupMemberList) {
+            if (groupMembers.getMemberId().equals(currentUserId)) {
+                selfInGroup = true;
+                // 判断是否是群主
+                if (!GroupRole.CREATOR.getCode().equals(groupMembers.getRole())) {
+                    throw new ServiceException(ErrorCode.NO_PERMISSION_SET_MANAGER);
+                }
+                break;
+            } else {
+                //判断的设置成员中是否有群主
+                if (GroupRole.CREATOR.getCode().equals(groupMembers.getRole())) {
+                    throw new ServiceException(ErrorCode.CAN_NOT_SET_CREATOR);
+                }
+            }
+        }
+
+        //判断自己是否在群成员中
+        if (!selfInGroup) {
+            throw new ServiceException(ErrorCode.NOT_IN_MEMBER);
+        }
+
+        //修改GroupMember role
+        GroupMembers groupMembers = new GroupMembers();
+        groupMembers.setRole(role.getCode());
+        groupMembersService.updateByGroupIdAndMemberIds(groupId, memberIdList, groupMembers);
+
+        //发送群组通知
+        String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
+        List<Users> users = usersService.getUsers(memberIdList);
+        List<String> targetUserDisplayNames = new ArrayList<>();
+        for (Users u : users) {
+            targetUserDisplayNames.add(u.getNickname());
+        }
+
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("operatorId", N3d.encode(currentUserId));
+        messageData.put("operatorNickname", nickname);
+        messageData.put("targetUserIds", MiscUtils.encodeIds(memberIdList));
+        messageData.put("targetUserDisplayNames", timestamp);
+        messageData.put("timestamp", timestamp);
+
+        sendGroupNotificationMessage(currentUserId, groupId, messageData, operation);
+
+
     }
 
 
@@ -1329,22 +1396,27 @@ public class GroupManager extends BaseManager {
         long timestamp = System.currentTimeMillis();
 
         setGroupMemberRole(groupId, memberIds, GroupRole.MANAGER, currentUserId, GroupOperationType.GROUP_OPERATION_SETMANAGER);
+
+        //刷新数据版本
         dataVersionsService.updateGroupMemberVersion(groupId, timestamp);
+        //清除缓存
         CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
         CacheUtil.delete(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
 
         Groups groups = groupsService.getByPrimaryKey(groupId);
 
+        //如果没有开启全员禁言，直接返回
         if (!Groups.MUTE_STATUS_OPENED.equals(groups.getIsMute())) {
             return;
         }
+        //如果开启了全员禁言，把新增加的管理员加入白名单
         try {
             Result result = rongCloudClient.addGroupWhitelist(N3d.encode(groupId), encodedMemberIds);
             if (result.getCode() == 200) {
                 return;
             } else {
                 log.error("invoke rongCloudClient addWhitelist error,result.code={}", result.getCode());
-                throw new ServiceException(result.getCode(), result.getErrorMessage(), HttpStatusCode.CODE_200.getCode());
+                throw new ServiceException(result.getCode(), result.getErrorMessage(), result.getCode());
             }
         } catch (Exception e) {
             log.error("Error: add group whitelist failed on IM server, error: {}" + e.getMessage(), e);
@@ -1387,6 +1459,19 @@ public class GroupManager extends BaseManager {
         if (groupMembersList == null || groupMembersList.size() != 2) {
             throw new ServiceException(ErrorCode.INVALID_GROUPID_USERID);
         }
+
+        boolean isCreator = false;
+        for (GroupMembers groupMembers : groupMembersList) {
+            if (currentUserId.equals(groupMembers.getMemberId()) && GroupRole.CREATOR.getCode().equals(groupMembers.getRole())) {
+                isCreator = true;
+                break;
+            }
+        }
+        //如果当前用户不是群主，不能转让群主
+        if (!isCreator) {
+            throw new ServiceException(ErrorCode.NOT_GROUP_CREATOR);
+        }
+
         //变更群主
         transferGroupCreator0(currentUserId, groupId, userId, timestamp);
 
@@ -1397,16 +1482,16 @@ public class GroupManager extends BaseManager {
         Groups groups = groupsService.getByPrimaryKey(groupId);
 
         if (!Groups.MUTE_STATUS_OPENED.equals(groups.getIsMute())) {
-            //如果全员禁言状态 否，直接删除GroupReverive 返回
+            //如果全员禁言状态为否，直接删除GroupReverive 返回
             groupReceiversService.deleteGroupReverive(groupId, currentUserId);
             return;
         } else {
-            //如果全员禁言状态 是，将新群主加入白名单，将当前用户(老群主)移除白名单
+            //如果全员禁言状态 是，将新群主加入群禁言 白名单，将当前用户(老群主)移除白名单
             try {
                 //将新群主加入白名单
                 Result result = rongCloudClient.addGroupWhitelist(N3d.encode(groupId), new String[]{N3d.encode(userId)});
                 if (result.getCode() == 200) {
-                    //将当前用户移除白名单
+                    //将老群主移除白名单
                     try {
                         Result result2 = rongCloudClient.removeGroupWhiteList(N3d.encode(groupId), new String[]{N3d.encode(currentUserId)});
                         if (result2.getCode() == 200) {
@@ -1423,11 +1508,24 @@ public class GroupManager extends BaseManager {
             }
         }
 
+        String currentUserNickName = usersService.getCurrentUserNickNameWithCache(currentUserId);
+        String userNickName = usersService.getCurrentUserNickNameWithCache(userId);
+        //发送群通知
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("operatorId", N3d.encode(currentUserId));
+        messageData.put("operatorNickname", currentUserNickName);
+        messageData.put("targetUserIds", ImmutableList.of(N3d.encode(userId)));
+        messageData.put("targetUserDisplayNames", userNickName);
+        messageData.put("timestamp", timestamp);
+
+        sendGroupNotificationMessageBySystem(groupId, messageData, GroupOperationType.GROUP_OPERATION_TRANSFER);
+
+
     }
 
 
     /**
-     * 变更群主 TODO  事务控制
+     * 变更群主
      *
      * @param currentUserId
      * @param groupId
@@ -1435,23 +1533,29 @@ public class GroupManager extends BaseManager {
      * @param timestamp
      */
     public void transferGroupCreator0(Integer currentUserId, Integer groupId, Integer userId, long timestamp) {
-        Groups groups = new Groups();
-        groups.setId(groupId);
-        groups.setTimestamp(timestamp);
-        groups.setCreatorId(userId);
-        groupsService.updateByPrimaryKeySelective(groups);
-        //变更当前用户角色为群组成员
-        GroupMembers groupMembers = new GroupMembers();
-        groupMembers.setRole(GroupRole.MEMBER.getCode());
-        groupMembers.setTimestamp(timestamp);
-        groupMembers.setUpdatedAt(new Date());
-        groupMembersService.updateByGroupIdAndMemberId(groupId, currentUserId, groupMembers);
-        //变更被转让用户角色为群主
-        GroupMembers groupMembers2 = new GroupMembers();
-        groupMembers2.setRole(GroupRole.CREATOR.getCode());
-        groupMembers2.setTimestamp(timestamp);
-        groupMembers2.setUpdatedAt(new Date());
-        groupMembersService.updateByGroupIdAndMemberId(groupId, userId, groupMembers2);
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+
+                Groups groups = new Groups();
+                groups.setId(groupId);
+                groups.setTimestamp(timestamp);
+                groups.setCreatorId(userId);
+                groupsService.updateByPrimaryKeySelective(groups);
+                //变更当前用户角色为群组成员
+                GroupMembers groupMembers = new GroupMembers();
+                groupMembers.setRole(GroupRole.MEMBER.getCode());
+                groupMembers.setTimestamp(timestamp);
+                groupMembers.setUpdatedAt(new Date());
+                groupMembersService.updateByGroupIdAndMemberId(groupId, currentUserId, groupMembers);
+                //变更被转让用户角色为群主
+                GroupMembers groupMembers2 = new GroupMembers();
+                groupMembers2.setRole(GroupRole.CREATOR.getCode());
+                groupMembers2.setTimestamp(timestamp);
+                groupMembers2.setUpdatedAt(new Date());
+                groupMembersService.updateByGroupIdAndMemberId(groupId, userId, groupMembers2);
+            }
+        });
     }
 
 
@@ -1894,5 +1998,15 @@ public class GroupManager extends BaseManager {
                 groupMembersService.updateByExampleSelective(groupMembers, example1);
             }
         });
+    }
+
+    /**
+     * 删除群组通讯录
+     *
+     * @param currentUserId
+     * @param groupId
+     */
+    public void deletefav(Integer currentUserId, Integer groupId) {
+        groupFavsService.deleteByGroupIdAndUserId(groupId, ImmutableList.of(currentUserId));
     }
 }
