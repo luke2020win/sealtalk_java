@@ -29,12 +29,4 @@ public class FriendshipParam {
     private String imageUri;
 
 
-    public static void main(String[] args) throws ServiceException {
-        FriendshipParam friendshipParam = new FriendshipParam();
-        String[] contactList = {"18810183286","18810183285"};
-        friendshipParam.setContactList(contactList);
-        System.out.println(JacksonUtil.toJson(contactList));
-    }
-
-
 }

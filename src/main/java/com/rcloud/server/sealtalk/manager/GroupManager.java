@@ -16,6 +16,7 @@ import com.rcloud.server.sealtalk.util.N3d;
 import io.rong.messages.GroupNotificationMessage;
 import io.rong.models.Result;
 import io.rong.models.message.GroupMessage;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.BeanUtils;
@@ -745,9 +746,9 @@ public class GroupManager extends BaseManager {
      * @return
      * @throws ServiceException
      */
-    public GroupMembers getMemberInfo(String groupId, String memberId) throws ServiceException {
+    public GroupMembers getMemberInfo(Integer groupId, Integer memberId) throws ServiceException {
 
-        GroupMembers groupMembers = groupMembersService.getGroupMember(Integer.valueOf(groupId), Integer.valueOf(memberId));
+        GroupMembers groupMembers = groupMembersService.getGroupMember(groupId, memberId);
 
         //TODO getDeleted
         if (groupMembers == null || GroupMembers.IS_DELETED_YES.equals(groupMembers.getIsDeleted())) {
@@ -769,9 +770,9 @@ public class GroupManager extends BaseManager {
      * @param alipay
      * @param memberDesc
      */
-    public void setMemberInfo(String groupId, String memberId, String groupNickname, String region, String phone, String weChat, String alipay, String[] memberDesc) throws ServiceException {
+    public void setMemberInfo(Integer groupId, Integer memberId, String groupNickname, String region, String phone, String weChat, String alipay, String[] memberDesc) throws ServiceException {
 
-        GroupMembers groupMembers = groupMembersService.getGroupMember(Integer.valueOf(groupId), Integer.valueOf(memberId));
+        GroupMembers groupMembers = groupMembersService.getGroupMember(groupId, memberId);
 
         if (groupMembers == null || GroupMembers.IS_DELETED_YES.equals(groupMembers.getIsDeleted())) {
             throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER);
@@ -801,7 +802,7 @@ public class GroupManager extends BaseManager {
      * @param groupId
      * @param clearStatus   清理选项 0-》关闭、 3-》清理 3 天前、 7-》清理 7 天前、 36-》清理 36 小时前
      */
-    public void setRegularClear(Integer currentUserId, String groupId, Integer clearStatus) throws ServiceException {
+    public void setRegularClear(Integer currentUserId, Integer groupId, Integer clearStatus) throws ServiceException {
 
         String operation = "openRegularClear";
 
@@ -809,21 +810,21 @@ public class GroupManager extends BaseManager {
             operation = "closeRegularClear";
         }
 
-        GroupMembers groupMembers = groupMembersService.getGroupMember(Integer.valueOf(groupId), currentUserId);
+        GroupMembers groupMembers = groupMembersService.getGroupMember(groupId, currentUserId);
 
         if (groupMembers == null || !GroupRole.CREATOR.getCode().equals(groupMembers.getRole())) {
             throw new ServiceException(ErrorCode.NOT_GROUP_OWNER);
         }
 
         Groups group = new Groups();
-        group.setId(Integer.valueOf(groupId));
+        group.setId(groupId);
         group.setClearStatus(clearStatus);
         group.setClearTimeAt(System.currentTimeMillis());
 
         groupsService.updateByPrimaryKeySelective(group);
         //发送群组通知信息
         try {
-            sendGroupNtfMsg(currentUserId, Integer.valueOf(groupId), operation, MessageType.CON_NOTIFICATION);
+            sendGroupNtfMsg(currentUserId, groupId, operation, MessageType.CON_NOTIFICATION);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(ErrorCode.SERVER_ERROR);
@@ -849,7 +850,7 @@ public class GroupManager extends BaseManager {
      * @param muteStatus    禁言状态：0 关闭 1 开启
      * @param userIds       可发言用户，不传全员禁言，仅群组和管理员可发言
      */
-    public void setMuteAll(Integer currentUserId, Integer groupId, Integer muteStatus, String[] userIds) throws ServiceException {
+    public void setMuteAll(Integer currentUserId, Integer groupId, Integer muteStatus, Integer[] userIds) throws ServiceException {
 
         if (Groups.MUTE_STATUS_CLOSE.equals(muteStatus)) {
             //如果是取消禁言
@@ -880,7 +881,7 @@ public class GroupManager extends BaseManager {
                     .andIn("role", ImmutableList.of(GroupRole.CREATOR.getCode(), GroupRole.MANAGER.getCode()));
             List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
 
-            List<Integer> memberIds = CollectionUtils.arrayToList(MiscUtils.toInteger(userIds));
+            List<Integer> memberIds = CollectionUtils.arrayToList(userIds);
 
             if (!CollectionUtils.isEmpty(groupMembersList)) {
                 for (GroupMembers groupMembers : groupMembersList) {
@@ -1225,7 +1226,7 @@ public class GroupManager extends BaseManager {
             log.error("Error: refresh group info failed on IM server, error: " + e.getMessage(), e);
         }
 
-        groupSyncsService.saveOrUpdate(groups.getId(), GroupSyncs.VALID, null);
+        groupSyncsService.saveOrUpdate(groupId, GroupSyncs.VALID, null);
 
 
         String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
@@ -1251,7 +1252,7 @@ public class GroupManager extends BaseManager {
 
         //更新groupreceive中群名称
         Example example2 = new Example(GroupReceivers.class);
-        example.createCriteria().andEqualTo("groupId", groupId);
+        example2.createCriteria().andEqualTo("groupId", groupId);
         GroupReceivers groupReceivers = new GroupReceivers();
         groupReceivers.setGroupName(name);
         groupReceiversService.updateByExampleSelective(groupReceivers, example2);

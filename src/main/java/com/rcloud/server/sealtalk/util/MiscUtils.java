@@ -269,12 +269,12 @@ public class MiscUtils {
         return null;
     }
 
-    public static String[] decodeIds(String[] ids) throws ServiceException {
+    public static Integer[] decodeIds(String[] ids) throws ServiceException {
         if(ArrayUtils.isNotEmpty(ids)){
-            String[] result = new String[ids.length];
+            Integer[] result = new Integer[ids.length];
 
             for(int i=0;i<ids.length;i++){
-                result[i] = String.valueOf(N3d.decode(ids[i]));
+                result[i] = N3d.decode(ids[i]);
             }
 
             return result;

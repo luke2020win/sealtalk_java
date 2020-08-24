@@ -132,7 +132,7 @@ public interface RongCloudClient {
      * @param name
      * @return
      */
-    Result refreshGroupName(String encodedGroupId, String name);
+    Result refreshGroupName(String encodedGroupId, String name) throws ServiceException;
 
     /**
      * 移除群禁言白名单

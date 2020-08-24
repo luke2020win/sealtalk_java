@@ -8,21 +8,16 @@ import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.model.RequestUriInfo;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.util.AES256;
-import com.rcloud.server.sealtalk.util.JacksonUtil;
-import com.rcloud.server.sealtalk.util.N3d;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
-import sun.rmi.runtime.Log;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -33,13 +28,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @Date: 2020/7/6
  * @Description:
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
- *
+ * <p>
  * 拦截器应用场景
  * 1.日志记录：记录请求信息的日志，以便进行信息监控、信息统计、计算PV（Page View）等；
  * 2.登录鉴权：如登录检测，进入处理器检测检测是否登录；
  * 3.性能监控：检测方法的执行时间；
  * 4.其他通用行为
- *
+ * <p>
  * 拦截器与 Filter 过滤器的区别
  * 1.拦截器是基于java的反射机制的，而过滤器是基于函数回调。
  * 2.拦截器不依赖于servlet容器，而过滤器依赖于servlet容器。
@@ -47,7 +42,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 4.拦截器可以访问action上下文、值栈里的对象，而过滤器不能访问。
  * 5.在Controller的生命周期中，拦截器可以多次被调用，而过滤器只能在容器初始化时被调用一次。
  * 6.拦截器可以获取IOC容器中的各个bean，而过滤器不行。这点很重要，在拦截器里注入一个service，可以调用业务逻辑。
- *
  */
 @Component
 @Slf4j
@@ -89,26 +83,13 @@ public class RequestInterceptor implements HandlerInterceptor {
         String uri = request.getRequestURI();
         log.info("preHandle uri={}", uri);
 
-        String userAgent = request.getHeader("User-Agent");
-        if (userAgent.length() > 50) {
-            userAgent = userAgent.substring(50);
-        }
-        String method = request.getMethod();
-        Map<String, String[]> parameterMap = request.getParameterMap();
-
-        Map<String, String[]> tempParameterMap = new HashMap<>(parameterMap);
         RequestUriInfo requestUriInfo = getRequestUriInfo(request);
         log.info("preHandle requestUriInfo: ip={}, remoteAddress={},uri={}", requestUriInfo.getIp(), requestUriInfo.getRemoteAddress(), requestUriInfo.getUri());
         serverApiParams.setRequestUriInfo(requestUriInfo);
 
-        if (excludeUrlSet.contains(uri)) {
-            //排除auth认证的url
-            if (parameterMap.containsKey("password")) {
-                tempParameterMap.put("password", new String[]{"**********"});
-            }
-            log.info("preHandle requtest info: userAgent={},method={},uri={},parameters={},traceId={} ", userAgent, method, uri, JacksonUtil.toJson(tempParameterMap),serverApiParams.getTraceId());
+        if (!excludeUrlSet.contains(uri)) {
+            //不在排除auth认证的url，需要进行身份认证
 
-        } else {
             Cookie authCookie = getAuthCookie(request);
             if (authCookie == null) {
                 response.setStatus(403);
@@ -119,7 +100,7 @@ public class RequestInterceptor implements HandlerInterceptor {
             Integer currentUserId = null;
             try {
                 currentUserId = getCurrentUserId(authCookie);
-                log.info("preHandle currentUserId:"+currentUserId);
+                log.info("preHandle currentUserId:" + currentUserId);
                 serverApiParams.setCurrentUserId(currentUserId);
             } catch (Exception e) {
                 log.error("获取currentUserId异常,error: " + e.getMessage(), e);
@@ -130,7 +111,7 @@ public class RequestInterceptor implements HandlerInterceptor {
                 response.getWriter().write("Invalid cookie value");
                 return false;
             }
-            log.info("preHandle requtest info: userAgent={},method={},uri={},parameters={},traceId={},{} ", userAgent,  method, uri, JacksonUtil.toJson(tempParameterMap),serverApiParams.getTraceId(),N3d.encode(currentUserId));
+
         }
         ServerApiParamHolder.put(serverApiParams);
         return true;
@@ -144,17 +125,15 @@ public class RequestInterceptor implements HandlerInterceptor {
 
     private Integer getCurrentUserId(Cookie authCookie) throws ServiceException {
         String cookieValue = authCookie.getValue();
-        log.info("getCurrentUserId cookieValue:"+cookieValue);
+        log.info("getCurrentUserId cookieValue:{}", cookieValue);
         String decrypt = AES256.decrypt(cookieValue.getBytes(), sealtalkConfig.getAuthCookieKey());
-        log.info("getCurrentUserId decrypt:"+decrypt);
+        log.info("getCurrentUserId decrypt:{}", decrypt);
         assert decrypt != null;
         String[] split = decrypt.split(Constants.SEPARATOR_ESCAPE);
         if (split.length != 3) {
             throw new ServiceException(ErrorCode.COOKIE_ERROR, "Invalid cookie value!");
         }
-        log.info("getCurrentUserId split[0]:"+split[0]);
-        log.info("getCurrentUserId split[1]:"+split[1]);
-        log.info("getCurrentUserId split[2]:"+split[2]);
+        log.info("getCurrentUserId {},{},{}", split[0], split[1], split[2]);
         return Integer.parseInt(split[1]);
     }
 
@@ -162,7 +141,7 @@ public class RequestInterceptor implements HandlerInterceptor {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                log.info("getAuthCookie "+cookie.getName()+"="+cookie.getValue());
+                log.info("getAuthCookie " + cookie.getName() + "=" + cookie.getValue());
                 if (cookie.getName().equals(sealtalkConfig.getAuthCookieName())) {
                     return cookie;
                 }

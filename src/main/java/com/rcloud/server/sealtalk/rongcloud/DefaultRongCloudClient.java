@@ -364,8 +364,18 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
-    public Result refreshGroupName(String encodedGroupId, String name) {
-        return null;
+    public Result refreshGroupName(String encodedGroupId, String name) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                GroupModel group = new GroupModel()
+                        .setId(encodedGroupId)
+                        .setName(name);
+
+                return rongCloud.group.update(group);
+            }
+        });
+
     }
 
     @Override
