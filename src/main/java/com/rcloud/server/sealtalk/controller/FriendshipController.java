@@ -4,11 +4,10 @@ import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.controller.param.FriendshipParam;
 import com.rcloud.server.sealtalk.controller.param.InviteFriendParam;
 import com.rcloud.server.sealtalk.domain.Friendships;
+import com.rcloud.server.sealtalk.domain.Users;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.FriendShipManager;
-import com.rcloud.server.sealtalk.model.dto.ContractInfoDTO;
-import com.rcloud.server.sealtalk.model.dto.FriendDTO;
-import com.rcloud.server.sealtalk.model.dto.InviteDTO;
+import com.rcloud.server.sealtalk.model.dto.*;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.MiscUtils;
@@ -18,12 +17,16 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: xiuwei.nie
@@ -118,14 +121,39 @@ public class FriendshipController extends BaseController {
     @RequestMapping(value = "/all", method = RequestMethod.GET)
     public APIResult<Object> friendList() throws ServiceException {
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
         Integer currentUserId = getCurrentUserId();
 
         List<Friendships> friendshipsList = friendShipManager.getFriendList(currentUserId);
 
-        //TODO 时间字段处理
-//        friendshipsList = MiscUtils.addUpdateTimeToList(friendshipsList);
-        Object object = MiscUtils.encodeResults(friendshipsList, "users.id");
-        return APIResultWrap.ok(object);
+        List<FriendShipDTO> friendShipDTOS = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(friendshipsList)) {
+            for (Friendships friendships : friendshipsList) {
+                FriendShipDTO dto = new FriendShipDTO();
+                dto.setDisplayName(friendships.getDisplayName());
+                dto.setMessage(friendships.getMessage());
+                dto.setStatus(friendships.getStatus());
+
+                dto.setUpdatedAt(sdf.format(friendships.getUpdatedAt()));
+                dto.setUpdatedTime(friendships.getUpdatedAt().getTime());
+                UserDTO userDTO = new UserDTO();
+                Users users = friendships.getUsers();
+                if (users != null) {
+                    userDTO.setId(N3d.encode(users.getId()));
+                    userDTO.setNickname(users.getNickname());
+                    userDTO.setPortraitUri(users.getPortraitUri());
+                    userDTO.setRegion(users.getRegion());
+                    userDTO.setPhone(users.getPhone());
+                    userDTO.setGender(users.getGender());
+                    userDTO.setStAccount(users.getStAccount());
+                }
+                dto.setUser(userDTO);
+                friendShipDTOS.add(dto);
+            }
+        }
+
+        return APIResultWrap.ok(friendShipDTOS);
     }
 
 
@@ -137,12 +165,25 @@ public class FriendshipController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
 
-        Friendships result = friendShipManager.getFriendProfile(currentUserId, N3d.decode(friendId));
+        Friendships friendships = friendShipManager.getFriendProfile(currentUserId, N3d.decode(friendId));
 
-        //TODO
-//        result = MiscUtils.addUpdateTimeToList(result);
-        Object object = MiscUtils.encodeResults(result, "users.id");
-        return APIResultWrap.ok(object);
+        Map<String, Object> resultMap = new HashMap<>();
+
+        if (friendships != null) {
+            resultMap.put("displayName", friendships.getDisplayName());
+            Map<String, Object> userMap = new HashMap<>();
+            Users users = friendships.getUsers();
+            if (users != null) {
+                userMap.put("id", N3d.encode(users.getId()));
+                userMap.put("nickname", users.getNickname());
+                userMap.put("region", users.getRegion());
+                userMap.put("phone", users.getPhone());
+                userMap.put("portraitUri", users.getPortraitUri());
+            }
+            resultMap.put("user", userMap);
+        }
+
+        return APIResultWrap.ok(resultMap);
     }
 
 
