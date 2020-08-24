@@ -29,7 +29,7 @@ sealtalk-config:
   #融云 Api Url
   rongcloud_api_url: 'api-cn.ronghub.com'
   #默认头像地址
-  rongcloud_default_portrait_url: ''
+  rongcloud_default_portrait_url: 'http://download.hotchatvip.com/default_hotchat_avatar.png'
 
   #*************************************存储--七牛******************************************************#
   #七牛颁发的 Access Key
