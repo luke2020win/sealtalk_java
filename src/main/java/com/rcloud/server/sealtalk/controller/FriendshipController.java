@@ -1,8 +1,8 @@
 package com.rcloud.server.sealtalk.controller;
 
 import com.rcloud.server.sealtalk.constant.ErrorCode;
+import com.rcloud.server.sealtalk.controller.param.FriendshipParam;
 import com.rcloud.server.sealtalk.controller.param.InviteFriendParam;
-import com.rcloud.server.sealtalk.controller.param.UserParam;
 import com.rcloud.server.sealtalk.domain.Friendships;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.FriendShipManager;
@@ -14,7 +14,6 @@ import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.MiscUtils;
 import com.rcloud.server.sealtalk.util.N3d;
 import com.rcloud.server.sealtalk.util.ValidateUtils;
-import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -23,8 +22,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,33 +41,16 @@ public class FriendshipController extends BaseController {
     @Resource
     private FriendShipManager friendShipManager;
 
-//    @ApiOperation(value = "发起添加好友")
-//    @RequestMapping(value = "/invite", method = RequestMethod.POST)
-//    public APIResult<Object> invite(
-//            @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
-//            @RequestParam String friendId,
-//            @ApiParam(name = "message", value = "message", required = true, type = "String", example = "xxx")
-//            @RequestParam("message") String message,
-//            HttpServletRequest request
-//    ) throws ServiceException {
-//
-//        message = MiscUtils.xss(message, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
-//        ValidateUtils.checkInviteMessage(message);
-//        Integer currentUserId = getCurrentUserId();
-//        InviteDTO inviteResponse = friendShipManager.invite(currentUserId, Integer.valueOf(friendId), message);
-//        return APIResultWrap.ok(inviteResponse);
-//    }
-
     @ApiOperation(value = "发起添加好友")
     @RequestMapping(value = "/invite", method = RequestMethod.POST)
     public APIResult<Object> invite(@RequestBody InviteFriendParam inviteFriendParam) throws ServiceException {
 
-        if(inviteFriendParam == null) {
+        if (inviteFriendParam == null) {
             throw new ServiceException(ErrorCode.PARAMETER_ERROR);
         }
 
         String friendId = inviteFriendParam.getFriendId();
-        if(StringUtils.isEmpty(friendId)) {
+        if (StringUtils.isEmpty(friendId)) {
             throw new ServiceException(ErrorCode.PARAMETER_ERROR);
         }
 
@@ -85,65 +66,63 @@ public class FriendshipController extends BaseController {
 
     @ApiOperation(value = "同意添加好友")
     @RequestMapping(value = "/agree", method = RequestMethod.POST)
-    public APIResult<Object> agree(
-            @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
-            @RequestParam String friendId,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<Object> agree(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+
+        String friendId = friendshipParam.getFriendId();
+        ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
-        friendShipManager.agree(currentUserId, Integer.valueOf(friendId));
+        friendShipManager.agree(currentUserId, N3d.decode(friendId));
         return APIResultWrap.ok("");
     }
 
     @ApiOperation(value = "忽略好友请求")
     @RequestMapping(value = "/ignore", method = RequestMethod.POST)
-    public APIResult<Object> ignore(
-            @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
-            @RequestParam String friendId,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<Object> ignore(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+        String friendId = friendshipParam.getFriendId();
+        ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
-        friendShipManager.ignore(currentUserId, Integer.valueOf(friendId));
+        friendShipManager.ignore(currentUserId, N3d.decode(friendId));
         return APIResultWrap.ok("");
     }
 
     @ApiOperation(value = "删除好友")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    public APIResult<Object> delete(
-            @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
-            @RequestParam String friendId,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<Object> delete(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+
+        String friendId = friendshipParam.getFriendId();
+        ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
-        friendShipManager.delete(currentUserId, Integer.valueOf(friendId));
+        friendShipManager.delete(currentUserId, N3d.decode(friendId));
         return APIResultWrap.ok("");
     }
 
     @ApiOperation(value = "设置好友备注名")
     @RequestMapping(value = "/set_display_name", method = RequestMethod.POST)
-    public APIResult<Object> setDisplayName(
-            @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
-            @RequestParam String friendId,
-            @ApiParam(name = "displayName", value = "好友备注名", required = true, type = "String", example = "xxx")
-            @RequestParam String displayName,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<Object> setDisplayName(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
 
+        String friendId = friendshipParam.getFriendId();
+        ValidateUtils.notEmpty(friendId);
+
+        String displayName = friendshipParam.getDisplayName();
         displayName = MiscUtils.xss(displayName, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
         ValidateUtils.checkDisplayName(displayName);
         Integer currentUserId = getCurrentUserId();
-        friendShipManager.setDisplayName(currentUserId, Integer.valueOf(friendId), displayName);
+        friendShipManager.setDisplayName(currentUserId, N3d.decode(friendId), displayName);
         return APIResultWrap.ok("");
     }
 
     @ApiOperation(value = "获取好友列表")
     @RequestMapping(value = "/all", method = RequestMethod.GET)
-    public APIResult<Object> friendList(HttpServletRequest request) throws ServiceException {
+    public APIResult<Object> friendList() throws ServiceException {
 
         Integer currentUserId = getCurrentUserId();
 
         List<Friendships> friendshipsList = friendShipManager.getFriendList(currentUserId);
 
-        //TODO
+        //TODO 时间字段处理
 //        friendshipsList = MiscUtils.addUpdateTimeToList(friendshipsList);
         Object object = MiscUtils.encodeResults(friendshipsList, "users.id");
         return APIResultWrap.ok(object);
@@ -154,8 +133,7 @@ public class FriendshipController extends BaseController {
     @RequestMapping(value = "/{friendId}/profile", method = RequestMethod.GET)
     public APIResult<Object> getFriendProfile(
             @ApiParam(name = "friendId", value = "好友 Id", required = true, type = "String", example = "xxx")
-            @PathVariable String friendId,
-            HttpServletRequest request) throws ServiceException {
+            @PathVariable String friendId) throws ServiceException {
 
         Integer currentUserId = getCurrentUserId();
 
@@ -170,10 +148,9 @@ public class FriendshipController extends BaseController {
 
     @ApiOperation(value = "获取通讯录朋友信息列表")
     @RequestMapping(value = "/get_contacts_info", method = RequestMethod.POST)
-    public APIResult<?> getContactsInfo(
-            @ApiParam(name = "contacstList", value = "手机号列表", required = true, type = "String[]", example = "xxx")
-            @RequestParam String[] contactList,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<?> getContactsInfo(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+        String[] contactList = friendshipParam.getContactList();
+        ValidateUtils.notEmpty(contactList);
 
         Integer currentUserId = getCurrentUserId();
         List<ContractInfoDTO> contractInfoDTOList = friendShipManager.getContactsInfo(currentUserId, contactList);
@@ -182,13 +159,18 @@ public class FriendshipController extends BaseController {
 
     @ApiOperation(value = "批量删除好友")
     @RequestMapping(value = "/batch_delete", method = RequestMethod.POST)
-    public APIResult<?> batchDelete(
-            @ApiParam(name = "friendIds", value = "好友ID列表", required = true, type = "String[]", example = "xxx")
-            @RequestParam String[] friendIds,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<?> batchDelete(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+        String[] friendIds = friendshipParam.getFriendIds();
+        ValidateUtils.notEmpty(friendIds);
+
+        List<Integer> decodeFriendIds = new ArrayList<>();
+        for (String friendId : friendIds) {
+            decodeFriendIds.add(N3d.decode(friendId));
+        }
 
         Integer currentUserId = getCurrentUserId();
-        friendShipManager.batchDelete(currentUserId, friendIds);
+
+        friendShipManager.batchDelete(currentUserId, decodeFriendIds);
         return APIResultWrap.ok("");
     }
 
@@ -197,32 +179,20 @@ public class FriendshipController extends BaseController {
      * ->不传默认为不进行设置
      * ->传空字符串,将设置为空
      *
-     * @param friendId
-     * @param displayName
-     * @param region
-     * @param phone
-     * @param description
-     * @param imageUri
-     * @param request
+     * @param friendshipParam
      * @return
      * @throws ServiceException
      */
     @ApiOperation(value = "设置朋友备注和描述")
     @RequestMapping(value = "/set_friend_description", method = RequestMethod.POST)
-    public APIResult<?> setFriendDescription(
-            @ApiParam(name = "friendId", value = "好友ID", required = true, type = "String", example = "xxx")
-            @RequestParam String friendId,
-            @ApiParam(name = "displayName", value = "备注", required = false, type = "String", example = "xxx")
-            @RequestParam(required = false) String displayName,
-            @ApiParam(name = "region", value = "国家区号", required = false, type = "String", example = "xxx")
-            @RequestParam(required = false) String region,
-            @ApiParam(name = "phone", value = "手机号", required = false, type = "String", example = "xxx")
-            @RequestParam(required = false) String phone,
-            @ApiParam(name = "description", value = "更多描述", required = false, type = "String", example = "xxx")
-            @RequestParam(required = false) String description,
-            @ApiParam(name = "imageUri", value = "照片地址", required = false, type = "String", example = "xxx")
-            @RequestParam(required = false) String imageUri,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<?> setFriendDescription(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+
+        String friendId = friendshipParam.getFriendId();
+        String region = friendshipParam.getRegion();
+        String phone = friendshipParam.getPhone();
+        String displayName = friendshipParam.getDisplayName();
+        String description = friendshipParam.getDescription();
+        String imageUri = friendshipParam.getImageUri();
 
         if (StringUtils.isEmpty(friendId)) {
             return APIResultWrap.error(ErrorCode.PARAM_ERROR);
@@ -237,7 +207,7 @@ public class FriendshipController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
 
-        friendShipManager.setFriendDescription(currentUserId, friendId, displayName, region, phone, description, imageUri);
+        friendShipManager.setFriendDescription(currentUserId, N3d.decode(friendId), displayName, region, phone, description, imageUri);
 
         return APIResultWrap.ok("");
     }
@@ -245,10 +215,8 @@ public class FriendshipController extends BaseController {
 
     @ApiOperation(value = "获取朋友备注和描述")
     @RequestMapping(value = "/get_friend_description", method = RequestMethod.POST)
-    public APIResult<?> getFriendDescription(
-            @ApiParam(name = "friendId", value = "好友ID", required = true, type = "String", example = "xxx")
-            @RequestParam String friendId,
-            HttpServletRequest request) throws ServiceException {
+    public APIResult<?> getFriendDescription(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+        String friendId = friendshipParam.getFriendId();
 
         if (StringUtils.isEmpty(friendId)) {
             return APIResultWrap.error(ErrorCode.PARAM_ERROR);
