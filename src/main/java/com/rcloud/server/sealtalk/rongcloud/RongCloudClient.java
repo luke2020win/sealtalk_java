@@ -22,8 +22,9 @@ import java.util.Map;
  */
 public interface RongCloudClient {
 
+
     /**
-     * 注册并获取token
+     * 注册并获取token 通过调用sdk的方式
      *
      * @param encodeId 用户id  n3d编码
      * @param name     昵称
@@ -227,14 +228,13 @@ public interface RongCloudClient {
      * @param fromUserId
      * @param toGroupId
      * @param content
-     * @param content 公告内容
-     * @param type  类型，1 表示 @ 所有人、2 表示 @ 指定用户
-     * @param userIds type 为 2 时有效，为 1 时 userIdList 可以为空
-     * @param mentionedContent  @ 消息的自定义 Push 内容
-     *
+     * @param content          公告内容
+     * @param type             类型，1 表示 @ 所有人、2 表示 @ 指定用户
+     * @param userIds          type 为 2 时有效，为 1 时 userIdList 可以为空
+     * @param mentionedContent @ 消息的自定义 Push 内容
      * @return
      * @throws ServiceException
      */
-    Result sendBulletinNotification(String fromUserId,String[] toGroupId,String content, Integer type, String[] userIds, String mentionedContent) throws ServiceException;
+    Result sendBulletinNotification(String fromUserId, String[] toGroupId, String content, Integer type, String[] userIds, String mentionedContent) throws ServiceException;
 
 }

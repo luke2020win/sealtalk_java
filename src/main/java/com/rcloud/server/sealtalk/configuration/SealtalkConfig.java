@@ -29,6 +29,8 @@ public class SealtalkConfig {
     private String rongcloudAppSecret;
     @Value("${sealtalk-config.rongcloud_api_url}")
     private String rongcloudApiUrl;
+    @Value("${sealtalk-config.rongcloud_default_portrait_url}")
+    private String rongcloudDefaultPortraitUrl;         //默认头像地址
 
     @Value("${sealtalk-config.qiniu_access_key}")
     private String qiniuAccessKey;

@@ -55,7 +55,7 @@ public class FriendshipController extends BaseController {
 //
 //        message = MiscUtils.xss(message, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
 //        ValidateUtils.checkInviteMessage(message);
-//        Integer currentUserId = getCurrentUserId(request);
+//        Integer currentUserId = getCurrentUserId();
 //        InviteDTO inviteResponse = friendShipManager.invite(currentUserId, Integer.valueOf(friendId), message);
 //        return APIResultWrap.ok(inviteResponse);
 //    }
@@ -77,7 +77,7 @@ public class FriendshipController extends BaseController {
 
         message = MiscUtils.xss(message, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
         ValidateUtils.checkInviteMessage(message);
-        Integer currentUserId = getCurrentUserId(null);
+        Integer currentUserId = getCurrentUserId();
         InviteDTO inviteResponse = friendShipManager.invite(currentUserId, N3d.decode(friendId), message);
         return APIResultWrap.ok(inviteResponse);
     }
@@ -90,7 +90,7 @@ public class FriendshipController extends BaseController {
             @RequestParam String friendId,
             HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         friendShipManager.agree(currentUserId, Integer.valueOf(friendId));
         return APIResultWrap.ok("");
     }
@@ -102,7 +102,7 @@ public class FriendshipController extends BaseController {
             @RequestParam String friendId,
             HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         friendShipManager.ignore(currentUserId, Integer.valueOf(friendId));
         return APIResultWrap.ok("");
     }
@@ -114,7 +114,7 @@ public class FriendshipController extends BaseController {
             @RequestParam String friendId,
             HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         friendShipManager.delete(currentUserId, Integer.valueOf(friendId));
         return APIResultWrap.ok("");
     }
@@ -130,7 +130,7 @@ public class FriendshipController extends BaseController {
 
         displayName = MiscUtils.xss(displayName, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
         ValidateUtils.checkDisplayName(displayName);
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         friendShipManager.setDisplayName(currentUserId, Integer.valueOf(friendId), displayName);
         return APIResultWrap.ok("");
     }
@@ -139,7 +139,7 @@ public class FriendshipController extends BaseController {
     @RequestMapping(value = "/all", method = RequestMethod.GET)
     public APIResult<Object> friendList(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         List<Friendships> friendshipsList = friendShipManager.getFriendList(currentUserId);
 
@@ -157,7 +157,7 @@ public class FriendshipController extends BaseController {
             @PathVariable String friendId,
             HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         Friendships result = friendShipManager.getFriendProfile(currentUserId, N3d.decode(friendId));
 
@@ -175,7 +175,7 @@ public class FriendshipController extends BaseController {
             @RequestParam String[] contactList,
             HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         List<ContractInfoDTO> contractInfoDTOList = friendShipManager.getContactsInfo(currentUserId, contactList);
         return APIResultWrap.ok(contractInfoDTOList);
     }
@@ -187,7 +187,7 @@ public class FriendshipController extends BaseController {
             @RequestParam String[] friendIds,
             HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         friendShipManager.batchDelete(currentUserId, friendIds);
         return APIResultWrap.ok("");
     }
@@ -235,7 +235,7 @@ public class FriendshipController extends BaseController {
         }
 
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         friendShipManager.setFriendDescription(currentUserId, friendId, displayName, region, phone, description, imageUri);
 
@@ -254,7 +254,7 @@ public class FriendshipController extends BaseController {
             return APIResultWrap.error(ErrorCode.PARAM_ERROR);
         }
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         FriendDTO dto = friendShipManager.getFriendDescription(currentUserId, friendId);
 

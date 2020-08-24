@@ -282,7 +282,7 @@ public class UserController extends BaseController {
         ValidateUtils.checkPassword(newPassword);
         ValidateUtils.notEmpty(oldPassword);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         userManager.changePassword(newPassword, oldPassword, currentUserId);
         return APIResultWrap.ok("");
     }
@@ -313,7 +313,7 @@ public class UserController extends BaseController {
         nickname = MiscUtils.xss(nickname, ValidateUtils.NICKNAME_MAX_LENGTH);
         ValidateUtils.checkNickName(nickname);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         userManager.setNickName(nickname, currentUserId);
         return APIResultWrap.ok("");
     }
@@ -329,7 +329,7 @@ public class UserController extends BaseController {
         ValidateUtils.checkURLFormat(portraitUri);
         ValidateUtils.checkPortraitUri(portraitUri);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         userManager.setPortraitUri(portraitUri, currentUserId);
         return APIResultWrap.ok("");
     }
@@ -339,7 +339,7 @@ public class UserController extends BaseController {
     @RequestMapping(value = "/get_token", method = RequestMethod.GET)
     public APIResult<Object> getToken(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         Pair<Integer, String> pairResult = userManager.getToken(currentUserId);
 
         Map<String, Object> resultMap = new HashMap<>();
@@ -354,7 +354,7 @@ public class UserController extends BaseController {
     @RequestMapping(value = "/blacklist", method = RequestMethod.GET)
     public APIResult<Object> blacklist(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         List<BlackLists> resultList = userManager.getBlackList(currentUserId);
 
@@ -375,7 +375,7 @@ public class UserController extends BaseController {
             @RequestParam String encodedFriendId,
             HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         userManager.addBlackList(currentUserId, Integer.valueOf(friendId), encodedFriendId);
         return APIResultWrap.ok("");
     }
@@ -391,7 +391,7 @@ public class UserController extends BaseController {
             HttpServletRequest request) throws ServiceException {
 
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         userManager.removeBlackList(currentUserId, Integer.valueOf(friendId), encodedFriendId);
         return APIResultWrap.ok("");
     }
@@ -433,7 +433,7 @@ public class UserController extends BaseController {
     @RequestMapping(value = "/groups", method = RequestMethod.POST)
     public APIResult<Object> getGroups(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         List<Groups> groupsList = userManager.getGroups(currentUserId);
 
         return APIResultWrap.ok(MiscUtils.encodeResults(groupsList, "id", "creatorId"));
@@ -447,7 +447,7 @@ public class UserController extends BaseController {
 
         ValidateUtils.checkTimeStamp(version);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         SyncInfoDTO syncInfoDTO = userManager.getSyncInfo(currentUserId, Long.valueOf(version));
         return APIResultWrap.ok(syncInfoDTO);
@@ -546,7 +546,7 @@ public class UserController extends BaseController {
         if ((limit == null && offset != null) || (limit != null && offset == null)) {
             throw new ServiceException(ErrorCode.REQUEST_ERROR);
         }
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         List<Groups> groupsList = userManager.getFavGroups(currentUserId, limit, offset);
 
         FavGroupsDTO favGroupsDTO = new FavGroupsDTO();
@@ -566,7 +566,7 @@ public class UserController extends BaseController {
 
         ValidateUtils.checkStAccount(stAccount);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         userManager.setStAccount(currentUserId, stAccount);
         return APIResultWrap.ok("");
     }
@@ -579,7 +579,7 @@ public class UserController extends BaseController {
                                        HttpServletRequest request) throws ServiceException {
 
         ValidateUtils.checkGender(gender);
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         Users u = new Users();
         u.setId(currentUserId);
         u.setGender(gender);
@@ -601,7 +601,7 @@ public class UserController extends BaseController {
                                         HttpServletRequest request) throws ServiceException {
 
         ValidateUtils.checkPrivacy(phoneVerify, stSearchVerify, friVerify, groupVerify);
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         Users users = userManager.getUser(currentUserId);
 
@@ -619,7 +619,7 @@ public class UserController extends BaseController {
     @RequestMapping(value = "/get_privacy", method = RequestMethod.GET)
     public APIResult<Object> getPrivacy(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         Users users = userManager.getUser(currentUserId);
 
@@ -639,7 +639,7 @@ public class UserController extends BaseController {
 
         ValidateUtils.checkPokeStatus(pokeStatus);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         Users u = new Users();
         u.setId(currentUserId);
         u.setPokeStatus(pokeStatus);
@@ -651,7 +651,7 @@ public class UserController extends BaseController {
     @RequestMapping(value = "/get_poke", method = RequestMethod.GET)
     public APIResult<Object> getPokeStatus(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         Users users = userManager.getUser(currentUserId);
         Map<String, Object> result = new HashMap<>();
         result.put("pokeStatus", users.getPokeStatus());

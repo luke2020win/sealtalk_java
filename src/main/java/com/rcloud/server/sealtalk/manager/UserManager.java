@@ -315,7 +315,10 @@ public class UserManager extends BaseManager {
                 u.setPasswordSalt(String.valueOf(salt));
                 u.setCreatedAt(new Date());
                 u.setUpdatedAt(u.getCreatedAt());
+                u.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
+
                 usersService.saveSelective(u);
+
 
                 //插入DataVersion表
                 DataVersions dataVersions = new DataVersions();
@@ -391,9 +394,10 @@ public class UserManager extends BaseManager {
         log.error("login nickname:" + u.getNickname());
         log.error("login portraitUri:" + u.getPortraitUri());
         if (StringUtils.isEmpty(token)) {
-            //如果user表中的融云token为空，
-            //调用融云sdk 获取token
-            TokenResult tokenResult = rongCloudClient.register(N3d.encode(u.getId()), u.getNickname(), u.getPortraitUri());
+            //如果user表中的融云token为空，调用融云sdk 获取token
+            //如果用户头像地址为空，采用默认头像地址
+            String portraitUri = StringUtils.isEmpty(u.getPortraitUri()) ? sealtalkConfig.getRongcloudDefaultPortraitUrl() : u.getPortraitUri();
+            TokenResult tokenResult = rongCloudClient.register(N3d.encode(u.getId()), u.getNickname(), portraitUri);
             if (!Constants.CODE_OK.equals(tokenResult.getCode())) {
                 throw new ServiceException(ErrorCode.SERVER_ERROR, "'RongCloud Server API Error Code: " + tokenResult.getCode());
             }
@@ -605,7 +609,9 @@ public class UserManager extends BaseManager {
         Users user = usersService.getByPrimaryKey(currentUserId);
 
         //调用融云用户注册接口，获取token
-        TokenResult tokenResult = rongCloudClient.register(N3d.encode(user.getId()), user.getNickname(), user.getPortraitUri());
+        //如果用户头像地址为空，采用默认头像地址
+        String portraitUri = StringUtils.isEmpty(user.getPortraitUri()) ? sealtalkConfig.getRongcloudDefaultPortraitUrl() : user.getPortraitUri();
+        TokenResult tokenResult = rongCloudClient.register(N3d.encode(user.getId()), user.getNickname(), portraitUri);
         String token = tokenResult.getToken();
 
         //根据userId更新本地数据users表中rongCloudToken

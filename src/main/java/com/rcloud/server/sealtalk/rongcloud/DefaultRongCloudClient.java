@@ -44,6 +44,7 @@ import java.util.Map;
 @Service
 public class DefaultRongCloudClient implements RongCloudClient {
 
+
     @Resource
     private SealtalkConfig sealtalkConfig;
 
@@ -55,6 +56,7 @@ public class DefaultRongCloudClient implements RongCloudClient {
     private Private Private;
     private MsgSystem system;
 
+
     @PostConstruct
     public void postConstruct() {
         String apiUrlStr = sealtalkConfig.getRongcloudApiUrl();
@@ -63,14 +65,14 @@ public class DefaultRongCloudClient implements RongCloudClient {
         }
         String[] apiUrlArray = apiUrlStr.split(",");
         String mainUrl = apiUrlArray[0].trim();
-        if (!mainUrl.startsWith("http://")) {
+        if (!mainUrl.startsWith("http://") && !mainUrl.startsWith("https://")) {
             mainUrl = "http://" + mainUrl;
         }
         List<String> backUpUrlList = new ArrayList<>();
         if (apiUrlArray.length > 1) {
             for (int i = 1; i < apiUrlArray.length; i++) {
                 String backApiUrl = apiUrlArray[i].trim();
-                if (!backApiUrl.startsWith("http://")) {
+                if (!backApiUrl.startsWith("http://") && !backApiUrl.startsWith("https://")) {
                     backApiUrl = "http://" + backApiUrl;
                 }
                 backUpUrlList.add(backApiUrl);

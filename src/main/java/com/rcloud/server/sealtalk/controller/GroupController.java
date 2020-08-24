@@ -63,7 +63,7 @@ public class GroupController extends BaseController {
             portraitUri="";
         }
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         GroupAddStatusDTO groupAddStatusDTO = groupManager.createGroup(currentUserId, name, MiscUtils.toInteger(memberIds), portraitUri);
 
         return APIResultWrap.ok(MiscUtils.encodeResults(groupAddStatusDTO));
@@ -85,7 +85,7 @@ public class GroupController extends BaseController {
             throw new ServiceException(ErrorCode.GROUP_LIMIT_ERROR);
         }
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         List<UserStatusDTO> userStatusDTOList = groupManager.addMember(currentUserId, Integer.valueOf(groupId), MiscUtils.toInteger(memberIds));
 
         return APIResultWrap.ok(userStatusDTOList);
@@ -104,7 +104,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(encodedGroupId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         groupManager.joinGroup(currentUserId, Integer.valueOf(groupId), encodedGroupId);
 
         return APIResultWrap.ok("");
@@ -128,7 +128,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(encodedGroupId);
         ValidateUtils.notEmpty(encodedMemberIds);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         groupManager.kickMember(currentUserId, Integer.valueOf(groupId), encodedGroupId,MiscUtils.toInteger(memberIds),encodedMemberIds);
 
         return APIResultWrap.ok("");
@@ -146,7 +146,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(encodedGroupId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         String resultMessage = groupManager.quitGroup(currentUserId, Integer.valueOf(groupId), encodedGroupId);
         return APIResultWrap.ok(resultMessage);
@@ -165,7 +165,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(encodedGroupId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.dismiss(currentUserId, Integer.valueOf(groupId), encodedGroupId);
         return APIResultWrap.ok("");
@@ -186,7 +186,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(userId);
         ValidateUtils.notEmpty(encodedUserId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.transfer(currentUserId, Integer.valueOf(groupId), Integer.valueOf(userId), encodedUserId);
         return APIResultWrap.ok("");
@@ -204,7 +204,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(memberIds);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         Integer[] memberIdsInt = MiscUtils.toInteger(memberIds);
         String[] encodedMemberIds = MiscUtils.encodeIds(memberIds);
         groupManager.batchSetManager(currentUserId, Integer.valueOf(groupId), memberIdsInt, encodedMemberIds);
@@ -223,7 +223,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(memberIds);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         Integer[] memberIdsInt = MiscUtils.toInteger(memberIds);
         String[] encodedMemberIds = MiscUtils.encodeIds(memberIds);
         groupManager.batchRemoveManager(currentUserId, Integer.valueOf(groupId), memberIdsInt, encodedMemberIds);
@@ -246,7 +246,7 @@ public class GroupController extends BaseController {
         name = MiscUtils.xss(name, ValidateUtils.GROUP_NAME_MAX_LENGTH);
         ValidateUtils.checkGroupName(name);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         groupManager.rename(currentUserId, Integer.valueOf(groupId), name, encodedGroupId);
 
         return APIResultWrap.ok("");
@@ -261,7 +261,7 @@ public class GroupController extends BaseController {
 
         ValidateUtils.notEmpty(groupId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         groupManager.fav(currentUserId, Integer.valueOf(groupId));
         return APIResultWrap.ok("");
     }
@@ -275,7 +275,7 @@ public class GroupController extends BaseController {
 
         ValidateUtils.notEmpty(groupId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         groupManager.deletefav(currentUserId, Integer.valueOf(groupId));
         return APIResultWrap.ok("");
     }
@@ -297,7 +297,7 @@ public class GroupController extends BaseController {
         bulletin = MiscUtils.xss(bulletin, ValidateUtils.GROUP_BULLETIN_MAX_LENGTH);
         ValidateUtils.checkGroupBulletion(bulletin);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         groupManager.setBulletin(currentUserId, Integer.valueOf(groupId), bulletin);
 
         return APIResultWrap.ok("");
@@ -336,7 +336,7 @@ public class GroupController extends BaseController {
         portraitUri = MiscUtils.xss(portraitUri, ValidateUtils.PORTRAIT_URI_MAX_LENGTH);
         ValidateUtils.checkGroupPortraitUri(portraitUri);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.setGroupPortraitUri(currentUserId, N3d.decode(groupId), portraitUri);
         return APIResultWrap.ok("");
@@ -356,7 +356,7 @@ public class GroupController extends BaseController {
         displayName = MiscUtils.xss(displayName, ValidateUtils.GROUP_MEMBER_DISPLAY_NAME_MAX_LENGTH);
         ValidateUtils.checkGroupDisplayName(displayName);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.setDisPlayName(currentUserId, N3d.decode(groupId), displayName);
         return APIResultWrap.ok("");
@@ -384,7 +384,7 @@ public class GroupController extends BaseController {
 
         ValidateUtils.notEmpty(groupId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         List<GroupMembers> groupMembersList = groupManager.getGroupMembers(currentUserId, N3d.decode(groupId));
 
@@ -408,7 +408,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.valueOf(certiStatus, ImmutableList.of(0, 1));
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.setCertification(currentUserId, Integer.valueOf(groupId), certiStatus);
         return APIResultWrap.ok("");
@@ -418,7 +418,7 @@ public class GroupController extends BaseController {
     @RequestMapping(value = "/notice_info", method = RequestMethod.GET)
     public APIResult<?> getNoticeInfo(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         List<GroupReceivers> groupReceiversList = groupManager.getNoticeInfo(currentUserId);
         List<GroupReceiverDTO> groupReceiverDTOList = new ArrayList<>();
@@ -461,7 +461,7 @@ public class GroupController extends BaseController {
     @RequestMapping(value = "/clear_notice", method = RequestMethod.POST)
     public APIResult<?> clearNotice(HttpServletRequest request) throws ServiceException {
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.clearNotice(currentUserId);
 
@@ -485,7 +485,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notNull(muteStatus);
         ValidateUtils.valueOf(muteStatus, ImmutableList.of(0, 1));
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.setMuteAll(currentUserId, Integer.valueOf(groupId), muteStatus, userId);
 
@@ -505,7 +505,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.valueOf(clearStatus, ImmutableList.of(0, 3, 7, 36));
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
 
         groupManager.setRegularClear(currentUserId, groupId, clearStatus);
 
@@ -555,7 +555,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(memberId);
 
-        //Integer currentUserId = getCurrentUserId(request); TODO
+        //Integer currentUserId = getCurrentUserId(); TODO
 
         groupManager.setMemberInfo(groupId, memberId, groupNickname, region, phone, WeChat, Alipay, memberDesc);
         return APIResultWrap.ok("");
@@ -575,7 +575,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(memberId);
 
-        //Integer currentUserId = getCurrentUserId(request); TODO
+        //Integer currentUserId = getCurrentUserId(); TODO
 
         GroupMembers groupMembers = groupManager.getMemberInfo(groupId, memberId);
         GroupMemberDTO dto = new GroupMemberDTO();
@@ -599,7 +599,7 @@ public class GroupController extends BaseController {
 
         ValidateUtils.notEmpty(groupId);
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         List<GroupExitedListDTO> groupExitedListDTOList = new ArrayList<>();
         List<GroupExitedLists> groupExitedListsList = groupManager.getExitedList(currentUserId, Integer.valueOf(groupId));
         if (!CollectionUtils.isEmpty(groupExitedListsList)) {
@@ -625,7 +625,7 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.valueOf(memberProtection, ImmutableList.of(0, 1));
 
-        Integer currentUserId = getCurrentUserId(request);
+        Integer currentUserId = getCurrentUserId();
         groupManager.setMemberProtection(currentUserId, Integer.valueOf(groupId), memberProtection);
         return APIResultWrap.ok("");
 
