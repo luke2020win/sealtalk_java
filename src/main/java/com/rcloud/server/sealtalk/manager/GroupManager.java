@@ -966,8 +966,8 @@ public class GroupManager extends BaseManager {
         if (groupMembers != null && isManagerRole(groupMembers.getRole())) {
 
             Groups groups = new Groups();
+            groups.setId(groupId);
             groups.setCertiStatus(certiStatus);
-            groups.setIsMute(groupId);
             groupsService.updateByPrimaryKeySelective(groups);
             CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
         } else {
