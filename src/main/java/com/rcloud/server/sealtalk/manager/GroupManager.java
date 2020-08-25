@@ -16,6 +16,7 @@ import com.rcloud.server.sealtalk.util.N3d;
 import io.rong.models.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -1220,7 +1221,7 @@ public class GroupManager extends BaseManager {
             //调用融云接口刷新群名称
             Result result = rongCloudClient.refreshGroupName(encodedGroupId, name);
 
-            if (result.getCode() != 200) {
+            if (!Constants.CODE_OK.equals(result.getCode())) {
                 log.error("Error: refresh group info failed on IM server, code: {}", result.getCode());
             }
         } catch (Exception e) {
@@ -1291,7 +1292,7 @@ public class GroupManager extends BaseManager {
             try {
                 Result result = rongCloudClient.removeGroupWhiteList(N3d.encode(groupId), encodedMemberIds);
 
-                if (result.getCode() == 200) {
+                if (Constants.CODE_OK.equals(result.getCode())) {
                     log.error("batchRemoveManager rongCloudClient removeWhiteList success");
                     groupReceiversService.deleteByMemberIds(groupId, memberIds);
                 } else {
@@ -1415,7 +1416,7 @@ public class GroupManager extends BaseManager {
         //如果开启了全员禁言，把新增加的管理员加入白名单
         try {
             Result result = rongCloudClient.addGroupWhitelist(N3d.encode(groupId), encodedMemberIds);
-            if (result.getCode() == 200) {
+            if (Constants.CODE_OK.equals(result.getCode())) {
                 return;
             } else {
                 log.error("invoke rongCloudClient addWhitelist error,result.code={}", result.getCode());
@@ -1493,11 +1494,11 @@ public class GroupManager extends BaseManager {
             try {
                 //将新群主加入白名单
                 Result result = rongCloudClient.addGroupWhitelist(N3d.encode(groupId), new String[]{N3d.encode(userId)});
-                if (result.getCode() == 200) {
+                if (Constants.CODE_OK.equals(result.getCode())) {
                     //将老群主移除白名单
                     try {
                         Result result2 = rongCloudClient.removeGroupWhiteList(N3d.encode(groupId), new String[]{N3d.encode(currentUserId)});
-                        if (result2.getCode() == 200) {
+                        if (Constants.CODE_OK.equals(result2.getCode()) ) {
                             //根据groupId, currentUserId删除GroupReceiver
                             groupReceiversService.deleteGroupReverive(groupId, currentUserId);
                         }
@@ -1602,7 +1603,7 @@ public class GroupManager extends BaseManager {
 
         try {
             Result result = rongCloudClient.dismiss(N3d.encode(currentUserId), encodedGroupId);
-            if (result.getCode() != 200) {
+            if (Constants.CODE_OK.equals(result.getCode())) {
                 log.error("Error: dismiss group failed on IM server, code: {},errorMessage: {}", result.getCode(), result.getErrorMessage());
                 throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
             } else {
