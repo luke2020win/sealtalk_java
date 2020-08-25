@@ -175,18 +175,18 @@ public interface RongCloudClient {
     /**
      * 取消群组禁言
      *
-     * @param encodeGroupId
+     * @param encodeGroupIds
      * @return
      */
-    Result removeMuteStatus(String encodeGroupId);
+    Result removeMuteStatus(String[] encodeGroupIds) throws ServiceException;
 
     /**
      * 设置群组禁言
      *
-     * @param encode
+     * @param encodeGroupIds
      * @return
      */
-    Result setMuteStatus(String encode);
+    Result setMuteStatus(String[] encodeGroupIds) throws ServiceException;
 
     /**
      * 发送群组通知消息

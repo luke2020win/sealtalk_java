@@ -13,10 +13,8 @@ import com.rcloud.server.sealtalk.util.CacheUtil;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
 import com.rcloud.server.sealtalk.util.MiscUtils;
 import com.rcloud.server.sealtalk.util.N3d;
-import io.rong.messages.GroupNotificationMessage;
+import com.sun.tools.hat.internal.util.Misc;
 import io.rong.models.Result;
-import io.rong.models.message.GroupMessage;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.BeanUtils;
@@ -661,7 +659,7 @@ public class GroupManager extends BaseManager {
      *
      * @param currentUserId
      * @param groupId
-     * @param memberProtection  成员保护模式: 0 关闭、1 开启
+     * @param memberProtection 成员保护模式: 0 关闭、1 开启
      */
     public void setMemberProtection(Integer currentUserId, Integer groupId, Integer memberProtection) throws ServiceException {
 
@@ -692,15 +690,14 @@ public class GroupManager extends BaseManager {
      */
     private Result sendCustomerGroupNotificationMessage(Integer operatorId, Integer targetId, String operation) throws ServiceException {
 
-        return rongCloudClient.sendCustomerGroupNtfMessage(N3d.encode(operatorId),N3d.encode(targetId),operation);
+        return rongCloudClient.sendCustomerGroupNtfMessage(N3d.encode(operatorId), N3d.encode(targetId), operation);
     }
 
 
     private Result sendCustomerConNtfMessage(Integer operatorId, Integer targetId, String operation) throws ServiceException {
 
-        return rongCloudClient.sendCustomerConNtfMessage(N3d.encode(operatorId),N3d.encode(targetId),operation);
+        return rongCloudClient.sendCustomerConNtfMessage(N3d.encode(operatorId), N3d.encode(targetId), operation);
     }
-
 
 
     /**
@@ -819,7 +816,7 @@ public class GroupManager extends BaseManager {
 
         groupsService.updateByPrimaryKeySelective(group);
         //发送群组通知信息
-        sendCustomerConNtfMessage(currentUserId, groupId,operation);
+        sendCustomerConNtfMessage(currentUserId, groupId, operation);
 
     }
 
@@ -830,7 +827,7 @@ public class GroupManager extends BaseManager {
      * ====》调用融云接口rongCloud.group.ban.remove，失败打印日志
      * ====》调用成功根据groupId更新Group的isMute字段，并清除缓存Cache.del("group_" + groupId)，然后返回
      * 3、如果是开启禁言
-     * ====》根据groupId查询GroupMember ，查询出群主和管理员
+     * ====》根据groupId查询GroupMember ，查询出群主和管理员 和参数传递过来的将管理员用户和指定可发言用户加入白名单
      * ====》然后调用rongCloud.group.ban.add  设置禁言
      * ====》调用rongCloud.group.ban.addWhitelist将可发言用户加入白名单
      * 4、然后根据groupId更新Group的isMute
@@ -843,12 +840,14 @@ public class GroupManager extends BaseManager {
      */
     public void setMuteAll(Integer currentUserId, Integer groupId, Integer muteStatus, Integer[] userIds) throws ServiceException {
 
+        String encodeGroupId = N3d.encode(groupId);
+
         if (Groups.MUTE_STATUS_CLOSE.equals(muteStatus)) {
             //如果是取消禁言
             //调用融云接口 取消禁言 rongCloud.group.ban.remove
 
             try {
-                Result result = rongCloudClient.removeMuteStatus(N3d.encode(groupId));
+                Result result = rongCloudClient.removeMuteStatus(new String[]{encodeGroupId});
                 if (result.getCode() == 200) {
                     Groups groups = new Groups();
                     groups.setId(groupId);
@@ -859,12 +858,12 @@ public class GroupManager extends BaseManager {
                 }
                 {
                     log.error("Error: rollback group failed on IM server, error,code: " + result.getCode());
+                    throw new ServiceException(ErrorCode.SERVER_ERROR);
                 }
-
             } catch (Exception e) {
                 log.error("Error: rollback group failed on IM server, error: " + e.getMessage(), e);
+                throw new ServiceException(ErrorCode.SERVER_ERROR);
             }
-            return;
         } else {
             //如果是开启全员禁言
             Example example = new Example(GroupMembers.class);
@@ -872,41 +871,52 @@ public class GroupManager extends BaseManager {
                     .andIn("role", ImmutableList.of(GroupRole.CREATOR.getCode(), GroupRole.MANAGER.getCode()));
             List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
 
-            List<Integer> memberIds = CollectionUtils.arrayToList(userIds);
+            List<Integer> whiteUserIdList = new ArrayList<>();
+            if(!CollectionUtils.isEmpty(groupMembersList)){
+                for(GroupMembers groupMembers : groupMembersList) {
+                    whiteUserIdList.add(groupMembers.getMemberId());
+                }
 
-            if (!CollectionUtils.isEmpty(groupMembersList)) {
-                for (GroupMembers groupMembers : groupMembersList) {
-                    memberIds.add(groupMembers.getMemberId());
+            }
+
+            if(ArrayUtils.isNotEmpty(userIds)){
+                for(Integer id:userIds){
+                    whiteUserIdList.add(id);
                 }
             }
 
-            //调用融云接口设置禁言rongCloud.group.ban.add
             try {
-                Result result = rongCloudClient.setMuteStatus(N3d.encode(groupId));
+                //调用融云接口设置禁言rongCloud.group.ban.add
+                Result result = rongCloudClient.setMuteStatus(new String[]{encodeGroupId});
                 if (result.getCode() == 200) {
                     try {
-                        Result result1 = rongCloudClient.addGroupWhitelist(N3d.encode(groupId), MiscUtils.encodeIds(memberIds));
+                        //将管理员用户和指定可发言用户加入白名单
+                        Result result1 = rongCloudClient.addGroupWhitelist(encodeGroupId, MiscUtils.encodeIds(whiteUserIdList));
                         if (result1.getCode() == 200) {
-
+                            //修改禁言状态
                             Groups groups = new Groups();
                             groups.setId(groupId);
                             groups.setIsMute(muteStatus);
                             groupsService.updateByPrimaryKeySelective(groups);
-
+                            //清除缓存
                             CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
 
                         } else {
                             log.error("Error: add group whitelist failed on IM server, error code={} " + result1.getCode());
+                            throw new ServiceException(ErrorCode.SERVER_ERROR);
                         }
                     } catch (Exception e) {
                         log.error("Error: add group whitelist failed on IM server, error: " + e.getMessage());
+                        throw new ServiceException(ErrorCode.SERVER_ERROR);
                     }
                 } else {
                     log.error("Error: rollback group failed on IM server, error,code: " + result.getCode());
+                    throw new ServiceException(ErrorCode.SERVER_ERROR);
                 }
 
             } catch (Exception e) {
                 log.error("Error: rollback group failed on IM server, error: " + e.getMessage(), e);
+                throw new ServiceException(ErrorCode.SERVER_ERROR);
             }
             return;
         }
@@ -973,9 +983,9 @@ public class GroupManager extends BaseManager {
 
         String membersJson = CacheUtil.get(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
         if (!StringUtils.isEmpty(membersJson)) {
-            List<GroupMembers> groupMembersList = JacksonUtil.fromJson(membersJson,List.class,GroupMembers.class);
+            List<GroupMembers> groupMembersList = JacksonUtil.fromJson(membersJson, List.class, GroupMembers.class);
             if (!isInGroupMember(groupMembersList, currentUserId)) {
-                throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2,ErrorCode.NOT_GROUP_MEMBER_2.getErrorMessage());
+                throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2, ErrorCode.NOT_GROUP_MEMBER_2.getErrorMessage());
             }
             return groupMembersList;
         }
@@ -983,10 +993,10 @@ public class GroupManager extends BaseManager {
         List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithUsersByGroupId(groupId);
 
         if (CollectionUtils.isEmpty(groupMembersList)) {
-            throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR,ErrorCode.GROUP_UNKNOWN_ERROR.getErrorMessage());
+            throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR, ErrorCode.GROUP_UNKNOWN_ERROR.getErrorMessage());
         }
         if (!isInGroupMember(groupMembersList, currentUserId)) {
-            throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2,ErrorCode.NOT_GROUP_MEMBER_2.getErrorMessage());
+            throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2, ErrorCode.NOT_GROUP_MEMBER_2.getErrorMessage());
         }
 
         CacheUtil.set(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId, JacksonUtil.toJson(groupMembersList));
@@ -1013,11 +1023,11 @@ public class GroupManager extends BaseManager {
      * @param groupId
      * @return
      */
-    public Groups getGroupInfo( Integer groupId) throws ServiceException {
+    public Groups getGroupInfo(Integer groupId) throws ServiceException {
 
         String groupJson = CacheUtil.get(CacheUtil.GROUP_CACHE_PREFIX + groupId);
         if (groupJson != null) {
-            return JacksonUtil.fromJson(groupJson,Groups.class);
+            return JacksonUtil.fromJson(groupJson, Groups.class);
         }
 
         Groups groups = groupsService.getByPrimaryKey(groupId);
@@ -1147,7 +1157,6 @@ public class GroupManager extends BaseManager {
 
         return;
     }
-
 
 
     /**

@@ -505,13 +505,25 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
-    public Result removeMuteStatus(String encodeGroupId) {
-        return null;
+    public Result removeMuteStatus(String[] encodeGroupIds) throws ServiceException {
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                return rongCloud.group.ban.remove(encodeGroupIds);
+            }
+        });
+
     }
 
     @Override
-    public Result setMuteStatus(String encode) {
-        return null;
+    public Result setMuteStatus(String[] encodeGroupIds) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                return rongCloud.group.ban.remove(encodeGroupIds);
+            }
+        });
     }
 
 
