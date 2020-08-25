@@ -39,11 +39,9 @@ public class GroupMembersService extends AbstractBaseService<GroupMembers, Integ
      * @param memberId 用户id
      * @return
      */
-    public List<GroupMembers> queryGroupMembersWithGroupByMemberId(int memberId) {
-        Example example = new Example(GroupMembers.class);
-        Example.Criteria criteria = example.createCriteria();
-        criteria.andEqualTo("memberId", memberId);
-        return mapper.queryGroupMembersWithGroupByMemberId(example);
+    public List<GroupMembers> queryGroupMembersWithGroupByMemberId(Integer memberId) {
+
+        return mapper.queryGroupMembersWithGroupByMemberId(memberId);
     }
 
     /**
@@ -167,5 +165,11 @@ public class GroupMembersService extends AbstractBaseService<GroupMembers, Integ
     public List<GroupMembers> queryGroupMembersWithUsersByMGroupIds(List<Integer> groupIdList, Long version) {
         //TODO
         return null;
+    }
+
+
+    public List<GroupMembers> queryGroupMembersWithUsersByGroupId(Integer groupId) {
+        Assert.notNull(groupId,"groupId is null");
+        return mapper.queryGroupMembersWithUsersByGroupId(groupId);
     }
 }

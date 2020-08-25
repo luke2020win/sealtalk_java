@@ -125,7 +125,7 @@ public class MiscUtils {
      * ]
      * }
      * <p>
-     * 如果参数propertyExpression 为空默认为 propertyExpression = id
+     * 如果参数propertyExpression 为空默认为 propertyExpression = "id"
      *
      * @param o
      * @param propertyExpressions
@@ -181,7 +181,7 @@ public class MiscUtils {
                         processResult(targetNode, propertyExpression.substring(index));
                         return;
                     }
-                    if (targetNode == null) {
+                    if (targetNode == null || targetNode.isNull()) {
                         return;
                     }
                 }

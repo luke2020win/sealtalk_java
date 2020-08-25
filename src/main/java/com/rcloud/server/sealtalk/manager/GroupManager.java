@@ -969,22 +969,24 @@ public class GroupManager extends BaseManager {
     }
 
 
-    public List<GroupMembers> getGroupMembers(Integer currentUserId, int groupId) throws ServiceException {
+    public List<GroupMembers> getGroupMembers(Integer currentUserId, Integer groupId) throws ServiceException {
 
         String membersJson = CacheUtil.get(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId);
         if (!StringUtils.isEmpty(membersJson)) {
-            return JacksonUtil.fromJson(membersJson,List.class,GroupMembers.class);
+            List<GroupMembers> groupMembersList = JacksonUtil.fromJson(membersJson,List.class,GroupMembers.class);
+            if (!isInGroupMember(groupMembersList, currentUserId)) {
+                throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2,ErrorCode.NOT_GROUP_MEMBER_2.getErrorMessage());
+            }
+            return groupMembersList;
         }
 
-        Example example = new Example(GroupMembers.class);
-        example.createCriteria().andEqualTo("groupId", groupId);
-        List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
+        List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithUsersByGroupId(groupId);
 
         if (CollectionUtils.isEmpty(groupMembersList)) {
-            throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR);
+            throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR,ErrorCode.GROUP_UNKNOWN_ERROR.getErrorMessage());
         }
         if (!isInGroupMember(groupMembersList, currentUserId)) {
-            throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2);
+            throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2,ErrorCode.NOT_GROUP_MEMBER_2.getErrorMessage());
         }
 
         CacheUtil.set(CacheUtil.GROUP_MEMBERS_CACHE_PREFIX + groupId, JacksonUtil.toJson(groupMembersList));

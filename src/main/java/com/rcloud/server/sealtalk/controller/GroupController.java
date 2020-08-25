@@ -2,6 +2,7 @@ package com.rcloud.server.sealtalk.controller;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.controller.param.GroupParam;
 import com.rcloud.server.sealtalk.domain.*;
@@ -23,6 +24,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -319,8 +321,23 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
 
         Groups group = groupManager.getGroupInfo(N3d.decode(groupId));
-        Object object = MiscUtils.encodeResults(group, "id", "creatorId");
-        return APIResultWrap.ok(object);
+
+        GroupDTO groupDTO = new GroupDTO();
+        if (groupDTO != null) {
+            groupDTO.setId(N3d.encode(group.getId()));
+            groupDTO.setName(group.getName());
+            groupDTO.setPortraitUri(group.getPortraitUri());
+            groupDTO.setCreatorId(N3d.encode(group.getCreatorId()));
+            groupDTO.setMemberCount(group.getMemberCount());
+            groupDTO.setMaxMemberCount(group.getMaxMemberCount());
+            groupDTO.setCertiStatus(group.getCertiStatus());
+            groupDTO.setBulletin(group.getBulletin());
+            groupDTO.setIsMute(group.getIsMute());
+            groupDTO.setMemberProtection(group.getMemberProtection());
+            groupDTO.setDeletedAt(group.getDeletedAt());
+
+        }
+        return APIResultWrap.ok(groupDTO);
     }
 
     @ApiOperation(value = "获取群成员列表")
@@ -335,11 +352,39 @@ public class GroupController extends BaseController {
 
         List<GroupMembers> groupMembersList = groupManager.getGroupMembers(currentUserId, N3d.decode(groupId));
 
-        Object object = MiscUtils.encodeResults(groupMembersList, "users.id");
-        String result = MiscUtils.addUpdateTimeToList(JacksonUtil.toJson(object));
+        List<MemberDTO> memberDTOList = new ArrayList<>();
 
-        //TODO
-        return APIResultWrap.ok(JacksonUtil.getJsonNode(result));
+        SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
+
+        if (!CollectionUtils.isEmpty(groupMembersList)) {
+            for (GroupMembers groupMembers : groupMembersList) {
+                MemberDTO memberDTO = new MemberDTO();
+                memberDTO.setGroupNickname(groupMembers.getGroupNickname());
+                memberDTO.setRole(groupMembers.getRole());
+                memberDTO.setCreatedAt(sdf.format(groupMembers.getCreatedAt()));
+                memberDTO.setCreatedTime(groupMembers.getCreatedAt().getTime());
+                memberDTO.setUpdatedAt(sdf.format(groupMembers.getUpdatedAt()));
+                memberDTO.setUpdatedTime(groupMembers.getUpdatedAt().getTime());
+
+                UserDTO userDTO = new UserDTO();
+                memberDTO.setUser(userDTO);
+
+                Users u = groupMembers.getUsers();
+                if (u != null) {
+                    userDTO.setId(N3d.encode(u.getId()));
+                    userDTO.setNickname(u.getNickname());
+                    userDTO.setRegion(u.getRegion());
+                    userDTO.setPhone(u.getPhone());
+                    userDTO.setGender(u.getGender());
+                    userDTO.setPortraitUri(u.getPortraitUri());
+                    userDTO.setStAccount(u.getStAccount());
+
+                }
+                memberDTOList.add(memberDTO);
+            }
+        }
+
+        return APIResultWrap.ok(memberDTOList);
     }
 
     @ApiOperation(value = "设置群认证")
