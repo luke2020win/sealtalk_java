@@ -266,15 +266,21 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
 
         GroupBulletins groupBulletins = groupManager.getBulletin(N3d.decode(groupId));
+
+        GroupBulletinsDTO groupBulletinsDTO = new GroupBulletinsDTO();
         if (groupBulletins == null) {
-            groupBulletins = new GroupBulletins();
-            groupBulletins.setGroupId(N3d.decode(groupId));
-            groupBulletins.setContent("");
+            groupBulletinsDTO.setGroupId(groupId);
+            groupBulletinsDTO.setContent("");
+            groupBulletinsDTO.setId("");
+        }else {
+            // 返回给前端的结构id属性需要N3d编码
+            groupBulletinsDTO.setGroupId(N3d.encode(groupBulletins.getGroupId()));
+            groupBulletinsDTO.setContent(groupBulletins.getContent());
+            groupBulletinsDTO.setId(N3d.encode(groupBulletins.getId()));
+            groupBulletinsDTO.setTimestamp(groupBulletins.getTimestamp());
         }
 
-        GroupBulletinsDTO dto = new GroupBulletinsDTO();
-        BeanUtils.copyProperties(groupBulletins, dto);
-        return APIResultWrap.ok(dto);
+        return APIResultWrap.ok(groupBulletinsDTO);
     }
 
     @ApiOperation(value = "设置群头像")
