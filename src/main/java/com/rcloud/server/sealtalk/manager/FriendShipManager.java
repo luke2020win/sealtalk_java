@@ -663,6 +663,8 @@ public class FriendShipManager extends BaseManager {
             return JacksonUtil.fromJson(result, Friendships.class);
         }
 
+        log.info("getFriendProfile currentUserId:"+currentUserId);
+        log.info("getFriendProfile friendId:"+friendId);
         Friendships friendships = friendshipsService.getFriendShipWithUsers(currentUserId, friendId, Friendships.FRIENDSHIP_AGREED);
 
         if (friendships == null) {
@@ -681,7 +683,7 @@ public class FriendShipManager extends BaseManager {
      * 获取手机通讯录好友列表
      *
      * @param currentUserId
-     * @param contacstList
+     * @param contactList
      */
     public List<ContractInfoDTO> getContactsInfo(Integer currentUserId, String[] contactList) throws ServiceException {
 

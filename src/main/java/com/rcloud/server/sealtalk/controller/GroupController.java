@@ -267,8 +267,11 @@ public class GroupController extends BaseController {
 
         GroupBulletins groupBulletins = groupManager.getBulletin(N3d.decode(groupId));
         if (groupBulletins == null) {
-            throw new ServiceException(ErrorCode.NO_GROUP_BULLETIN);
+            groupBulletins = new GroupBulletins();
+            groupBulletins.setGroupId(N3d.decode(groupId));
+            groupBulletins.setContent("");
         }
+
         GroupBulletinsDTO dto = new GroupBulletinsDTO();
         BeanUtils.copyProperties(groupBulletins, dto);
         return APIResultWrap.ok(dto);
