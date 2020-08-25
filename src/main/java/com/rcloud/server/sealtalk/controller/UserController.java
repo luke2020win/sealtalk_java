@@ -11,6 +11,7 @@ import com.rcloud.server.sealtalk.domain.Users;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.UserManager;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
+import com.rcloud.server.sealtalk.model.dto.FavGroupInfoDTO;
 import com.rcloud.server.sealtalk.model.dto.FavGroupsDTO;
 import com.rcloud.server.sealtalk.model.dto.SyncInfoDTO;
 import com.rcloud.server.sealtalk.model.response.APIResult;
@@ -21,11 +22,14 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -527,17 +531,47 @@ public class UserController extends BaseController {
                                           @ApiParam(name = "offset", value = "offset", required = false, type = "Integer", example = "xxx")
                                           @RequestParam(value = "offset", required = false) Integer offset) throws ServiceException {
 
-        if ((limit == null && offset != null) || (limit != null && offset == null)) {
+
+
+        if (limit == null && offset != null) {
             throw new ServiceException(ErrorCode.REQUEST_ERROR);
         }
+
         Integer currentUserId = getCurrentUserId();
-        List<Groups> groupsList = userManager.getFavGroups(currentUserId, limit, offset);
+        Pair<Integer,List<Groups>> result = userManager.getFavGroups(currentUserId, limit, offset);
+
+        Integer count = result.getLeft();
+        List<Groups>  groupsList = result.getRight();
+
+        SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
+
+        List<FavGroupInfoDTO> favGroupInfoDTOS = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(groupsList)){
+            for(Groups groups:groupsList){
+                FavGroupInfoDTO favGroupInfoDTO = new FavGroupInfoDTO();
+                favGroupInfoDTO.setId(N3d.encode(groups.getId()));
+                favGroupInfoDTO.setName(groups.getName());
+                favGroupInfoDTO.setPortraitUri(groups.getPortraitUri());
+                favGroupInfoDTO.setMemberCount(groups.getMemberCount());
+                favGroupInfoDTO.setMaxMemberCount(groups.getMaxMemberCount());
+                favGroupInfoDTO.setMemberProtection(groups.getMemberProtection());
+                favGroupInfoDTO.setCreatorId(N3d.encode(groups.getCreatorId()));
+                favGroupInfoDTO.setIsMute(groups.getIsMute());
+                favGroupInfoDTO.setCertiStatus(groups.getCertiStatus());
+                favGroupInfoDTO.setCreatedAt(sdf.format(groups.getCreatedAt()));
+                favGroupInfoDTO.setUpdatedAt(sdf.format(groups.getUpdatedAt()));
+                favGroupInfoDTO.setCreatedTime(groups.getCreatedAt().getTime());
+                favGroupInfoDTO.setUpdatedTime(groups.getUpdatedAt().getTime());
+                favGroupInfoDTOS.add(favGroupInfoDTO);
+            }
+        }
 
         FavGroupsDTO favGroupsDTO = new FavGroupsDTO();
         favGroupsDTO.setLimit(limit);
         favGroupsDTO.setOffset(offset);
-        favGroupsDTO.setTotal(groupsList.size());
-        favGroupsDTO.setGroupsList(groupsList);
+        favGroupsDTO.setTotal(count);
+        favGroupsDTO.setList(favGroupInfoDTOS);
+
         return APIResultWrap.ok(favGroupsDTO);
     }
 

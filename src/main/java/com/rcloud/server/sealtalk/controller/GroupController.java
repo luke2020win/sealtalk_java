@@ -3,7 +3,6 @@ package com.rcloud.server.sealtalk.controller;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.rcloud.server.sealtalk.constant.Constants;
-import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.controller.param.GroupParam;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
@@ -272,7 +271,7 @@ public class GroupController extends BaseController {
             groupBulletinsDTO.setGroupId(groupId);
             groupBulletinsDTO.setContent("");
             groupBulletinsDTO.setId("");
-        }else {
+        } else {
             // 返回给前端的结构id属性需要N3d编码
             groupBulletinsDTO.setGroupId(N3d.encode(groupBulletins.getGroupId()));
             groupBulletinsDTO.setContent(groupBulletins.getContent());
@@ -535,7 +534,6 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(memberId);
 
-        //Integer currentUserId = getCurrentUserId(); TODO
 
         groupManager.setMemberInfo(N3d.decode(groupId), N3d.decode(memberId), groupNickname, region, phone, WeChat, Alipay, memberDesc);
         return APIResultWrap.ok("");
@@ -552,17 +550,34 @@ public class GroupController extends BaseController {
         ValidateUtils.notEmpty(groupId);
         ValidateUtils.notEmpty(memberId);
 
-        //Integer currentUserId = getCurrentUserId(); TODO
-
         GroupMembers groupMembers = groupManager.getMemberInfo(N3d.decode(groupId), N3d.decode(memberId));
-        GroupMemberDTO dto = new GroupMemberDTO();
-        if (groupMembers != null && groupMembers.getMemberDesc() != null) {
-            //memberDesc 特殊处理
-            dto.setMemberDesc(JacksonUtil.getJsonNode(groupMembers.getMemberDesc()));
-        }
-        BeanUtils.copyProperties(groupMembers, dto, "memberDesc");
 
-        return APIResultWrap.ok(dto);
+        Map<String, Object> resultMap = new HashMap<>();
+
+        if (groupMembers != null) {
+            resultMap.put("isDeleted", groupMembers.getIsDeleted());
+            resultMap.put("groupNickname", groupMembers.getGroupNickname());
+            resultMap.put("region", groupMembers.getRegion());
+            resultMap.put("phone", groupMembers.getPhone());
+            resultMap.put("WeChat", groupMembers.getWeChat());
+            resultMap.put("Alipay", groupMembers.getAlipay());
+            if (groupMembers != null && groupMembers.getMemberDesc() != null) {
+                //memberDesc 特殊处理
+                resultMap.put("memberDesc", JacksonUtil.getJsonNode(groupMembers.getMemberDesc()));
+            } else {
+                resultMap.put("memberDesc", null);
+            }
+        } else {
+            resultMap.put("isDeleted", null);
+            resultMap.put("groupNickname", null);
+            resultMap.put("region", null);
+            resultMap.put("phone", null);
+            resultMap.put("WeChat", null);
+            resultMap.put("Alipay", null);
+            resultMap.put("memberDesc", null);
+        }
+
+        return APIResultWrap.ok(resultMap);
     }
 
 

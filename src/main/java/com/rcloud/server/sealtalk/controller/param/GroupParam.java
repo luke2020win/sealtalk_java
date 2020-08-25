@@ -1,5 +1,6 @@
 package com.rcloud.server.sealtalk.controller.param;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -36,8 +37,12 @@ public class GroupParam {
     private String groupNickname;
     private String region;
     private String phone;
-    private String WeChat;
-    private String Alipay;
+
+    @JsonProperty(value = "WeChat")
+    private String weChat;
+
+    @JsonProperty(value = "Alipay")
+    private String alipay;
     private String[] memberDesc;
 
     private String content;

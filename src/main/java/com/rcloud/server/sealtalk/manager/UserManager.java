@@ -915,19 +915,21 @@ public class UserManager extends BaseManager {
      * @return
      * @throws ServiceException
      */
-    public List<Groups> getFavGroups(Integer userId, Integer limit, Integer offset) throws ServiceException {
+    public Pair<Integer,List<Groups>> getFavGroups(Integer userId, Integer limit, Integer offset) throws ServiceException {
         List<Groups> groupsList = new ArrayList<>();
-        List<GroupFavs> groupFavsList = groupFavsService.queryGroupFavsWithGroupByUserId(userId, limit, offset);
-
-        if (!CollectionUtils.isEmpty(groupFavsList)) {
-            for (GroupFavs groupFavs : groupFavsList) {
-                if (groupFavs.getGroups() != null) {
-                    groupsList.add(groupFavs.getGroups());
+        Integer count = groupFavsService.queryCountGroupFavs(userId);
+        if(count!=null && count>0){
+            List<GroupFavs> groupFavsList = groupFavsService.queryGroupFavsWithGroupByUserId(userId, limit, offset);
+            if (!CollectionUtils.isEmpty(groupFavsList)) {
+                for (GroupFavs groupFavs : groupFavsList) {
+                    if (groupFavs.getGroups() != null) {
+                        groupsList.add(groupFavs.getGroups());
+                    }
                 }
             }
         }
 
-        return groupsList;
+        return Pair.of(count,groupsList);
     }
 
     /**

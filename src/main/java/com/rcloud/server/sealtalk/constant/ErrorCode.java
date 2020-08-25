@@ -90,6 +90,7 @@ public enum ErrorCode {
     NOT_GROUP_CREATOR(400,"Current user is not group creator.",400),
     QUIT_IM_SERVER_ERROR(500,"Quit failed on IM server.",500),
     NOT_GROUP_MEMBER_3(403,"Current user is not group member.",403),
+    NOT_GROUP_MANAGER_3(403,"Current user is not group manager.",403),
     CAN_NOT_KICK_YOURSELF(400,"Can not kick yourself.",400),
     CAN_NOT_KICK_CREATOR(405,"Can not kick the host.",405),
     GROUP_MEMBER_EMPTY(500,"Group member should not be empty, please check your database.",500),

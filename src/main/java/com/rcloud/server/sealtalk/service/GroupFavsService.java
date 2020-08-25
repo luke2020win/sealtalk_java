@@ -45,4 +45,9 @@ public class GroupFavsService extends AbstractBaseService<GroupFavs, Integer> {
         }
         this.deleteByExample(example);
     }
+
+
+    public Integer queryCountGroupFavs(Integer userId){
+        return mapper.queryCountGroupFavsWithGroupByUserId(userId);
+    }
 }

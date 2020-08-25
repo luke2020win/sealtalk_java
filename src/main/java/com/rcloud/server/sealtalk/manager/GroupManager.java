@@ -779,7 +779,9 @@ public class GroupManager extends BaseManager {
         newGroupMembers.setPhone(phone);
         newGroupMembers.setWeChat(weChat);
         newGroupMembers.setAlipay(alipay);
-        newGroupMembers.setMemberDesc(JacksonUtil.toJson(memberDesc));
+        if(memberDesc!=null){
+            newGroupMembers.setMemberDesc(JacksonUtil.toJson(memberDesc));
+        }
 
         groupMembersService.updateByPrimaryKeySelective(newGroupMembers);
 
@@ -1898,7 +1900,7 @@ public class GroupManager extends BaseManager {
                 }
             }
             if (!GroupRole.MANAGER.getCode().equals(currentUserRole) && !GroupRole.CREATOR.getCode().equals(currentUserRole)) {
-                throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_3);
+                throw new ServiceException(ErrorCode.NOT_GROUP_MANAGER_3);
             }
         } else {
             throw new ServiceException(ErrorCode.GROUP_MEMBER_EMPTY);
@@ -1975,7 +1977,7 @@ public class GroupManager extends BaseManager {
         } else if (GroupRole.MANAGER.getCode().equals(currentUserRole)) {
             quitReason = GroupExitedLists.QUITE_REASON_MANAGER;
         } else {
-            throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_3);
+            throw new ServiceException(ErrorCode.NOT_GROUP_MANAGER_3);
         }
         groupExitedListsService.saveGroupExitedListItems(groups, memberUserList, operatorUser, quitReason);
         return;
