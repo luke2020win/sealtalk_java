@@ -855,8 +855,7 @@ public class GroupManager extends BaseManager {
                     groupsService.updateByPrimaryKeySelective(groups);
 
                     CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
-                }
-                {
+                }else {
                     log.error("Error: rollback group failed on IM server, error,code: " + result.getCode());
                     throw new ServiceException(ErrorCode.SERVER_ERROR);
                 }
