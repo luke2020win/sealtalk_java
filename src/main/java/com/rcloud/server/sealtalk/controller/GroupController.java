@@ -149,14 +149,12 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "转让群主")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public APINoResult transfer(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APINoResult transfer(@RequestBody TransferGroupParam transferGroupParam) throws ServiceException {
 
-        //TODO userId [userId]
-        String groupId = groupParam.getGroupId();
-        String[] userIds = groupParam.getUserId();
+        String groupId = transferGroupParam.getGroupId();
+        String userId = transferGroupParam.getUserId();
         ValidateUtils.notEmpty(groupId);
-        ValidateUtils.notEmpty(userIds);
-        String userId = userIds[0];
+        ValidateUtils.notEmpty(userId);
 
 
         Integer currentUserId = getCurrentUserId();
