@@ -684,7 +684,6 @@ public class GroupManager extends BaseManager {
      * @param operatorId
      * @param targetId
      * @param operation
-     * @param clearTime
      * @return
      * @throws ServiceException
      */
@@ -1295,13 +1294,14 @@ public class GroupManager extends BaseManager {
                 Result result = rongCloudClient.removeGroupWhiteList(N3d.encode(groupId), encodedMemberIds);
 
                 if (result.getCode() == 200) {
+                    log.error("batchRemoveManager rongCloudClient removeWhiteList success");
                     groupReceiversService.deleteByMemberIds(groupId, memberIds);
                 } else {
-                    log.error("invoke rongCloudClient removeWhiteList error,result.code={}", result.getCode());
+                    log.error("batchRemoveManager rongCloudClient removeWhiteList error,result.code={}", result.getCode());
                     throw new ServiceException(result.getCode(), result.getErrorMessage(), HttpStatusCode.CODE_200.getCode());
                 }
             } catch (Exception e) {
-                log.error("Error: remove group whitelist failed on IM server, error: {}" + e.getMessage(), e);
+                log.error("batchRemoveManager Error: remove group whitelist failed on IM server, error: {}" + e.getMessage(), e);
             }
         }
     }
@@ -1869,7 +1869,7 @@ public class GroupManager extends BaseManager {
      * @param encodeMemberIds
      */
     public void kickMember(Integer currentUserId, Integer groupId, String encodeGroupId, Integer[] memberIds, String[] encodeMemberIds) throws ServiceException {
-
+        log.info("kickMember groupId:"+groupId+" memberIds.len:"+memberIds.length);
         long timestamp = System.currentTimeMillis();
         if (ArrayUtils.contains(memberIds, currentUserId)) {
             throw new ServiceException(ErrorCode.CAN_NOT_KICK_YOURSELF);
@@ -1882,6 +1882,7 @@ public class GroupManager extends BaseManager {
             throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR);
         }
 
+        // 不能踢自己
         if (ArrayUtils.contains(memberIds, groups.getCreatorId())) {
             throw new ServiceException(ErrorCode.CAN_NOT_KICK_CREATOR);
         }
@@ -1889,6 +1890,7 @@ public class GroupManager extends BaseManager {
         Example example = new Example(GroupMembers.class);
         example.createCriteria().andEqualTo("groupId", groupId);
 
+        // 获取群成员
         List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
 
         Integer currentUserRole = null;

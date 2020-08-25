@@ -22,6 +22,18 @@ public class APIResultWrap {
     private APIResultWrap() {
     }
 
+    public static APINoResult ok1() {
+        return new APINoResult(SUCCESS_CODE, StringUtils.EMPTY);
+    }
+
+    public static APINoResult ok1(String message) {
+        return new APINoResult(SUCCESS_CODE, message);
+    }
+
+    public static APINoResult error1(ErrorCode errorCode) {
+        return new APINoResult(String.valueOf(errorCode.getErrorCode()), errorCode.getErrorMessage());
+    }
+
     public static <T> APIResult<T> ok(T data) {
         return new APIResult<>(SUCCESS_CODE, StringUtils.EMPTY, data);
     }

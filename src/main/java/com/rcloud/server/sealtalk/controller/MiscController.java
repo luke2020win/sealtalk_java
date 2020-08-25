@@ -12,6 +12,7 @@ import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.GroupManager;
 import com.rcloud.server.sealtalk.manager.MiscManager;
 import com.rcloud.server.sealtalk.model.dto.DemoSquareDTO;
+import com.rcloud.server.sealtalk.model.response.APINoResult;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.*;
@@ -121,8 +122,7 @@ public class MiscController extends BaseController {
             response.setCharacterEncoding("utf8");
             String result = CacheUtil.get(CacheUtil.CLIENT_VERSION_INFO);
             if (StringUtils.isEmpty(result)) {
-                String jsonData = IOUtils
-                        .toString(clientResource.getInputStream(), StandardCharsets.UTF_8);
+                String jsonData = IOUtils.toString(clientResource.getInputStream(), StandardCharsets.UTF_8);
                 result = jsonData;
 
             }
@@ -149,8 +149,7 @@ public class MiscController extends BaseController {
 
             String result = CacheUtil.get(CacheUtil.MOBILE_VERSION_INFO);
             if (StringUtils.isEmpty(result)) {
-                String jsonData = IOUtils
-                        .toString(clientResource.getInputStream(), StandardCharsets.UTF_8);
+                String jsonData = IOUtils.toString(clientResource.getInputStream(), StandardCharsets.UTF_8);
                 result = jsonData;
 
             }
@@ -168,8 +167,7 @@ public class MiscController extends BaseController {
     public APIResult<?> getDemoSquare() {
         try {
 
-            String jsonData = IOUtils
-                    .toString(demoSquareResource.getInputStream(), StandardCharsets.UTF_8);
+            String jsonData = IOUtils.toString(demoSquareResource.getInputStream(), StandardCharsets.UTF_8);
             ObjectMapper objectMapper = new ObjectMapper();
             List<DemoSquareDTO> demoSquareDTOList = objectMapper.readValue(jsonData, new TypeReference<List<DemoSquareDTO>>() {
             });
@@ -215,7 +213,7 @@ public class MiscController extends BaseController {
 
     @ApiOperation(value = "Server API 发送消息")
     @RequestMapping(value = "/send_message", method = RequestMethod.POST)
-    public APIResult<Object> sendMessage(@RequestBody SendMessageParam sendMessageParam) throws ServiceException {
+    public APINoResult sendMessage(@RequestBody SendMessageParam sendMessageParam) throws ServiceException {
 
         String conversationType = sendMessageParam.getConversationType();
         String targetId = sendMessageParam.getConversationType();
@@ -230,13 +228,13 @@ public class MiscController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         miscManager.sendMessage(currentUserId, conversationType, N3d.decode(targetId), objectName, content, pushContent, targetId);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
     @ApiOperation(value = "截屏通知状态设置")
     @RequestMapping(value = "/set_screen_capture", method = RequestMethod.POST)
-    public APIResult<Object> setScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
+    public APINoResult setScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
 
         Integer conversationType = screenCaptureParam.getConversationType();
         String targetId = screenCaptureParam.getTargetId();
@@ -249,7 +247,7 @@ public class MiscController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         miscManager.setScreenCapture(currentUserId, N3d.decode(targetId), conversationType, noticeStatus);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
@@ -277,7 +275,7 @@ public class MiscController extends BaseController {
 
     @ApiOperation(value = "发送截屏通知消息")
     @RequestMapping(value = "/send_sc_msg", method = RequestMethod.POST)
-    public APIResult<Object> sendScreenCaptureMsg(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
+    public APINoResult sendScreenCaptureMsg(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
 
         Integer conversationType = screenCaptureParam.getConversationType();
         String targetId = screenCaptureParam.getTargetId();
@@ -289,7 +287,7 @@ public class MiscController extends BaseController {
 
         miscManager.sendScreenCaptureMsg(currentUserId, N3d.decode(targetId), conversationType);
 
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 

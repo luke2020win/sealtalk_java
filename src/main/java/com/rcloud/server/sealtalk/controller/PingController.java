@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.model.dto.DemoSquareDTO;
+import com.rcloud.server.sealtalk.model.response.APINoResult;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.MiscUtils;
@@ -34,7 +35,7 @@ public class PingController {
 
     @ApiOperation(value = "Ping")
     @RequestMapping(value = "/ping", method = RequestMethod.GET)
-    public APIResult<?> ping() {
-        return APIResultWrap.ok("");
+    public APINoResult ping() {
+        return APIResultWrap.ok1("");
     }
 }
