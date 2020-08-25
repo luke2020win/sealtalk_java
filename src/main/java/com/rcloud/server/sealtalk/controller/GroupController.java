@@ -538,7 +538,7 @@ public class GroupController extends BaseController {
         //Integer currentUserId = getCurrentUserId(); TODO
 
         groupManager.setMemberInfo(N3d.decode(groupId), N3d.decode(memberId), groupNickname, region, phone, WeChat, Alipay, memberDesc);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok(null,"设置成功");
     }
 
 
