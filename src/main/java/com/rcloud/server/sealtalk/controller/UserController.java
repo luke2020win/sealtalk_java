@@ -14,6 +14,7 @@ import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.model.dto.FavGroupInfoDTO;
 import com.rcloud.server.sealtalk.model.dto.FavGroupsDTO;
 import com.rcloud.server.sealtalk.model.dto.SyncInfoDTO;
+import com.rcloud.server.sealtalk.model.response.APINoResult;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.*;
@@ -52,7 +53,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "向手机发送验证码(RongCloud)")
     @RequestMapping(value = "/send_code", method = RequestMethod.POST)
-    public APIResult<Object> sendCode(
+    public APINoResult sendCode(
             @ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
             @RequestParam String region,
             @ApiParam(name = "phone", value = "电话号", required = true, type = "String", example = "188xxxxxxxx")
@@ -63,12 +64,12 @@ public class UserController extends BaseController {
         ValidateUtils.checkCompletePhone(phone);
 
         userManager.sendCode(region, phone, SmsServiceType.RONGCLOUD, null);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "向手机发送验证码(云片服务)")
     @RequestMapping(value = "/send_code_yp", method = RequestMethod.POST)
-    public APIResult<Object> sendCodeYp(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult sendCodeYp(@RequestBody UserParam userParam) throws ServiceException {
 
         String region = userParam.getRegion();
         String phone = userParam.getPhone();
@@ -79,7 +80,7 @@ public class UserController extends BaseController {
 
         ServerApiParams serverApiParams = getServerApiParams();
         userManager.sendCode(region, phone, SmsServiceType.YUNPIAN, serverApiParams);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
 
     }
 
@@ -248,19 +249,19 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "用户注销")
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    public APIResult<Object> logout(HttpServletResponse response) {
+    public APINoResult logout(HttpServletResponse response) {
 
         Cookie newCookie = new Cookie(getSealtalkConfig().getAuthCookieName(), null);
         newCookie.setMaxAge(0);
         newCookie.setPath("/");
         response.addCookie(newCookie);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
 
     }
 
     @ApiOperation(value = "重置密码")
     @RequestMapping(value = "/reset_password", method = RequestMethod.POST)
-    public APIResult<Object> resetPassword(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult resetPassword(@RequestBody UserParam userParam) throws ServiceException {
         String password = userParam.getPassword();
         String verificationToken = userParam.getVerification_token();
 
@@ -268,12 +269,12 @@ public class UserController extends BaseController {
         ValidateUtils.checkUUID(verificationToken);
 
         userManager.resetPassword(password, verificationToken);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "修改密码")
     @RequestMapping(value = "/change_password", method = RequestMethod.POST)
-    public APIResult<Object> changePassword(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult changePassword(@RequestBody UserParam userParam) throws ServiceException {
 
         String newPassword = userParam.getNewPassword();
         String oldPassword = userParam.getOldPassword();
@@ -283,7 +284,7 @@ public class UserController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         userManager.changePassword(newPassword, oldPassword, currentUserId);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
@@ -306,7 +307,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "设置昵称")
     @RequestMapping(value = "/set_nickname", method = RequestMethod.POST)
-    public APIResult<Object> setNickName(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult setNickName(@RequestBody UserParam userParam) throws ServiceException {
         String nickname = userParam.getNickname();
 
         nickname = MiscUtils.xss(nickname, ValidateUtils.NICKNAME_MAX_LENGTH);
@@ -314,12 +315,12 @@ public class UserController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         userManager.setNickName(nickname, currentUserId);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "设置头像")
     @RequestMapping(value = "/set_portrait_uri", method = RequestMethod.POST)
-    public APIResult<Object> setPortraitUri(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult setPortraitUri(@RequestBody UserParam userParam) throws ServiceException {
         String portraitUri = userParam.getPortraitUri();
 
         portraitUri = MiscUtils.xss(portraitUri, ValidateUtils.PORTRAIT_URI_MAX_LENGTH);
@@ -329,7 +330,7 @@ public class UserController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         userManager.setPortraitUri(portraitUri, currentUserId);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
@@ -366,25 +367,25 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "将好友加入黑名单")
     @RequestMapping(value = "/add_to_blacklist", method = RequestMethod.POST)
-    public APIResult<Object> addBlackList(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult addBlackList(@RequestBody UserParam userParam) throws ServiceException {
         String friendId = userParam.getFriendId();
         ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
         userManager.addBlackList(currentUserId, N3d.decode(friendId), friendId);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
     @ApiOperation(value = "将好友移除黑名单")
     @RequestMapping(value = "/remove_from_blacklist", method = RequestMethod.POST)
-    public APIResult<Object> removeBlacklist(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult removeBlacklist(@RequestBody UserParam userParam) throws ServiceException {
         String friendId = userParam.getFriendId();
         ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
         userManager.removeBlackList(currentUserId, N3d.decode(friendId), friendId);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
@@ -578,20 +579,20 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "设置 SealTalk 号")
     @RequestMapping(value = "/set_st_account", method = RequestMethod.POST)
-    public APIResult<Object> setStAccount(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult setStAccount(@RequestBody UserParam userParam) throws ServiceException {
         String stAccount = userParam.getStAccount();
 
         ValidateUtils.checkStAccount(stAccount);
 
         Integer currentUserId = getCurrentUserId();
         userManager.setStAccount(currentUserId, stAccount);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
     @ApiOperation(value = "设置性别")
     @RequestMapping(value = "/set_gender", method = RequestMethod.POST)
-    public APIResult<Object> setGender(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult setGender(@RequestBody UserParam userParam) throws ServiceException {
         String gender = userParam.getGender();
 
         ValidateUtils.checkGender(gender);
@@ -601,12 +602,12 @@ public class UserController extends BaseController {
         u.setGender(gender);
 
         userManager.updateUserById(u);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "设置个人隐私设置")
     @RequestMapping(value = "/set_privacy", method = RequestMethod.POST)
-    public APIResult<Object> setPrivacy(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult setPrivacy(@RequestBody UserParam userParam) throws ServiceException {
 
         Integer phoneVerify = userParam.getPhoneVerify();
         Integer stSearchVerify = userParam.getStSearchVerify();
@@ -625,7 +626,7 @@ public class UserController extends BaseController {
         u.setFriVerify(friVerify);
         u.setGroupVerify(groupVerify);
         userManager.updateUserById(u);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "获取个人隐私设置")
@@ -646,7 +647,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "设置接收戳一下消息状态")
     @RequestMapping(value = "/set_poke", method = RequestMethod.POST)
-    public APIResult<Object> setPokeStatus(@RequestBody UserParam userParam) throws ServiceException {
+    public APINoResult setPokeStatus(@RequestBody UserParam userParam) throws ServiceException {
 
         Integer pokeStatus = userParam.getPokeStatus();
         ValidateUtils.checkPokeStatus(pokeStatus);
@@ -656,7 +657,7 @@ public class UserController extends BaseController {
         u.setId(currentUserId);
         u.setPokeStatus(pokeStatus);
         userManager.updateUserById(u);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "获取接收戳一下消息状态")

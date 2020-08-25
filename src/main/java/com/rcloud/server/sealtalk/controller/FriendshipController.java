@@ -8,6 +8,7 @@ import com.rcloud.server.sealtalk.domain.Users;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.FriendShipManager;
 import com.rcloud.server.sealtalk.model.dto.*;
+import com.rcloud.server.sealtalk.model.response.APINoResult;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.MiscUtils;
@@ -69,42 +70,42 @@ public class FriendshipController extends BaseController {
 
     @ApiOperation(value = "同意添加好友")
     @RequestMapping(value = "/agree", method = RequestMethod.POST)
-    public APIResult<Object> agree(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+    public APINoResult agree(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
 
         String friendId = friendshipParam.getFriendId();
         ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
         friendShipManager.agree(currentUserId, N3d.decode(friendId));
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "忽略好友请求")
     @RequestMapping(value = "/ignore", method = RequestMethod.POST)
-    public APIResult<Object> ignore(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+    public APINoResult ignore(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
         String friendId = friendshipParam.getFriendId();
         ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
         friendShipManager.ignore(currentUserId, N3d.decode(friendId));
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "删除好友")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    public APIResult<Object> delete(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+    public APINoResult delete(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
 
         String friendId = friendshipParam.getFriendId();
         ValidateUtils.notEmpty(friendId);
 
         Integer currentUserId = getCurrentUserId();
         friendShipManager.delete(currentUserId, N3d.decode(friendId));
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "设置好友备注名")
     @RequestMapping(value = "/set_display_name", method = RequestMethod.POST)
-    public APIResult<Object> setDisplayName(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+    public APINoResult setDisplayName(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
 
         String friendId = friendshipParam.getFriendId();
         ValidateUtils.notEmpty(friendId);
@@ -114,7 +115,7 @@ public class FriendshipController extends BaseController {
         ValidateUtils.checkDisplayName(displayName);
         Integer currentUserId = getCurrentUserId();
         friendShipManager.setDisplayName(currentUserId, N3d.decode(friendId), displayName);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     @ApiOperation(value = "获取好友列表")
@@ -200,7 +201,7 @@ public class FriendshipController extends BaseController {
 
     @ApiOperation(value = "批量删除好友")
     @RequestMapping(value = "/batch_delete", method = RequestMethod.POST)
-    public APIResult<?> batchDelete(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+    public APINoResult batchDelete(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
         String[] friendIds = friendshipParam.getFriendIds();
         ValidateUtils.notEmpty(friendIds);
 
@@ -212,7 +213,7 @@ public class FriendshipController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         friendShipManager.batchDelete(currentUserId, decodeFriendIds);
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
     /**
@@ -226,7 +227,7 @@ public class FriendshipController extends BaseController {
      */
     @ApiOperation(value = "设置朋友备注和描述")
     @RequestMapping(value = "/set_friend_description", method = RequestMethod.POST)
-    public APIResult<?> setFriendDescription(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
+    public APINoResult setFriendDescription(@RequestBody FriendshipParam friendshipParam) throws ServiceException {
 
         String friendId = friendshipParam.getFriendId();
         String region = friendshipParam.getRegion();
@@ -236,21 +237,20 @@ public class FriendshipController extends BaseController {
         String imageUri = friendshipParam.getImageUri();
 
         if (StringUtils.isEmpty(friendId)) {
-            return APIResultWrap.error(ErrorCode.PARAM_ERROR);
+            return APIResultWrap.error1(ErrorCode.PARAM_ERROR);
         }
 
         // region,phone 要么都为空，要么都不为空
         if ((StringUtils.isEmpty(region) && !StringUtils.isEmpty(phone)) ||
                 (!StringUtils.isEmpty(region) && StringUtils.isEmpty(phone))) {
-            return APIResultWrap.error(ErrorCode.PARAM_ERROR);
+            return APIResultWrap.error1(ErrorCode.PARAM_ERROR);
         }
-
 
         Integer currentUserId = getCurrentUserId();
 
         friendShipManager.setFriendDescription(currentUserId, N3d.decode(friendId), displayName, region, phone, description, imageUri);
 
-        return APIResultWrap.ok("");
+        return APIResultWrap.ok1("");
     }
 
 
