@@ -471,8 +471,8 @@ public class UserController extends BaseController {
                                                      @RequestParam(value = "region", required = false) String region,
                                                      @ApiParam(name = "phone", value = "phone", type = "String", example = "xxx")
                                                      @RequestParam(value = "phone", required = false) String phone,
-                                                     @ApiParam(name = "account", value = "account", type = "String", example = "xxx")
-                                                     @RequestParam(value = "account", required = false) String account) throws ServiceException {
+                                                     @ApiParam(name = "st_account", value = "account", type = "String", example = "xxx")
+                                                     @RequestParam(value = "st_account", required = false) String account) throws ServiceException {
 
         if ((!Constants.REGION_NUM.equals(region) || !RegexUtils.checkMobile(phone)) && StringUtils.isEmpty(account)) {
             throw new ServiceException(ErrorCode.EMPTY_PARAMETER);
