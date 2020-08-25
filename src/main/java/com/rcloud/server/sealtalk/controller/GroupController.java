@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.controller.param.GroupParam;
+import com.rcloud.server.sealtalk.controller.param.TransferGroupParam;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.GroupManager;
@@ -147,14 +148,12 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "转让群主")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public APIResult<?> transfer(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult<?> transfer(@RequestBody TransferGroupParam transferGroupParam) throws ServiceException {
 
-        //TODO userId [userId]
-        String groupId = groupParam.getGroupId();
-        String[] userIds = groupParam.getUserId();
+        String groupId = transferGroupParam.getGroupId();
+        String userId = transferGroupParam.getUserId();
         ValidateUtils.notEmpty(groupId);
-        ValidateUtils.notEmpty(userIds);
-        String userId = userIds[0];
+        ValidateUtils.notEmpty(userId);
 
 
         Integer currentUserId = getCurrentUserId();
