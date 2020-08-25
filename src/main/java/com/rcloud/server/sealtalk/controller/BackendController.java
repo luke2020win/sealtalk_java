@@ -3,11 +3,15 @@ package com.rcloud.server.sealtalk.controller;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
+import com.rcloud.server.sealtalk.util.MiscUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Api(tags = "后台管理系统相关接口")
 @RestController
@@ -25,6 +29,12 @@ public class BackendController extends BaseController {
             @RequestParam String password
     ) throws ServiceException {
         log.info("BackendController login username:"+username+" password:"+password);
-        return APIResultWrap.ok("");
+
+
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("id", "11111");
+        resultMap.put("token", "abcdefg");
+
+        return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
     }
 }

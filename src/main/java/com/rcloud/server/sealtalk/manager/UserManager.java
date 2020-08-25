@@ -359,6 +359,7 @@ public class UserManager extends BaseManager {
             throw new ServiceException(ErrorCode.USER_PASSWORD_WRONG);
         }
 
+        log.info("login id:"+u.getId()+" nickname:"+u.getNickname());
         //缓存nickname
         CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
 
@@ -391,6 +392,7 @@ public class UserManager extends BaseManager {
         String token = u.getRongCloudToken();
         log.error("login id:" + u.getId());
         log.error("login n3d id:" + N3d.encode(u.getId()));
+        log.error("login token:" + token);
         log.error("login nickname:" + u.getNickname());
         log.error("login portraitUri:" + u.getPortraitUri());
         if (StringUtils.isEmpty(token)) {
