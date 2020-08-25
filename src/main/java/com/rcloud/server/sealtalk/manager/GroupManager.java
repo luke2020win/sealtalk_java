@@ -13,7 +13,6 @@ import com.rcloud.server.sealtalk.util.CacheUtil;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
 import com.rcloud.server.sealtalk.util.MiscUtils;
 import com.rcloud.server.sealtalk.util.N3d;
-import com.sun.tools.hat.internal.util.Misc;
 import io.rong.models.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -778,7 +777,7 @@ public class GroupManager extends BaseManager {
         newGroupMembers.setPhone(phone);
         newGroupMembers.setWeChat(weChat);
         newGroupMembers.setAlipay(alipay);
-        if(memberDesc!=null){
+        if (memberDesc != null) {
             newGroupMembers.setMemberDesc(JacksonUtil.toJson(memberDesc));
         }
 
@@ -849,7 +848,7 @@ public class GroupManager extends BaseManager {
 
             try {
                 Result result = rongCloudClient.removeMuteStatus(new String[]{encodeGroupId});
-                if (result.getCode() == 200) {
+                if (Constants.CODE_OK.equals(result.getCode())) {
                     Groups groups = new Groups();
                     groups.setId(groupId);
                     groups.setIsMute(muteStatus);
@@ -873,15 +872,15 @@ public class GroupManager extends BaseManager {
             List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
 
             List<Integer> whiteUserIdList = new ArrayList<>();
-            if(!CollectionUtils.isEmpty(groupMembersList)){
-                for(GroupMembers groupMembers : groupMembersList) {
+            if (!CollectionUtils.isEmpty(groupMembersList)) {
+                for (GroupMembers groupMembers : groupMembersList) {
                     whiteUserIdList.add(groupMembers.getMemberId());
                 }
 
             }
 
-            if(ArrayUtils.isNotEmpty(userIds)){
-                for(Integer id:userIds){
+            if (ArrayUtils.isNotEmpty(userIds)) {
+                for (Integer id : userIds) {
                     whiteUserIdList.add(id);
                 }
             }
@@ -889,11 +888,11 @@ public class GroupManager extends BaseManager {
             try {
                 //调用融云接口设置禁言rongCloud.group.ban.add
                 Result result = rongCloudClient.setMuteStatus(new String[]{encodeGroupId});
-                if (result.getCode() == 200) {
+                if (Constants.CODE_OK.equals(result.getCode())) {
                     try {
                         //将管理员用户和指定可发言用户加入白名单
                         Result result1 = rongCloudClient.addGroupWhitelist(encodeGroupId, MiscUtils.encodeIds(whiteUserIdList));
-                        if (result1.getCode() == 200) {
+                        if (Constants.CODE_OK.equals(result1.getCode())) {
                             //修改禁言状态
                             Groups groups = new Groups();
                             groups.setId(groupId);
@@ -1869,7 +1868,7 @@ public class GroupManager extends BaseManager {
      * @param encodeMemberIds
      */
     public void kickMember(Integer currentUserId, Integer groupId, String encodeGroupId, Integer[] memberIds, String[] encodeMemberIds) throws ServiceException {
-        log.info("kickMember groupId:"+groupId+" memberIds.len:"+memberIds.length);
+        log.info("kickMember groupId:" + groupId + " memberIds.len:" + memberIds.length);
         long timestamp = System.currentTimeMillis();
         if (ArrayUtils.contains(memberIds, currentUserId)) {
             throw new ServiceException(ErrorCode.CAN_NOT_KICK_YOURSELF);
