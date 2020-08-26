@@ -617,4 +617,23 @@ public class GroupController extends BaseController {
     }
 
 
+    @ApiOperation(value = "复制群组")
+    @RequestMapping(value = "/copy_group", method = RequestMethod.POST)
+    public APIResult<GroupAddStatusDTO> copyGroup(@RequestBody GroupParam groupParam) throws ServiceException {
+        String groupId = groupParam.getGroupId();
+        String name = groupParam.getName();
+        String portraitUri = groupParam.getPortraitUri();
+
+        name = MiscUtils.xss(name, ValidateUtils.GROUP_NAME_MAX_LENGTH);
+        ValidateUtils.notEmpty(groupId);
+        ValidateUtils.checkGroupName(name);
+        portraitUri = MiscUtils.xss(portraitUri, ValidateUtils.PORTRAIT_URI_MAX_LENGTH);
+
+        Integer currentUserId = getCurrentUserId();
+        GroupAddStatusDTO groupAddStatusDTO = groupManager.copyGroup(currentUserId, N3d.decode(groupId), name,portraitUri);
+        return APIResultWrap.ok(groupAddStatusDTO);
+
+    }
+
+
 }

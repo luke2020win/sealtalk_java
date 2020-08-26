@@ -38,6 +38,10 @@ public class APIResultWrap {
         return new APIResult<>(SUCCESS_CODE, StringUtils.EMPTY, data);
     }
 
+    public static <T> APIResult<T> ok() {
+        return new APIResult<>(SUCCESS_CODE, StringUtils.EMPTY, null);
+    }
+
     public static <T> APIResult<T> ok(T data,String message) {
         return new APIResult<>(SUCCESS_CODE, message, data);
     }

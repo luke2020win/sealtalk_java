@@ -99,6 +99,10 @@ public enum ErrorCode {
     NOT_IN_MEMBER(403,"Not in the group.",403),
     NO_PERMISSION_SET_MANAGER(401,"No permission to set up an manager.",401),
     CAN_NOT_SET_CREATOR(403,"Cannot set the group creator.",403),
+    NO_GROUP(20006,"No Group",200),
+    IN_PROTECTED_GROUP(20004,"Protected",200),
+    COPIED_GROUP(20005,"Copied",200),
+    MEMBER_LIMIT(20007,"Member Limit",200),
 
 
     //yunpian error 云片服务错误，错误码3000 开头

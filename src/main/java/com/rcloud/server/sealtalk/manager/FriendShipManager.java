@@ -45,7 +45,7 @@ import java.util.*;
 @Slf4j
 public class FriendShipManager extends BaseManager {
 
-    public static final int VERIFY = 1;
+    public static final Integer VERIFY = 1;
 
     public static final String NONE = "None";
     public static final String ADDED = "Added";
@@ -88,8 +88,7 @@ public class FriendShipManager extends BaseManager {
         Users users = usersService.getByPrimaryKey(friendId);
         Integer friVerify = users.getFriVerify();
         log.info("invite user. friVerify:[{}]", friVerify);
-        String action = null;
-        if (friVerify == VERIFY) {
+        if (VERIFY.equals(friVerify)) {
             // 需要对方验证
             inviteResponse = addVerifyFriend(currentUserId, friendId, message);
         } else {
@@ -663,8 +662,8 @@ public class FriendShipManager extends BaseManager {
             return JacksonUtil.fromJson(result, Friendships.class);
         }
 
-        log.info("getFriendProfile currentUserId:"+currentUserId);
-        log.info("getFriendProfile friendId:"+friendId);
+        log.info("getFriendProfile currentUserId:" + currentUserId);
+        log.info("getFriendProfile friendId:" + friendId);
         Friendships friendships = friendshipsService.getFriendShipWithUsers(currentUserId, friendId, Friendships.FRIENDSHIP_AGREED);
 
         if (friendships == null) {

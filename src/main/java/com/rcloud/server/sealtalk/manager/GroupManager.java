@@ -9,14 +9,10 @@ import com.rcloud.server.sealtalk.model.dto.UserStatusDTO;
 import com.rcloud.server.sealtalk.rongcloud.RongCloudClient;
 import com.rcloud.server.sealtalk.rongcloud.message.GrpApplyMessage;
 import com.rcloud.server.sealtalk.service.*;
-import com.rcloud.server.sealtalk.util.CacheUtil;
-import com.rcloud.server.sealtalk.util.JacksonUtil;
-import com.rcloud.server.sealtalk.util.MiscUtils;
-import com.rcloud.server.sealtalk.util.N3d;
+import com.rcloud.server.sealtalk.util.*;
 import io.rong.models.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -126,7 +122,7 @@ public class GroupManager extends BaseManager {
         List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
 
         if (groupMembersList != null && groupMembersList.size() >= Constants.MAX_USER_GROUP_OWN_COUNT) {
-            throw new ServiceException(ErrorCode.INVALID_USER_GROUP_COUNT_LIMIT);
+            throw new ServiceException(ErrorCode.INVALID_USER_GROUP_COUNT_LIMIT.getErrorCode(), "Current user's group count is out of max user group count limit (" + ValidateUtils.MAX_USER_GROUP_OWN_COUNT + ").", 200);
         }
 
         //开启了加入群验证，不允许直接加入群聊的用户
@@ -222,7 +218,7 @@ public class GroupManager extends BaseManager {
 
         //构建返回结果
         GroupAddStatusDTO groupAddStatusDTO = new GroupAddStatusDTO();
-        groupAddStatusDTO.setId(groups.getId());
+        groupAddStatusDTO.setId(N3d.encode(groups.getId()));
         groupAddStatusDTO.setUserStatus(userStatusDTOList);
         return groupAddStatusDTO;
     }
@@ -857,7 +853,7 @@ public class GroupManager extends BaseManager {
                     groupsService.updateByPrimaryKeySelective(groups);
 
                     CacheUtil.delete(CacheUtil.GROUP_CACHE_PREFIX + groupId);
-                }else {
+                } else {
                     log.error("Error: rollback group failed on IM server, error,code: " + result.getCode());
                     throw new ServiceException(ErrorCode.SERVER_ERROR);
                 }
@@ -1499,7 +1495,7 @@ public class GroupManager extends BaseManager {
                     //将老群主移除白名单
                     try {
                         Result result2 = rongCloudClient.removeGroupWhiteList(N3d.encode(groupId), new String[]{N3d.encode(currentUserId)});
-                        if (Constants.CODE_OK.equals(result2.getCode()) ) {
+                        if (Constants.CODE_OK.equals(result2.getCode())) {
                             //根据groupId, currentUserId删除GroupReceiver
                             groupReceiversService.deleteGroupReverive(groupId, currentUserId);
                         }
@@ -2015,5 +2011,186 @@ public class GroupManager extends BaseManager {
      */
     public void deletefav(Integer currentUserId, Integer groupId) {
         groupFavsService.deleteByGroupIdAndUserId(groupId, ImmutableList.of(currentUserId));
+    }
+
+    /**
+     * 复制群
+     *
+     * @param currentUserId
+     * @param groupId
+     * @param groupName
+     * @param portraitUri
+     * @return
+     */
+    public GroupAddStatusDTO copyGroup(Integer currentUserId, Integer groupId, String groupName, String portraitUri) throws ServiceException {
+
+        List<UserStatusDTO> userStatusDTOList = new ArrayList<>();
+
+        long timestamp = System.currentTimeMillis();
+        //根据groupId查询群组信息
+        Groups groups = groupsService.getByPrimaryKey(groupId);
+
+        if (groups == null) {
+            throw new ServiceException(ErrorCode.NO_GROUP);
+        }
+
+        Long createTimestamp = groups.getCreatedAt().getTime();
+        Long currentTimestamp = new Date().getTime();
+        Long sevenDaysTimestamp = 86400000 * 7L; // 7天
+        Long oneHourTimestamp = 3600000L; // 测试用 1小时
+        if (groups.getCopiedTime() == null) {
+            groups.setCopiedTime(Groups.COPIED_TIME_DEFAUT);
+        }
+
+        boolean hasSevenDays = currentTimestamp - createTimestamp > oneHourTimestamp;// 测试用
+        boolean hasCopied = currentTimestamp - groups.getCopiedTime() > oneHourTimestamp;// 测试用
+//        boolean hasSevenDays = currentTimestamp - createTimestamp > sevenDaysTimestamp;
+//        boolean hasCopied = currentTimestamp - groups.getCopiedTime() > sevenDaysTimestamp;
+
+        //判断被复制的群是否还在保护期，如果在返回 code: 20004,msg: 'Protected'
+        if (!hasSevenDays) {
+            throw new ServiceException(ErrorCode.IN_PROTECTED_GROUP);
+        }
+
+        //判断被复制的群的copiedtime，是否在短期内刚刚被复制过，如果是，返回code: 20005,msg: 'Copied'
+        if (!hasCopied) {
+            throw new ServiceException(ErrorCode.COPIED_GROUP);
+        }
+        //根据groupId查询GroupMember 成员角色信息
+        Example example = new Example(GroupMembers.class);
+        example.createCriteria().andEqualTo("groupId", groupId);
+        List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
+
+        List<Integer> memberIds = new ArrayList<>();
+        List<String> encodedMemberIds = new ArrayList<>();
+
+        if (!CollectionUtils.isEmpty(groupMembersList)) {
+            for (GroupMembers groupMembers : groupMembersList) {
+                memberIds.add(groupMembers.getMemberId());
+                encodedMemberIds.add(N3d.encode(groupMembers.getMemberId()));
+            }
+        } else {
+            log.error("copy group, have no members");
+            throw new ServiceException(ErrorCode.SERVER_ERROR);
+        }
+
+        List<Integer> joinUserIds = new ArrayList<>();
+        for (Integer memberId : memberIds) {
+            if (!memberId.equals(currentUserId)) {
+                joinUserIds.add(memberId);
+            }
+        }
+
+        //判断被复制的群成员数必须大于1，否则返回code: 20007,msg: 'Member Limit'
+        if (memberIds.size() == 1) {
+            throw new ServiceException(ErrorCode.MEMBER_LIMIT);
+        }
+        //判断是否超过最大群成员数量上限
+        if (memberIds.size() > ValidateUtils.DEFAULT_MAX_GROUP_MEMBER_COUNT) {
+            throw new ServiceException(ErrorCode.INVALID_GROUP_MEMNBER_MAX_COUNT, "Group's member count is out of max group member count limit (" + ValidateUtils.DEFAULT_MAX_GROUP_MEMBER_COUNT + ").");
+        }
+        Example example1 = new Example(GroupMembers.class);
+        example1.createCriteria().andEqualTo("memberId", currentUserId);
+        List<GroupMembers> gMembersList = groupMembersService.getByExample(example1);
+        //判断当前所属组数量是否达到上线
+
+        if (gMembersList != null && gMembersList.size() >= Constants.MAX_USER_GROUP_OWN_COUNT) {
+            throw new ServiceException(ErrorCode.INVALID_USER_GROUP_COUNT_LIMIT.getErrorCode(), "Current user's group count is out of max user group count limit (" + ValidateUtils.MAX_USER_GROUP_OWN_COUNT + ").", 200);
+        }
+
+        //开启了加入群验证，不允许直接加入群聊的用户
+        List<Integer> veirfyNeedUserList = new ArrayList<>();
+        //未开启加入群验证，允许直接加入群聊的用户
+        List<Integer> verifyNoNeedUserList = new ArrayList<>();
+
+        //查询所有成员的用户区分是否开启了入群验证
+        List<Users> usersList = usersService.getUsers(joinUserIds);
+
+        if (!CollectionUtils.isEmpty(usersList)) {
+            for (Users users : usersList) {
+                if (Users.GROUP_VERIFY_NEED.equals(users.getGroupVerify())) {
+                    veirfyNeedUserList.add(users.getId());
+                } else {
+                    verifyNoNeedUserList.add(users.getId());
+                }
+            }
+        }
+        //创建群组
+        Groups newGroups = new Groups();
+        newGroups.setName(groupName);
+        newGroups.setPortraitUri(portraitUri);
+        //+1表示加上当前用户自己
+        newGroups.setMemberCount(verifyNoNeedUserList.size() + 1);
+        newGroups.setCreatorId(currentUserId);
+        newGroups.setTimestamp(timestamp);
+        newGroups.setCreatedAt(new Date());
+        newGroups.setUpdatedAt(newGroups.getCreatedAt());
+        groupsService.saveSelective(newGroups);
+
+        List<Integer> megerUserIdList = new ArrayList<>(verifyNoNeedUserList);
+        megerUserIdList.add(currentUserId);
+
+        //构建返回结果
+        for (int id : megerUserIdList) {
+            UserStatusDTO userStatusDTO = new UserStatusDTO();
+            userStatusDTO.setId(N3d.encode(id));
+            userStatusDTO.setStatus(UserAddStatus.GROUP_ADDED.getCode());
+            userStatusDTOList.add(userStatusDTO);
+        }
+
+        //允许直接加入群聊用户(包括当前用户)-》直接批量保存或更新groupmember
+        doBatchSaveOrUpdateGroupMemberInTransaction(newGroups.getId(), megerUserIdList, timestamp, currentUserId);
+        //刷新dataversion GroupMember数据版本
+        dataVersionsService.updateGroupMemberVersion(newGroups.getId(), timestamp);
+
+        String[] encodeMemberIds = MiscUtils.encodeIds(megerUserIdList);
+
+        String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
+
+        try {
+            //调用融云接口创建群组
+            Result result = rongCloudClient.createGroup(encode(newGroups.getId()), encodeMemberIds, groupName);
+            if (Constants.CODE_OK.equals(result.getCode())) {
+                try {
+                    //如果成功则调用融云接口发送群组通知
+                    Map<String, Object> messageData = new HashMap<>();
+                    messageData.put("operatorNickname", nickname);
+                    messageData.put("targetGroupName", groupName);
+                    messageData.put("timestamp", timestamp);
+                    Result result1 = sendGroupNotificationMessage(currentUserId, newGroups.getId(), messageData, GroupOperationType.GROUP_OPERATION_CREATE);
+                    System.out.println(result1);
+                } catch (Exception e) {
+                    log.error("sendGroupNotificationMessage exception:" + e.getMessage(), e);
+                }
+            } else {
+                //如果失败，插入GroupSync表进行记录 组信息同步失败记录
+                groupSyncsService.saveOrUpdate(newGroups.getId(), GroupSyncs.INVALID, GroupSyncs.INVALID);
+            }
+        } catch (Exception e) {
+            //如果失败，插入GroupSync表进行记录 组信息同步失败记录
+            groupSyncsService.saveOrUpdate(newGroups.getId(), GroupSyncs.INVALID, GroupSyncs.INVALID);
+        }
+
+        if (veirfyNeedUserList.size() > 0) {
+            for (int id : veirfyNeedUserList) {
+                UserStatusDTO userStatusDTO = new UserStatusDTO();
+                userStatusDTO.setId(encode(id));
+                userStatusDTO.setStatus(UserAddStatus.WAIT_MEMBER.getCode());
+                userStatusDTOList.add(userStatusDTO);
+            }
+            //批量保存或更新 GroupReceiver
+            batchSaveOrUpdateGroupReceiver(newGroups, currentUserId, veirfyNeedUserList, veirfyNeedUserList, GroupReceivers.GROUP_RECEIVE_TYPE_MEMBER, GroupReceivers.GROUP_RECEIVE_STATUS_WAIT);
+        }
+
+        //清除缓存
+        for (Integer memberId : memberIds) {
+            CacheUtil.delete(CacheUtil.USER_GROUP_CACHE_PREFIX + memberId);
+        }
+
+        //构建返回结果
+        GroupAddStatusDTO groupAddStatusDTO = new GroupAddStatusDTO();
+        groupAddStatusDTO.setId(N3d.encode(newGroups.getId()));
+        groupAddStatusDTO.setUserStatus(userStatusDTOList);
+        return groupAddStatusDTO;
     }
 }

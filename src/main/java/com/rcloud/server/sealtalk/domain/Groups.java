@@ -21,6 +21,11 @@ public class Groups implements Serializable {
     public static final Integer MUTE_STATUS_OPENED = 1;
 
 
+    //copiedTime 默认值
+    public static final Long COPIED_TIME_DEFAUT = 0L;
+
+
+
     @Id
     @GeneratedValue(generator = "JDBC")
     private Integer id;
