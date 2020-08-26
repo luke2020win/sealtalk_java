@@ -526,7 +526,7 @@ public class GroupController extends BaseController {
         String groupNickname = groupParam.getGroupNickname();
         String region = groupParam.getRegion();
         String phone = groupParam.getPhone();
-        String WeChat = groupParam.getWeChat();  //TODO
+        String WeChat = groupParam.getWeChat();
         String Alipay = groupParam.getAlipay();
         String[] memberDesc = groupParam.getMemberDesc();
 

@@ -6,7 +6,7 @@ import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.rongcloud.message.CustomerConNtfMessage;
 import com.rcloud.server.sealtalk.rongcloud.message.CustomerGroupNtfMessage;
-import com.rcloud.server.sealtalk.rongcloud.message.GrpApplyMessage;
+import com.rcloud.server.sealtalk.rongcloud.message.CustomerGroupApplyMessage;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
 import com.rcloud.server.sealtalk.util.N3d;
 import io.rong.RongCloud;
@@ -265,13 +265,25 @@ public class DefaultRongCloudClient implements RongCloudClient {
                 GroupNotificationMessage groupNotificationMessage = new GroupNotificationMessage(encodeOperatorUserId, operationType, messageData, message, extra);
 
                 GroupMessage groupMessage = new GroupMessage();
-                groupMessage.setTargetId(new String[]{encodeGroupId});
                 groupMessage.setSenderId(encodeOperatorUserId);
+                groupMessage.setTargetId(new String[]{encodeGroupId});
                 groupMessage.setObjectName(groupNotificationMessage.getType());
                 groupMessage.setContent(groupNotificationMessage);
                 return rongCloud.message.group.send(groupMessage);
             }
         });
+    }
+
+    @Override
+    public Result sendCustomerGroupNtfMessage(GroupMessage groupMessage) throws ServiceException {
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                return rongCloud.message.group.send(groupMessage);
+            }
+        });
+
     }
 
     @Override
@@ -317,14 +329,14 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
-    public Result sendGroupApplyMessage(String senderId, String[] targetId, GrpApplyMessage grpApplyMessage) throws ServiceException {
+    public Result sendGroupApplyMessage(String senderId, String[] targetId, CustomerGroupApplyMessage grpApplyMessage) throws ServiceException {
         return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
             @Override
             public Result doInvoker() throws Exception {
 
                 //构建消息内容
                 PrivateMessage privateMessage = new PrivateMessage();
-                GrpApplyMessage grpApplyMessage = new GrpApplyMessage();
+                CustomerGroupApplyMessage grpApplyMessage = new CustomerGroupApplyMessage();
 
                 privateMessage.setSenderId(Constants.GrpApplyMessage_fromUserId);
                 privateMessage.setTargetId(targetId);

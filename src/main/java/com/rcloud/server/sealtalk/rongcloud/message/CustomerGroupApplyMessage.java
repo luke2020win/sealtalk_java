@@ -11,7 +11,7 @@ import java.util.Map;
  * @Description:
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
  */
-public class GrpApplyMessage extends BaseMessage {
+public class CustomerGroupApplyMessage extends BaseMessage {
 
 
     private String operatorUserId;
@@ -19,7 +19,7 @@ public class GrpApplyMessage extends BaseMessage {
     private Map<String, Object> data;
 
 
-    private transient static final String TYPE = "RC:GrpNtf";
+    private transient static final String TYPE = "ST:GrpApply";
 
     @Override
     public String getType() {
@@ -28,7 +28,7 @@ public class GrpApplyMessage extends BaseMessage {
 
     @Override
     public String toString() {
-        return GsonUtil.toJson(this, GrpApplyMessage.class);
+        return GsonUtil.toJson(this, CustomerGroupApplyMessage.class);
     }
 
     public String getOperatorUserId() {

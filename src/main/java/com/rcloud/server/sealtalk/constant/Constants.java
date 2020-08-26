@@ -40,8 +40,12 @@ public class Constants {
     public static final String SEPARATOR_NO = "|";
 
 
-    //GrpApplyMessage默认fromUserId标示
+    //群组申请消息 GrpApplyMessage默认fromUserId标示
     public static final String GrpApplyMessage_fromUserId = "__group_apply__";
+
+    //群组通知消息 GrpApplyMessage默认fromUserId标示
+    public static final String GroupNotificationMessage_fromUserId = "__system__";
+
 
     public static final Integer CODE_OK = 200;
     public static final String DATE_FORMATR_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";

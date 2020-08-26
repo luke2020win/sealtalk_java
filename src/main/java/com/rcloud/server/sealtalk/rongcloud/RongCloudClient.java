@@ -1,9 +1,8 @@
 package com.rcloud.server.sealtalk.rongcloud;
 
-import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.exception.ServiceException;
-import com.rcloud.server.sealtalk.rongcloud.message.GrpApplyMessage;
+import com.rcloud.server.sealtalk.rongcloud.message.CustomerGroupApplyMessage;
 import io.rong.models.Result;
 import io.rong.models.message.GroupMessage;
 import io.rong.models.message.PrivateMessage;
@@ -203,30 +202,41 @@ public interface RongCloudClient {
 
 
     /**
+     * 发送群组通知消息
+     *
+     * @param groupMessage
+     * @return
+     * @throws ServiceException
+     */
+    Result sendCustomerGroupNtfMessage(GroupMessage groupMessage) throws ServiceException;
+
+
+    /**
      * 发送群组通知消息 ST:GrpNtf
+     *
      * @param encodeUserId
      * @param encodeTargetId
      * @param operation
      * @return
      * @throws ServiceException
      */
-    Result sendCustomerGroupNtfMessage(String encodeUserId,String encodeTargetId,String operation) throws ServiceException;
+    Result sendCustomerGroupNtfMessage(String encodeUserId, String encodeTargetId, String operation) throws ServiceException;
 
 
     /**
      * 发送群组通知消息 ST:ConNtf
+     *
      * @param encodeUserId
      * @param encodeTargetId
      * @param operation
      * @return
      * @throws ServiceException
      */
-    Result sendCustomerConNtfMessage(String encodeUserId,String encodeTargetId,String operation) throws ServiceException;
-
+    Result sendCustomerConNtfMessage(String encodeUserId, String encodeTargetId, String operation) throws ServiceException;
 
 
     /**
-     * 发送群组申请加入消息
+     * 发送群组申请消息
      *
      * @param senderId
      * @param targetId
@@ -234,7 +244,7 @@ public interface RongCloudClient {
      * @return
      * @throws ServiceException
      */
-    Result sendGroupApplyMessage(String senderId, String[] targetId, GrpApplyMessage grpApplyMessage) throws ServiceException;
+    Result sendGroupApplyMessage(String senderId, String[] targetId, CustomerGroupApplyMessage grpApplyMessage) throws ServiceException;
 
     /**
      * 同步用户组群信息

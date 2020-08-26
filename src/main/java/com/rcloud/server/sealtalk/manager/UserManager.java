@@ -1071,7 +1071,6 @@ public class UserManager extends BaseManager {
 
         log.info("sync info ,maxVersion={}", maxVersion);
 
-
         syncInfoDTO.setVersion(version);
         syncInfoDTO.setUser(users);
         syncInfoDTO.setBlacklist(blackListsList != null ? blackListsList : new ArrayList<BlackLists>());

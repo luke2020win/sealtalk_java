@@ -3,6 +3,8 @@ package com.rcloud.server.sealtalk.rongcloud.message;
 import io.rong.messages.BaseMessage;
 import io.rong.util.GsonUtil;
 
+import java.util.Map;
+
 /**
  * @Author: Jianlu.Yu
  * @Date: 2020/8/24
@@ -15,7 +17,8 @@ public class CustomerGroupNtfMessage extends BaseMessage {
     private String operatorUserId;
     private String operation;
     private String clearTime;
-
+    private String message ="";
+    private Map<String, Object> messageData;
 
 
     @Override
@@ -50,5 +53,21 @@ public class CustomerGroupNtfMessage extends BaseMessage {
 
     public void setClearTime(String clearTime) {
         this.clearTime = clearTime;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Map<String, Object> getMessageData() {
+        return messageData;
+    }
+
+    public void setMessageData(Map<String, Object> messageData) {
+        this.messageData = messageData;
     }
 }
