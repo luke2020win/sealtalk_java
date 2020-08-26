@@ -397,7 +397,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "设置群认证")
     @RequestMapping(value = "/set_certification", method = RequestMethod.POST)
-    public APINoResult setCertification(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult<Object> setCertification(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         Integer certiStatus = groupParam.getCertiStatus();
@@ -407,7 +407,7 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         groupManager.setCertification(currentUserId, N3d.decode(groupId), certiStatus);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok("");
     }
 
     @ApiOperation(value = "获取群验证通知消息")

@@ -188,7 +188,8 @@ public class GroupManager extends BaseManager {
                     messageData.put("operatorNickname", nickname);
                     messageData.put("targetGroupName", groupName);
                     messageData.put("timestamp", timestamp);
-                    sendGroupNotificationMessage(currentUserId, groups.getId(), messageData, GroupOperationType.GROUP_OPERATION_CREATE);
+                    Result result1 = sendGroupNotificationMessage(currentUserId, groups.getId(), messageData, GroupOperationType.GROUP_OPERATION_CREATE);
+                    System.out.println(result1);
                 } catch (Exception e) {
                     log.error("sendGroupNotificationMessage exception:" + e.getMessage(), e);
                 }
