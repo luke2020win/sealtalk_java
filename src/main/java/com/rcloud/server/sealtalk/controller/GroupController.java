@@ -70,7 +70,7 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
         GroupAddStatusDTO groupAddStatusDTO = groupManager.createGroup(currentUserId, name, decodeMemberIds, portraitUri);
 
-        return APIResultWrap.ok(MiscUtils.encodeResults(groupAddStatusDTO));
+        return APIResultWrap.ok(groupAddStatusDTO);
     }
 
 
