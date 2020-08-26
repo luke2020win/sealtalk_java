@@ -66,8 +66,9 @@ public class N3d {
 
 
     private String encrypt(long num) {
-        if (num > this.upper || num < this.lower)
+        if (num > this.upper || num < this.lower) {
             throw new RuntimeException("Parameter is error.");
+        }
 
         num = this.keyCode - num;
         StringBuilder result = new StringBuilder();
@@ -144,5 +145,4 @@ public class N3d {
             System.out.println(n.decrypt(ret));
         }
     }
-
 }

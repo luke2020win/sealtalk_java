@@ -44,6 +44,9 @@ public class Groups implements Serializable {
     @Column(name = "creatorId")
     private Integer creatorId;
 
+    /**
+     * 开启群认证 0-开启 1-关闭
+     */
     @Column(name = "certiStatus")
     private Integer certiStatus;
 
@@ -56,6 +59,9 @@ public class Groups implements Serializable {
     @Column(name = "clearTimeAt")
     private Long clearTimeAt;
 
+    /**
+     * 开启群保护 0-关闭 1-开启
+     */
     @Column(name = "memberProtection")
     private Integer memberProtection;
 

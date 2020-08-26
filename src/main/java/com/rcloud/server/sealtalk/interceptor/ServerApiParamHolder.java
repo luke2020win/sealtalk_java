@@ -29,7 +29,7 @@ public class ServerApiParamHolder {
 
     public static String getTraceId() {
         ServerApiParams serverApiParams = serverApiParamsThreadLocal.get();
-        if(serverApiParams!=null){
+        if(serverApiParams != null){
             return serverApiParams.getTraceId();
         }else {
             return "";
@@ -38,8 +38,8 @@ public class ServerApiParamHolder {
 
     public static String getEncodedCurrentUserId() {
         ServerApiParams serverApiParams = serverApiParamsThreadLocal.get();
-        if(serverApiParams!=null){
-            if(serverApiParams.getCurrentUserId()!=null){
+        if(serverApiParams != null){
+            if(serverApiParams.getCurrentUserId() != null){
                 try {
                     return N3d.encode(serverApiParams.getCurrentUserId());
                 }catch (Exception e){

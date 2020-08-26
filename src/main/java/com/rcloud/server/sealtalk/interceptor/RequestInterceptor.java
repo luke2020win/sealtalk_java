@@ -81,7 +81,7 @@ public class RequestInterceptor implements HandlerInterceptor {
         ServerApiParams serverApiParams = new ServerApiParams();
         serverApiParams.setTraceId(UUID.randomUUID().toString());
         String uri = request.getRequestURI();
-        log.info("preHandle uri={}", uri);
+        log.info("preHandle uri="+uri);
 
         RequestUriInfo requestUriInfo = getRequestUriInfo(request);
         log.info("preHandle requestUriInfo: ip={}, remoteAddress={},uri={}", requestUriInfo.getIp(), requestUriInfo.getRemoteAddress(), requestUriInfo.getUri());
@@ -89,7 +89,6 @@ public class RequestInterceptor implements HandlerInterceptor {
 
         if (!excludeUrlSet.contains(uri)) {
             //不在排除auth认证的url，需要进行身份认证
-
             Cookie authCookie = getAuthCookie(request);
             if (authCookie == null) {
                 response.setStatus(403);
@@ -111,7 +110,6 @@ public class RequestInterceptor implements HandlerInterceptor {
                 response.getWriter().write("Invalid cookie value");
                 return false;
             }
-
         }
         ServerApiParamHolder.put(serverApiParams);
         return true;
@@ -125,9 +123,9 @@ public class RequestInterceptor implements HandlerInterceptor {
 
     private Integer getCurrentUserId(Cookie authCookie) throws ServiceException {
         String cookieValue = authCookie.getValue();
-        log.info("getCurrentUserId cookieValue:{}", cookieValue);
+        log.info("getCurrentUserId cookieValue:"+cookieValue);
         String decrypt = AES256.decrypt(cookieValue.getBytes(), sealtalkConfig.getAuthCookieKey());
-        log.info("getCurrentUserId decrypt:{}", decrypt);
+        log.info("getCurrentUserId decrypt:"+decrypt);
         assert decrypt != null;
         String[] split = decrypt.split(Constants.SEPARATOR_ESCAPE);
         if (split.length != 3) {
