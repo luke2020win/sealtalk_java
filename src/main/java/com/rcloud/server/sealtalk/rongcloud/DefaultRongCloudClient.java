@@ -533,7 +533,7 @@ public class DefaultRongCloudClient implements RongCloudClient {
         return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
             @Override
             public Result doInvoker() throws Exception {
-                return rongCloud.group.ban.remove(encodeGroupIds);
+                return rongCloud.group.ban.add(encodeGroupIds);
             }
         });
     }
