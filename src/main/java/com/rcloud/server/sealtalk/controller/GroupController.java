@@ -325,7 +325,6 @@ public class GroupController extends BaseController {
     public APIResult<?> getGroupInfo(
             @ApiParam(name = "groupId", value = "群组ID", required = true, type = "String", example = "86")
             @PathVariable("id") String groupId) throws ServiceException {
-
         ValidateUtils.notEmpty(groupId);
 
         Groups group = groupManager.getGroupInfo(N3d.decode(groupId));
@@ -630,7 +629,7 @@ public class GroupController extends BaseController {
         portraitUri = MiscUtils.xss(portraitUri, ValidateUtils.PORTRAIT_URI_MAX_LENGTH);
 
         Integer currentUserId = getCurrentUserId();
-        GroupAddStatusDTO groupAddStatusDTO = groupManager.copyGroup(currentUserId, N3d.decode(groupId), name,portraitUri);
+        GroupAddStatusDTO groupAddStatusDTO = groupManager.copyGroup(currentUserId, N3d.decode(groupId), name, portraitUri);
         return APIResultWrap.ok(groupAddStatusDTO);
 
     }

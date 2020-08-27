@@ -27,7 +27,7 @@ public class BackendUserManager extends BaseManager {
     private RongCloudClient rongCloudClient;
 
     @Resource
-    private BackendUsersService usersService;
+    private BackendUsersService backendUsersService;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -41,7 +41,7 @@ public class BackendUserManager extends BaseManager {
     public boolean isExistUser(String account) {
         BackendUsers param = new BackendUsers();
         param.setAccout(account);
-        BackendUsers users = usersService.getOne(param);
+        BackendUsers users = backendUsersService.getOne(param);
         return users != null;
     }
 
@@ -56,7 +56,7 @@ public class BackendUserManager extends BaseManager {
     public Integer register(String account, String password, String roleType) throws ServiceException {
         BackendUsers param = new BackendUsers();
         param.setAccout(account);
-        BackendUsers backendUsers = usersService.getOne(param);
+        BackendUsers backendUsers = backendUsersService.getOne(param);
 
         if (backendUsers != null) {
             throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
@@ -92,7 +92,7 @@ public class BackendUserManager extends BaseManager {
             backendUsers.setCreatedAt(new Date());
             backendUsers.setUpdatedAt(backendUsers.getCreatedAt());
             backendUsers.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
-            usersService.saveSelective(backendUsers);
+            backendUsersService.saveSelective(backendUsers);
             return backendUsers;
         });
     }
@@ -108,7 +108,7 @@ public class BackendUserManager extends BaseManager {
     public Pair<Integer, String> login(String account, String password) throws ServiceException {
         BackendUsers param = new BackendUsers();
         param.setAccout(account);
-        BackendUsers backendUsers = usersService.getOne(param);
+        BackendUsers backendUsers = backendUsersService.getOne(param);
 
         //判断用户是否存在
         if (backendUsers == null) {
@@ -143,7 +143,7 @@ public class BackendUserManager extends BaseManager {
             users.setId(backendUsers.getId());
             users.setToken(token);
             users.setUpdatedAt(new Date());
-            usersService.updateByPrimaryKeySelective(users);
+            backendUsersService.updateByPrimaryKeySelective(users);
         }
 
         //返回userId、token
@@ -178,7 +178,7 @@ public class BackendUserManager extends BaseManager {
         Example example = new Example(Users.class);
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("account", account);
-        usersService.updateByExampleSelective(user, example);
+        backendUsersService.updateByExampleSelective(user, example);
     }
 
     /**
@@ -194,7 +194,7 @@ public class BackendUserManager extends BaseManager {
 
         BackendUsers param = new BackendUsers();
         param.setAccout(account);
-        BackendUsers backendUsers = usersService.getOne(param);
+        BackendUsers backendUsers = backendUsersService.getOne(param);
         if (backendUsers == null) {
             throw new ServiceException(ErrorCode.REQUEST_ERROR);
         }
@@ -205,7 +205,7 @@ public class BackendUserManager extends BaseManager {
         users.setPortraitUri(portraitUri);
         users.setTimestamp(timestamp);
         users.setUpdatedAt(new Date());
-        usersService.updateByPrimaryKeySelective(users);
+        backendUsersService.updateByPrimaryKeySelective(users);
 
         return;
     }
@@ -219,7 +219,7 @@ public class BackendUserManager extends BaseManager {
     public BackendUsers getBackendUserByStAccount(String account) {
         BackendUsers u = new BackendUsers();
         u.setAccout(account);
-        return usersService.getOne(u);
+        return backendUsersService.getOne(u);
     }
 }
 
