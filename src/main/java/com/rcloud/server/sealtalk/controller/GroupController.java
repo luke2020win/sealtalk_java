@@ -635,4 +635,24 @@ public class GroupController extends BaseController {
     }
 
 
+    @ApiOperation(value = "同意群邀请")
+    @RequestMapping(value = "/agree", method = RequestMethod.POST)
+    public APIResult<GroupAddStatusDTO> agree(@RequestBody GroupParam groupParam) throws ServiceException {
+        String groupId = groupParam.getGroupId();
+        String receiverId = groupParam.getReceiverId();
+        String status = groupParam.getStatus();
+
+        ValidateUtils.notEmpty(groupId);
+        ValidateUtils.notEmpty(receiverId);
+        ValidateUtils.valueOf(status,ImmutableList.of("0","1"));
+
+        Integer currentUserId = getCurrentUserId();
+        groupManager.agree(currentUserId, N3d.decode(groupId), N3d.decode(receiverId),status);
+        return APIResultWrap.ok();
+
+    }
+
+
+
+
 }

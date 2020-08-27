@@ -211,7 +211,7 @@ public class GroupManager extends BaseManager {
                     //发送群组通知 TODO
                     Result result1 = sendGroupNotificationMessageBySystem(groups.getId(), messageData, currentUserId, GroupOperationType.CREATE);
 
-                    log.info(" createGroup sendGroupNotificationMessageBySystem,result:{},groupId={}", result1,groups.getId());
+                    log.info(" createGroup sendGroupNotificationMessageBySystem,result:{},groupId={}", result1, groups.getId());
                 } catch (Exception e) {
                     log.error("sendGroupNotificationMessage exception:" + e.getMessage(), e);
                 }
@@ -2240,5 +2240,49 @@ public class GroupManager extends BaseManager {
         groupAddStatusDTO.setId(N3d.encode(newGroups.getId()));
         groupAddStatusDTO.setUserStatus(userStatusDTOList);
         return groupAddStatusDTO;
+    }
+
+    /**
+     * 同意群邀请
+     *
+     * @param currentUserId
+     * @param groupId
+     * @param receiverId
+     * @param status        是否同意 0 忽略、 1 同意
+     */
+    public void agree(Integer currentUserId, Integer groupId, Integer receiverId, String status) throws ServiceException {
+        //是否为 被邀请者同意或忽略
+        boolean isReceiverOpt = currentUserId.equals(receiverId);
+        //是否同意
+        boolean isAgree = GroupReceivers.GROUP_RECEIVE_STATUS_AGREED.equals(Integer.valueOf(status));
+        //是普通成员还是管理员同意或忽略
+        Integer type = isReceiverOpt ? GroupReceivers.GROUP_RECEIVE_TYPE_MEMBER : GroupReceivers.GROUP_RECEIVE_TYPE_MANAGER;//是普通成员同意，还是管理员同意
+
+        //根据groupId、receiverId、type 查询GroupReceive
+        Example example = new Example(GroupReceivers.class);
+        example.createCriteria().andEqualTo("groupId", groupId)
+                .andEqualTo("receiverId", receiverId)
+                .andEqualTo("type", type);
+
+        GroupReceivers groupReceivers = groupReceiversService.getOneByExample(example);
+
+        if (groupReceivers == null) {
+            throw new ServiceException(ErrorCode.NOT_FOUND);
+        }
+
+        //跟新GroupReceivers 表状态
+        GroupReceivers newGroupReceivers = new GroupReceivers();
+        newGroupReceivers.setStatus(Integer.valueOf(status));
+        groupReceiversService.updateByExampleSelective(newGroupReceivers, example);
+
+        //发送群组申请通知消息
+        Groups groups = groupsService.getByPrimaryKey(groupId);
+        sendGroupApplyMessage(currentUserId, ImmutableList.of(currentUserId), groupId, groups.getName(), type, Integer.valueOf(status));
+
+        if (!isAgree) {
+            //不同意直接返回
+            return;
+        }
+        //如果同意 TODO
     }
 }
