@@ -1,6 +1,13 @@
 #服务器端口
 server:
   port: ${sealtalk-config.server_port}
+  servlet:
+    encoding:             #解决中文乱码问题，同一使用UTF-8编码
+      charset: UTF-8
+      force: true
+      enabled: true
+      force-request: true
+      force-response: true
 
 spring:
   profiles:
