@@ -146,6 +146,7 @@ public class GroupManager extends BaseManager {
 
         //开启了加入群验证，不允许直接加入群聊的用户
         List<Integer> veirfyNeedUserList = new ArrayList<>();
+
         //未开启加入群验证，允许直接加入群聊的用户
         List<Integer> verifyNoNeedUserList = new ArrayList<>();
 
@@ -161,6 +162,7 @@ public class GroupManager extends BaseManager {
                 }
             }
         }
+
         //创建群组
         Groups groups = new Groups();
         groups.setName(groupName);
@@ -171,6 +173,8 @@ public class GroupManager extends BaseManager {
         groups.setTimestamp(timestamp);
         groups.setCreatedAt(new Date());
         groups.setUpdatedAt(groups.getCreatedAt());
+        // 创建群时，默认开启群保护
+        groups.setMemberProtection(1);
         groupsService.saveSelective(groups);
 
         List<Integer> megerUserIdList = new ArrayList<>(verifyNoNeedUserList);

@@ -21,6 +21,7 @@ import com.rcloud.server.sealtalk.util.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.util.CollectionUtils;
@@ -46,6 +47,7 @@ import java.util.Map;
 @Api(tags = "用户相关")
 @RestController
 @RequestMapping("/user")
+@Slf4j
 public class UserController extends BaseController {
 
     @Resource
@@ -159,7 +161,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "检查手机号是否可以注册")
     @RequestMapping(value = "/check_phone_available", method = RequestMethod.POST)
-    public APIResult<Boolean> checkPhoneAvailable(@RequestParam UserParam userParam) throws ServiceException {
+    public APIResult<Boolean> checkPhoneAvailable(@RequestBody UserParam userParam) throws ServiceException {
 
         String region = userParam.getRegion();
         String phone = userParam.getPhone();
@@ -190,8 +192,7 @@ public class UserController extends BaseController {
      */
     @ApiOperation(value = "注册新用户")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public APIResult<Object> register(@RequestBody UserParam userParam,
-                                      HttpServletResponse response) throws ServiceException {
+    public APIResult<Object> register(@RequestBody UserParam userParam, HttpServletResponse response) throws ServiceException {
         String nickname = userParam.getNickname();
         String password = userParam.getPassword();
         String verification_token = userParam.getVerification_token();
@@ -213,7 +214,6 @@ public class UserController extends BaseController {
         ValidateUtils.checkUUID(verificationToken);
     }
 
-
     /**
      * 1、 判断phone、regionName合法性，不合法返回400
      * 2、 根据phone、region查询用户，查询不到返回1000，提示phone不存在
@@ -225,7 +225,7 @@ public class UserController extends BaseController {
      */
     @ApiOperation(value = "用户登录")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public APIResult<Object> login(@RequestBody UserParam userParam, HttpServletResponse response1, HttpServletRequest req) throws ServiceException {
+    public APIResult<Object> login(@RequestBody UserParam userParam, HttpServletResponse response) throws ServiceException {
         String region = userParam.getRegion();
         String phone = userParam.getPhone();
         String password = userParam.getPassword();
@@ -238,11 +238,15 @@ public class UserController extends BaseController {
 
         //设置cookie  userId加密存入cookie
         //登录成功后的其他请求，当前登录用户useId获取从cookie中获取
-        setCookie(response1, pairResult.getLeft());
+        setCookie(response, pairResult.getLeft());
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", pairResult.getLeft());
         resultMap.put("token", pairResult.getRight());
+
+        log.info("login id"+pairResult.getLeft());
+        log.info("login token"+pairResult.getRight());
+
         //对result编码
         return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
     }
@@ -511,6 +515,7 @@ public class UserController extends BaseController {
                                          @PathVariable("id") String id) throws ServiceException {
 
         Integer userId = N3d.decode(id);
+        log.info("getUserInfo userId:"+userId);
         Users users = userManager.getUser(userId);
         if (users != null) {
             Users t_user = new Users();
@@ -678,18 +683,14 @@ public class UserController extends BaseController {
      * @param userId
      */
     private void setCookie(HttpServletResponse response, int userId) {
-
         int salt = RandomUtil.randomBetween(1000, 9999);
         String text = salt + Constants.SEPARATOR_NO + userId + Constants.SEPARATOR_NO + System.currentTimeMillis();
-
         byte[] value = AES256.encrypt(text, sealtalkConfig.getAuthCookieKey());
-
         Cookie cookie = new Cookie(sealtalkConfig.getAuthCookieName(), new String(value));
         cookie.setHttpOnly(true);
         cookie.setDomain(sealtalkConfig.getAuthCookieDomain());
         cookie.setMaxAge(Integer.valueOf(sealtalkConfig.getAuthCookieMaxAge()));
         cookie.setPath("/");
-
         response.addCookie(cookie);
     }
 

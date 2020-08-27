@@ -55,7 +55,7 @@ public class LogAspect {
                     String paramName = paramsName[i];
                     Object paramVal = args[i];
                     if (!(paramVal instanceof HttpServletResponse) && !(paramVal instanceof HttpServletRequest)) {
-                        paramMap.put(paramsName[i], args[i]);
+                        paramMap.put(paramName, args[i]);
                     }
                 }
             }

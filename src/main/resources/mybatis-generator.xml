@@ -44,6 +44,7 @@
           targetPackage="com.rcloud.server.sealtalk.domain"
           targetProject="src/main/java">
         </javaModelGenerator>
+
         <sqlMapGenerator
           targetPackage="mybatis"
           targetProject="src/main/resources">
@@ -59,47 +60,74 @@
         <table tableName="blacklists" domainObjectName="BlackLists">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="data_versions" domainObjectName="DataVersions">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="friendships" domainObjectName="Friendships">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="group_bulletins" domainObjectName="GroupBulletins">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="group_exited_lists" domainObjectName="GroupExitedLists">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="group_favs" domainObjectName="GroupFavs">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="group_members" domainObjectName="GroupMembers">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="group_receivers" domainObjectName="GroupReceivers">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="group_syncs" domainObjectName="GroupSyncs">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="groups" domainObjectName="Groups">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="login_logs" domainObjectName="LoginLogs">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="screen_statuses" domainObjectName="ScreenStatuses">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="users" domainObjectName="Users">
             <property name="useActualColumnNames" value="true"/>
             <generatedKey column="id" sqlStatement="JDBC"/>
         </table>
+
         <table tableName="verification_codes" domainObjectName="VerificationCodes">
             <property name="useActualColumnNames" value="true"/>
         </table>
+
         <table tableName="verification_violations" domainObjectName="VerificationViolations">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+
+        <table tableName="verification_violations" domainObjectName="VerificationViolations">
+            <property name="useActualColumnNames" value="true"/>
+        </table>
+
+        <table tableName="backend_users" domainObjectName="BackendUsers">
+            <property name="useActualColumnNames" value="true"/>
+            <generatedKey column="id" sqlStatement="JDBC"/>
+        </table>
+
+        <table tableName="backend_system_config" domainObjectName="BackendSystemConfig">
             <property name="useActualColumnNames" value="true"/>
         </table>
     </context>

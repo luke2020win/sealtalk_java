@@ -31,10 +31,13 @@ public class ServerApiParamHolder {
     public static String getTraceId() {
         ServerApiParams serverApiParams = serverApiParamsThreadLocal.get();
         if (serverApiParams != null) {
-            return serverApiParams.getTraceId();
-        } else {
-            return "";
+            if (serverApiParams != null) {
+                return serverApiParams.getTraceId();
+            } else {
+                return "";
+            }
         }
+        return "";
     }
 
     public static String getURI() {
