@@ -89,6 +89,7 @@ public class BackendUserManager extends BaseManager {
             backendUsers.setPasswordHash(hashStr);
             backendUsers.setRoleType(roleType);
             backendUsers.setPasswordSalt(String.valueOf(salt));
+            backendUsers.setIp("0.0.0.0");
             backendUsers.setCreatedAt(new Date());
             backendUsers.setUpdatedAt(backendUsers.getCreatedAt());
             backendUsers.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
@@ -105,7 +106,8 @@ public class BackendUserManager extends BaseManager {
      * @return Pair<L, R> L=用户ID，R=融云token
      * @throws ServiceException
      */
-    public Pair<Integer, String> login(String account, String password) throws ServiceException {
+    public BackendUsers login(String account, String password) throws ServiceException {
+
         BackendUsers param = new BackendUsers();
         param.setAccout(account);
         BackendUsers backendUsers = backendUsersService.getOne(param);
@@ -127,6 +129,8 @@ public class BackendUserManager extends BaseManager {
         log.info("login token:" + token);
         log.info("login portraitUri:" + backendUsers.getPortraitUri());
 
+
+        BackendUsers users = new BackendUsers();
         if (StringUtils.isEmpty(token)) {
             //如果user表中的融云token为空，调用融云sdk 获取token
             //如果用户头像地址为空，采用默认头像地址
@@ -139,15 +143,21 @@ public class BackendUserManager extends BaseManager {
             token = tokenResult.getToken();
 
             //获取后根据userId更新表中token
-            BackendUsers users = new BackendUsers();
             users.setId(backendUsers.getId());
+            users.setRoleType(backendUsers.getRoleType());
             users.setToken(token);
             users.setUpdatedAt(new Date());
             backendUsersService.updateByPrimaryKeySelective(users);
         }
+        else {
+            users.setId(backendUsers.getId());
+            users.setRoleType(backendUsers.getRoleType());
+            users.setToken(token);
+            users.setUpdatedAt(backendUsers.getUpdatedAt());
+        }
 
         //返回userId、token
-        return Pair.of(backendUsers.getId(), token);
+        return users;
     }
 
     /**
@@ -206,7 +216,6 @@ public class BackendUserManager extends BaseManager {
         users.setTimestamp(timestamp);
         users.setUpdatedAt(new Date());
         backendUsersService.updateByPrimaryKeySelective(users);
-
         return;
     }
 
