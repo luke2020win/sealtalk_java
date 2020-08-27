@@ -39,9 +39,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @Author: xiuwei.nie
@@ -359,24 +357,26 @@ public class UserManager extends BaseManager {
             throw new ServiceException(ErrorCode.USER_PASSWORD_WRONG);
         }
 
-        log.info("login id:"+u.getId()+" nickname:"+u.getNickname());
+        log.info("login id:" + u.getId() + " nickname:" + u.getNickname());
         //缓存nickname
         CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
 
         //查询该用户所属的所有组,同步到融云
         List<Groups> groupsList = new ArrayList<>();
+        Map<String,String> idNamePariMap = new HashMap<>();
         List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithGroupByMemberId(u.getId());
         if (!CollectionUtils.isEmpty(groupMembersList)) {
             for (GroupMembers gm : groupMembersList) {
                 Groups groups = gm.getGroups();
                 if (groups != null) {
                     groupsList.add(groups);
+                    idNamePariMap.put(N3d.encode(groups.getId()),groups.getName());
                 }
             }
         }
 
         //同步前记录日志
-        log.info("'Sync groups: {}", groupsList);
+        log.info("'Sync groups: {}", idNamePariMap);
 
         //调用融云sdk 将登录用户的userid，与groupIdName信息同步到融云
         try {
@@ -851,6 +851,19 @@ public class UserManager extends BaseManager {
     }
 
     /**
+     * 根据userIds批量查询用户信息
+     *
+     * @param userIds
+     * @return
+     */
+    public List<Users> getBatchUser(List<Integer> userIds) {
+
+        Example example = new Example(Users.class);
+        example.createCriteria().andIn("id", userIds);
+        return usersService.getByExample(example);
+    }
+
+    /**
      * 根据stAccount查询用户信息
      *
      * @param stAccount
@@ -915,10 +928,10 @@ public class UserManager extends BaseManager {
      * @return
      * @throws ServiceException
      */
-    public Pair<Integer,List<Groups>> getFavGroups(Integer userId, Integer limit, Integer offset) throws ServiceException {
+    public Pair<Integer, List<Groups>> getFavGroups(Integer userId, Integer limit, Integer offset) throws ServiceException {
         List<Groups> groupsList = new ArrayList<>();
         Integer count = groupFavsService.queryCountGroupFavs(userId);
-        if(count!=null && count>0){
+        if (count != null && count > 0) {
             List<GroupFavs> groupFavsList = groupFavsService.queryGroupFavsWithGroupByUserId(userId, limit, offset);
             if (!CollectionUtils.isEmpty(groupFavsList)) {
                 for (GroupFavs groupFavs : groupFavsList) {
@@ -929,7 +942,7 @@ public class UserManager extends BaseManager {
             }
         }
 
-        return Pair.of(count,groupsList);
+        return Pair.of(count, groupsList);
     }
 
     /**

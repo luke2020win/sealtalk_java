@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -224,7 +225,7 @@ public class UserController extends BaseController {
      */
     @ApiOperation(value = "用户登录")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public APIResult<Object> login(@RequestBody UserParam userParam, HttpServletResponse response) throws ServiceException {
+    public APIResult<Object> login(@RequestBody UserParam userParam, HttpServletResponse response1, HttpServletRequest req) throws ServiceException {
         String region = userParam.getRegion();
         String phone = userParam.getPhone();
         String password = userParam.getPassword();
@@ -237,7 +238,7 @@ public class UserController extends BaseController {
 
         //设置cookie  userId加密存入cookie
         //登录成功后的其他请求，当前登录用户useId获取从cookie中获取
-        setCookie(response, pairResult.getLeft());
+        setCookie(response1, pairResult.getLeft());
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", pairResult.getLeft());
@@ -533,22 +534,21 @@ public class UserController extends BaseController {
                                           @RequestParam(value = "offset", required = false) Integer offset) throws ServiceException {
 
 
-
         if (limit == null && offset != null) {
             throw new ServiceException(ErrorCode.REQUEST_ERROR);
         }
 
         Integer currentUserId = getCurrentUserId();
-        Pair<Integer,List<Groups>> result = userManager.getFavGroups(currentUserId, limit, offset);
+        Pair<Integer, List<Groups>> result = userManager.getFavGroups(currentUserId, limit, offset);
 
         Integer count = result.getLeft();
-        List<Groups>  groupsList = result.getRight();
+        List<Groups> groupsList = result.getRight();
 
         SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
 
         List<FavGroupInfoDTO> favGroupInfoDTOS = new ArrayList<>();
-        if(!CollectionUtils.isEmpty(groupsList)){
-            for(Groups groups:groupsList){
+        if (!CollectionUtils.isEmpty(groupsList)) {
+            for (Groups groups : groupsList) {
                 FavGroupInfoDTO favGroupInfoDTO = new FavGroupInfoDTO();
                 favGroupInfoDTO.setId(N3d.encode(groups.getId()));
                 favGroupInfoDTO.setName(groups.getName());
@@ -694,4 +694,29 @@ public class UserController extends BaseController {
     }
 
 
+    /**
+     * 接口文档中没有此接口，nodejs版本代码里存在。
+     *
+     * @return
+     * @throws ServiceException
+     */
+    @ApiOperation(value = "batch")
+    @RequestMapping(value = "/batch", method = RequestMethod.GET)
+    public APIResult<Object> batch(@RequestParam("id") String[] id) throws ServiceException {
+
+        ValidateUtils.notEmpty(id);
+        Integer[] userIds = MiscUtils.decodeIds(id);
+        List<Users> userList = userManager.getBatchUser(CollectionUtils.arrayToList(userIds));
+        List<Map<String, Object>> resultMap = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(userList)) {
+            for (Users u : userList) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", N3d.encode(u.getId()));
+                map.put("nickname", u.getNickname());
+                map.put("portraitUri", u.getPortraitUri());
+                resultMap.add(map);
+            }
+        }
+        return APIResultWrap.ok(resultMap);
+    }
 }

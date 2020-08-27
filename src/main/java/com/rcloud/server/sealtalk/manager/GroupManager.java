@@ -207,7 +207,7 @@ public class GroupManager extends BaseManager {
                     //发送群组通知 TODO
                     Result result1 = sendGroupNotificationMessageBySystem(groups.getId(), messageData, currentUserId, GroupOperationType.CREATE);
 
-                    log.info(" createGroup sendGroupNotificationMessageBySystem,result:{}", result1);
+                    log.info(" createGroup sendGroupNotificationMessageBySystem,result:{},groupId={}", result1,groups.getId());
                 } catch (Exception e) {
                     log.error("sendGroupNotificationMessage exception:" + e.getMessage(), e);
                 }
