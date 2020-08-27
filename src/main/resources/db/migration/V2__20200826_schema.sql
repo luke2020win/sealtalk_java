@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS `backend_users`;
 CREATE TABLE `backend_users`
 (
     `id`             int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `accout`         varchar(32)      NOT NULL,
+    `account`         varchar(32)      NOT NULL,
     `roleType`       varchar(64)      NOT NULL,
     `passwordHash`   char(128)        NOT NULL,
     `passwordSalt`   char(128)        NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE `backend_users`
     `updatedAt`      datetime         NOT NULL,
     `deletedAt`      datetime         DEFAULT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `backend_users` (`accout`)
+    UNIQUE KEY `backend_users` (`account`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 

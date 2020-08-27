@@ -111,7 +111,10 @@ public enum ErrorCode {
     YP_GET_TEMPLATE_FAILD(3001, "Failed to get YunPian template",3001),
     YP_TEMPLATE_EMPTY(3002, "YunPian SMS template is empty",3002),
     YP_SEND_VERIFYCODER_FAILD(3003, "Send YunPian SMS code failed",3003),
-    YP_SNED_TIMES_VIOLATION(3004, "Too many times sent",3004);
+    YP_SNED_TIMES_VIOLATION(3004, "Too many times sent",3004),
+
+    // 后台管理系统
+    VAR_NOT_EXIST(4000, "该变量不存在", 4000);
 
     private int errorCode;
     private String errorMessage;

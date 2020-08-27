@@ -8,7 +8,6 @@ import com.rcloud.server.sealtalk.service.*;
 import com.rcloud.server.sealtalk.util.*;
 import io.rong.models.response.TokenResult;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -16,7 +15,9 @@ import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 @Service
@@ -33,19 +34,6 @@ public class BackendUserManager extends BaseManager {
     private TransactionTemplate transactionTemplate;
 
     /**
-     * 判断用户是否已经存在
-     *
-     * @param account
-     * @return true 存在，false 不存在
-     */
-    public boolean isExistUser(String account) {
-        BackendUsers param = new BackendUsers();
-        param.setAccout(account);
-        BackendUsers users = backendUsersService.getOne(param);
-        return users != null;
-    }
-
-    /**
      * 注册
      * @param account
      * @param password
@@ -55,7 +43,7 @@ public class BackendUserManager extends BaseManager {
      */
     public Integer register(String account, String password, String roleType) throws ServiceException {
         BackendUsers param = new BackendUsers();
-        param.setAccout(account);
+        param.setAccount(account);
         BackendUsers backendUsers = backendUsersService.getOne(param);
 
         if (backendUsers != null) {
@@ -85,7 +73,7 @@ public class BackendUserManager extends BaseManager {
         return transactionTemplate.execute(transactionStatus -> {
             //插入user表
             BackendUsers backendUsers = new BackendUsers();
-            backendUsers.setAccout(account);
+            backendUsers.setAccount(account);
             backendUsers.setPasswordHash(hashStr);
             backendUsers.setRoleType(roleType);
             backendUsers.setPasswordSalt(String.valueOf(salt));
@@ -109,7 +97,7 @@ public class BackendUserManager extends BaseManager {
     public BackendUsers login(String account, String password) throws ServiceException {
 
         BackendUsers param = new BackendUsers();
-        param.setAccout(account);
+        param.setAccount(account);
         BackendUsers backendUsers = backendUsersService.getOne(param);
 
         //判断用户是否存在
@@ -125,7 +113,7 @@ public class BackendUserManager extends BaseManager {
 
         String token = backendUsers.getToken();
         log.info("login id:" + backendUsers.getId());
-        log.info("login account:" + backendUsers.getAccout());
+        log.info("login account:" + backendUsers.getAccount());
         log.info("login token:" + token);
         log.info("login portraitUri:" + backendUsers.getPortraitUri());
 
@@ -135,7 +123,7 @@ public class BackendUserManager extends BaseManager {
             //如果user表中的融云token为空，调用融云sdk 获取token
             //如果用户头像地址为空，采用默认头像地址
             String portraitUri = StringUtils.isEmpty(backendUsers.getPortraitUri()) ? sealtalkConfig.getRongcloudDefaultPortraitUrl() : backendUsers.getPortraitUri();
-            TokenResult tokenResult = rongCloudClient.register(backendUsers.getAccout(), backendUsers.getRoleType(), portraitUri);
+            TokenResult tokenResult = rongCloudClient.register(backendUsers.getAccount(), backendUsers.getRoleType(), portraitUri);
             if (!Constants.CODE_OK.equals(tokenResult.getCode())) {
                 throw new ServiceException(ErrorCode.SERVER_ERROR, "'RongCloud Server API Error Code: " + tokenResult.getCode());
             }
@@ -161,34 +149,42 @@ public class BackendUserManager extends BaseManager {
     }
 
     /**
-     * 修改密码
-     *
+     * 更新密码或者注册用户
      * @param account
      * @param password
+     * @param roleType
+     * @return
      */
-    public void resetPassword(String account, String password) {
-        //新密码hash,修改user表密码字段
-        int salt = RandomUtil.randomBetween(1000, 9999);
-        String hashStr = MiscUtils.hash(password, salt);
-        updatePassword(account, salt, hashStr);
+    public Integer saveRole(String account, String password, String roleType) {
+        // 查询参数
+        BackendUsers param = new BackendUsers();
+        param.setAccount(account);
+        // 查询记录
+        BackendUsers users = backendUsersService.getOne(param);
+
+        if(users != null) {
+            resetPassword(account, password);
+            return users.getId();
+        }
+        else {
+            String accountTemp = MiscUtils.xss(account, ValidateUtils.NICKNAME_MAX_LENGTH);
+            //如果没有注册过，密码hash
+            int salt = RandomUtil.randomBetween(1000, 9999);
+            String hashStr = MiscUtils.hash(password, salt);
+            BackendUsers u = register0(accountTemp, salt, hashStr, roleType);
+            return u.getId();
+        }
     }
 
     /**
-     * 更新密码
+     * 删除用户
      * @param account
-     * @param salt
-     * @param hashStr
      */
-    private void updatePassword(String account, int salt, String hashStr) {
-        BackendUsers user = new BackendUsers();
-        user.setPasswordHash(hashStr);
-        user.setPasswordSalt(String.valueOf(salt));
-        user.setUpdatedAt(new Date());
-
-        Example example = new Example(Users.class);
+    public void delete(String account) {
+        Example example = new Example(BackendUsers.class);
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("account", account);
-        backendUsersService.updateByExampleSelective(user, example);
+        backendUsersService.deleteByExample(example);
     }
 
     /**
@@ -199,11 +195,9 @@ public class BackendUserManager extends BaseManager {
      * @throws ServiceException
      */
     public void setPortraitUri(String account, String portraitUri) throws ServiceException {
-
         long timestamp = System.currentTimeMillis();
-
         BackendUsers param = new BackendUsers();
-        param.setAccout(account);
+        param.setAccount(account);
         BackendUsers backendUsers = backendUsersService.getOne(param);
         if (backendUsers == null) {
             throw new ServiceException(ErrorCode.REQUEST_ERROR);
@@ -220,15 +214,73 @@ public class BackendUserManager extends BaseManager {
     }
 
     /**
-     * 根据account查询用户信息
-     *
-     * @param account
      * @return
      */
-    public BackendUsers getBackendUserByStAccount(String account) {
-        BackendUsers u = new BackendUsers();
-        u.setAccout(account);
-        return backendUsersService.getOne(u);
+    public List<BackendUsers> getAllBackendUsers() {
+        return backendUsersService.getAllBackendUsers();
+    }
+
+    /**
+     * 获取记录数目
+     */
+    public Integer getTotalCount() {
+        return backendUsersService.getTotalCount();
+    }
+
+    /**
+     * @return
+     */
+    public List<BackendUsers> getPageBackendUsers(Integer pageNum, Integer pageSize) {
+        log.info("BackendUserManager getPageBackendUsers pageNum:"+pageNum+" pageSize:"+pageSize);
+        int offset = (pageNum - 1) * pageSize;
+        int limit = pageSize;
+        return backendUsersService.getPageBackendUsers(offset, limit);
+    }
+
+    /**
+     * 更新密码
+     * @param account
+     * @param salt
+     * @param hashStr
+     */
+    private void updatePassword(String account, int salt, String hashStr) {
+        BackendUsers backendUsers = new BackendUsers();
+        backendUsers.setPasswordHash(hashStr);
+        backendUsers.setPasswordSalt(String.valueOf(salt));
+        backendUsers.setUpdatedAt(new Date());
+
+        Example example = new Example(BackendUsers.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("account", account);
+        backendUsersService.updateByExampleSelective(backendUsers, example);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param account
+     * @param password
+     */
+    public void resetPassword(String account, String password) {
+        //新密码hash,修改user表密码字段
+        int salt = RandomUtil.randomBetween(1000, 9999);
+        String hashStr = MiscUtils.hash(password, salt);
+        updatePassword(account, salt, hashStr);
+    }
+
+    public List<BackendUsers> getBackendUsersByAccount(String account) throws ServiceException {
+        BackendUsers param = new BackendUsers();
+        param.setAccount(account);
+
+        BackendUsers backendUsers = backendUsersService.getOne(param);
+        if (backendUsers == null) {
+            throw new ServiceException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        List<BackendUsers> backendUsersList = new ArrayList<>();
+        backendUsersList.add(backendUsers);
+
+        return backendUsersList;
     }
 }
 

@@ -13,8 +13,8 @@ public class BackendUsers implements Serializable {
     @GeneratedValue(generator = "JDBC")
     private Integer id;
 
-    @Column(name="accout")
-    private String accout;
+    @Column(name="account")
+    private String account;
 
     @Column(name="roleType")
     private String roleType;
@@ -54,12 +54,12 @@ public class BackendUsers implements Serializable {
         this.id = id;
     }
 
-    public String getAccout() {
-        return accout;
+    public String getAccount() {
+        return account;
     }
 
-    public void setAccout(String accout) {
-        this.accout = accout;
+    public void setAccount(String account) {
+        this.account = account;
     }
 
     public String getRoleType() {
@@ -146,7 +146,7 @@ public class BackendUsers implements Serializable {
     public String toString() {
         return "Users{" +
                 "id=" + id +
-                ", accout='" + accout + '\'' +
+                ", account='" + account + '\'' +
                 ", roleType='" + roleType + '\'' +
                 ", portraitUri='" + portraitUri + '\'' +
                 ", passwordHash='" + passwordHash + '\'' +

@@ -35,7 +35,6 @@
   </resultMap>
 
 
-
     <select id="queryGroupFavsWithGroupByUserId" resultMap="resultMapWithGroups">
     SELECT gm.*,
        g.id g_id,
