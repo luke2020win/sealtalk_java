@@ -4,7 +4,7 @@ CREATE TABLE `backend_users`
 (
     `id`             int(10) unsigned NOT NULL AUTO_INCREMENT,
     `accout`         varchar(32)      NOT NULL,
-    `roleType`       varchar(32)      NOT NULL,
+    `roleType`       varchar(64)      NOT NULL,
     `passwordHash`   char(128)        NOT NULL,
     `passwordSalt`   char(128)        NOT NULL,
     `token`          varchar(256)     NOT NULL DEFAULT '',

@@ -16,7 +16,7 @@ public enum ErrorCode {
 
     EMPTY_STACCOUNT_LENGHT_ERROR(400,"Incorrect parameter length.",400),
     EMPTY_STACCOUNT_ERROR(400,"Not letter beginning or invalid symbol.",400),
-    EMPTY_STACCOUNT_EXIST(1000,"SealTalk 号已存在",200),
+    EMPTY_STACCOUNT_EXIST(1000,"该热聊号已存在",200),
 
     //send_code
     LIMIT_ERROR(5000, "Throttle limit exceeded.",200),
@@ -37,12 +37,12 @@ public enum ErrorCode {
     INVALID_PASSWORD_LENGHT(400, "Length of password invalid.",400),
     INVALID_VERIFICATION_TOKEN(400, "Invalid verification_token.",400),
     UNKNOWN_VERIFICATION_TOKEN(404, "Unknown verification_token.",404),
-    PHONE_ALREADY_REGIESTED(400, "Phone number has already existed.",400),
+    PHONE_ALREADY_REGIESTED(400, "该账号已经注册.",400),
 
     //login error
-    USER_NOT_EXIST(1000, "Phone number not found.",200),
-    USER_PASSWORD_WRONG(1001, "Wrong password.",200),
-    USER_PASSWORD_WRONG_2(1000, "Wrong old password.",200),
+    USER_NOT_EXIST(1000, "该账号不存在.",200),
+    USER_PASSWORD_WRONG(1001, "密码错误.",200),
+    USER_PASSWORD_WRONG_2(1000, "旧密码错误.",200),
 
     //user error
     INVALID_PORTRAITURI_FORMAT(400,"Invalid portraitUri format.",400),
