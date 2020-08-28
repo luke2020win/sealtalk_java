@@ -5,6 +5,7 @@ import com.rcloud.server.sealtalk.domain.GroupExitedLists;
 import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.domain.Users;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.Example;
 
@@ -33,17 +34,15 @@ public class GroupExitedListsService extends AbstractBaseService<GroupExitedList
     /**
      * 保存群退出列表
      *
-     * @param groups  群组
+     * @param groups       群组
      * @param quitUserList 退出用户列表
      * @param operatorUser 操作用户
-     * @param quitReason 退出原因   0 群主踢出 ,1 管理员踢出, 2 主动退出
-     *
-     *
+     * @param quitReason   退出原因   0 群主踢出 ,1 管理员踢出, 2 主动退出
      */
     public void saveGroupExitedListItems(Groups groups, List<Users> quitUserList, Users operatorUser, Integer quitReason) {
 
         long timestamp = System.currentTimeMillis();
-        for(Users users:quitUserList){
+        for (Users users : quitUserList) {
             GroupExitedLists groupExitedLists = new GroupExitedLists();
             groupExitedLists.setGroupId(groups.getId());
             groupExitedLists.setQuitUserId(users.getId());
@@ -51,7 +50,7 @@ public class GroupExitedListsService extends AbstractBaseService<GroupExitedList
             groupExitedLists.setQuitPortraitUri(users.getPortraitUri());
             groupExitedLists.setQuitReason(quitReason);
             groupExitedLists.setQuitTime(timestamp);
-            if(!GroupExitedLists.QUITE_REASON_SELF.equals(quitReason)){
+            if (!GroupExitedLists.QUITE_REASON_SELF.equals(quitReason)) {
                 groupExitedLists.setOperatorId(operatorUser.getId());
                 groupExitedLists.setOperatorName(operatorUser.getNickname());
             }
@@ -69,6 +68,9 @@ public class GroupExitedListsService extends AbstractBaseService<GroupExitedList
      * @param quitUserIds
      */
     public void deleteGroupExitedListItems(Integer groupId, List<Integer> quitUserIds) {
+
+        Assert.notNull(groupId, "groupId is null");
+        Assert.notEmpty(quitUserIds, "quitUserIds is null");
 
         Example example = new Example(GroupExitedLists.class);
         example.createCriteria().andEqualTo("groupId", groupId)

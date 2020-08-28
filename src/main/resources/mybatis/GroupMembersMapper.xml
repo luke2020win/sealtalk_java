@@ -77,7 +77,7 @@
         </association>
     </resultMap>
 
-    <select id="queryGroupMembersWithGroupByMemberId" resultMap="resultMapWithGroups" >
+    <select id="queryGroupMembersWithGroupByMemberId" resultMap="resultMapWithGroups">
     SELECT gm.*,
        g.id g_id,
        g.name g_name,
@@ -92,7 +92,7 @@
     where gm.memberId=#{memberId} and g.deletedAt is null ;
   </select>
 
-   <select id="queryGroupMembersWithUsersByGroupId" resultMap="resultMapWithUsers">
+    <select id="queryGroupMembersWithUsersByGroupId" resultMap="resultMapWithUsers">
     SELECT gm.*,
        u.id user_id,
        u.region user_region,
@@ -106,9 +106,19 @@
     on gm.memberId = u.id
     where gm.groupId=#{groupId}
   </select>
-
-
-
+    <select id="queryGroupMembersWithGroupByGroupIdAndMemberId" resultMap="resultMapWithGroups">
+      SELECT gm.*,
+         g.id g_id,
+         g.name g_name,
+         g.portraitUri g_portraitUri,
+         g.creatorId g_creatorId,
+         g.memberCount g_memberCount,
+         g.isMute g_isMute,
+         g.certiStatus g_certiStatus
+      FROM group_members gm join `groups` g
+      on gm.groupId = g.id
+      where gm.groupId = #{groupId} and gm.memberId=#{memberId}  ;
+</select>
 
 
 </mapper>
