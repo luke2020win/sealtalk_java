@@ -66,7 +66,8 @@ public class UserController extends BaseController {
         ValidateUtils.checkRegion(region);
         ValidateUtils.checkCompletePhone(phone);
 
-        userManager.sendCode(region, phone, SmsServiceType.RONGCLOUD, null);
+        ServerApiParams serverApiParams = getServerApiParams();
+        userManager.sendCode(region, phone, SmsServiceType.RONGCLOUD, serverApiParams);
         return APIResultWrap.ok1("");
     }
 
@@ -199,7 +200,9 @@ public class UserController extends BaseController {
 
         nickname = MiscUtils.xss(nickname, ValidateUtils.NICKNAME_MAX_LENGTH);
         checkRegisterParam(nickname, password, verification_token);
-        Integer id = userManager.register(nickname, password, verification_token);
+
+        ServerApiParams serverApiParams = getServerApiParams();
+        Integer id = userManager.register(nickname, password, verification_token, serverApiParams);
         //设置cookie
         setCookie(response, id);
         Map<String, Object> resultMap = new HashMap<>();
@@ -234,7 +237,8 @@ public class UserController extends BaseController {
         ValidateUtils.checkRegionName(MiscUtils.getRegionName(region));
         ValidateUtils.checkCompletePhone(phone);
 
-        Pair<Integer, String> pairResult = userManager.login(region, phone, password);
+        ServerApiParams serverApiParams = getServerApiParams();
+        Pair<Integer, String> pairResult = userManager.login(region, phone, password, serverApiParams);
 
         //设置cookie  userId加密存入cookie
         //登录成功后的其他请求，当前登录用户useId获取从cookie中获取
@@ -273,7 +277,8 @@ public class UserController extends BaseController {
         ValidateUtils.checkPassword(password);
         ValidateUtils.checkUUID(verificationToken);
 
-        userManager.resetPassword(password, verificationToken);
+        ServerApiParams serverApiParams = getServerApiParams();
+        userManager.resetPassword(password, verificationToken, serverApiParams);
         return APIResultWrap.ok1("");
     }
 
@@ -288,7 +293,9 @@ public class UserController extends BaseController {
         ValidateUtils.notEmpty(oldPassword);
 
         Integer currentUserId = getCurrentUserId();
-        userManager.changePassword(newPassword, oldPassword, currentUserId);
+        ServerApiParams serverApiParams = getServerApiParams();
+
+        userManager.changePassword(newPassword, oldPassword, currentUserId, serverApiParams);
         return APIResultWrap.ok1("");
     }
 

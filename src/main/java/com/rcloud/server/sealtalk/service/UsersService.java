@@ -3,6 +3,7 @@ package com.rcloud.server.sealtalk.service;
 import com.rcloud.server.sealtalk.dao.UsersMapper;
 import com.rcloud.server.sealtalk.domain.Users;
 import com.rcloud.server.sealtalk.util.CacheUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.common.Mapper;
@@ -18,6 +19,7 @@ import java.util.List;
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
  */
 @Service
+@Slf4j
 public class UsersService extends AbstractBaseService<Users, Integer> {
 
     @Resource
@@ -45,5 +47,15 @@ public class UsersService extends AbstractBaseService<Users, Integer> {
         Example example = new Example(Users.class);
         example.createCriteria().andIn("id",ids);
         return this.getByExample(example);
+    }
+
+    public List<Users> getPageUserList(Integer offset, Integer limit) {
+        log.info("UsersService getPageUserList offset:"+offset+" limit:"+limit);
+        return mapper.getPageUserList(offset, limit);
+    }
+
+
+    public Integer getTotalCount() {
+        return mapper.getTotalCount();
     }
 }

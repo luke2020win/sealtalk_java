@@ -30,8 +30,6 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -81,6 +79,9 @@ public class UserManager extends BaseManager {
 
     @Resource
     private GroupFavsService groupFavsService;
+
+    @Resource
+    private UserBlackListService userBlackListService;
 
     @Value("classpath:region.json")
     private org.springframework.core.io.Resource regionResource;
@@ -261,7 +262,7 @@ public class UserManager extends BaseManager {
         return verificationCodes.getToken();
     }
 
-    public Integer register(String nickname, String password, String verificationToken) throws ServiceException {
+    public Integer register(String nickname, String password, String verificationToken, ServerApiParams serverApiParams) throws ServiceException {
 
         VerificationCodes verificationCodes = verificationCodesService.getByToken(verificationToken);
 
@@ -277,11 +278,13 @@ public class UserManager extends BaseManager {
         if (users != null) {
             throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
         }
+
         //如果没有注册过，密码hash
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(password, salt);
-
-        Users u = register0(nickname, verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr);
+        String ip = serverApiParams.getRequestUriInfo().getIp();
+        log.info("register ip:"+ip);
+        Users u = register0(nickname, verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip);
 
         //缓存nickname
         CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
@@ -300,31 +303,29 @@ public class UserManager extends BaseManager {
      * @param hashStr
      * @return
      */
-    private Users register0(String nickname, String region, String phone, int salt, String hashStr) {
-        return transactionTemplate.execute(new TransactionCallback<Users>() {
-            @Override
-            public Users doInTransaction(TransactionStatus transactionStatus) {
-                //插入user表
-                Users u = new Users();
-                u.setNickname(nickname);
-                u.setRegion(region);
-                u.setPhone(phone);
-                u.setPasswordHash(hashStr);
-                u.setPasswordSalt(String.valueOf(salt));
-                u.setCreatedAt(new Date());
-                u.setUpdatedAt(u.getCreatedAt());
-                u.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
+    private Users register0(String nickname, String region, String phone, int salt, String hashStr, String ip) {
+        return transactionTemplate.execute(transactionStatus -> {
+            //插入user表
+            Users u = new Users();
+            u.setNickname(nickname);
+            u.setRegion(region);
+            u.setPhone(phone);
+            u.setIp(ip);
+            u.setPasswordHash(hashStr);
+            u.setPasswordSalt(String.valueOf(salt));
+            u.setCreatedAt(new Date());
+            u.setUpdatedAt(u.getCreatedAt());
+            u.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
 
-                usersService.saveSelective(u);
+            usersService.saveSelective(u);
 
 
-                //插入DataVersion表
-                DataVersions dataVersions = new DataVersions();
-                dataVersions.setUserId(u.getId());
-                dataVersionsService.saveSelective(dataVersions);
+            //插入DataVersion表
+            DataVersions dataVersions = new DataVersions();
+            dataVersions.setUserId(u.getId());
+            dataVersionsService.saveSelective(dataVersions);
 
-                return u;
-            }
+            return u;
         });
 
     }
@@ -338,7 +339,7 @@ public class UserManager extends BaseManager {
      * @return Pair<L, R> L=用户ID，R=融云token
      * @throws ServiceException
      */
-    public Pair<Integer, String> login(String region, String phone, String password) throws ServiceException {
+    public Pair<Integer, String> login(String region, String phone, String password, ServerApiParams serverApiParams) throws ServiceException {
 
         Users param = new Users();
         param.setRegion(region);
@@ -405,11 +406,13 @@ public class UserManager extends BaseManager {
             }
 
             token = tokenResult.getToken();
-
+            String ip = serverApiParams.getRequestUriInfo().getIp();
+            log.info("login ip:"+ip);
             //获取后根据userId更新表中token
             Users users = new Users();
             users.setId(u.getId());
             users.setRongCloudToken(token);
+            users.setIp(ip);
             users.setUpdatedAt(new Date());
             usersService.updateByPrimaryKeySelective(users);
         }
@@ -425,7 +428,7 @@ public class UserManager extends BaseManager {
      * @param verificationToken
      * @throws ServiceException
      */
-    public void resetPassword(String password, String verificationToken) throws ServiceException {
+    public void resetPassword(String password, String verificationToken, ServerApiParams serverApiParams) throws ServiceException {
 
         VerificationCodes verificationCodes = verificationCodesService.getByToken(verificationToken);
 
@@ -437,7 +440,19 @@ public class UserManager extends BaseManager {
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(password, salt);
 
-        updatePassword(verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr);
+        String ip = serverApiParams.getRequestUriInfo().getIp();
+        log.info("resetPassword ip:"+ip);
+        updatePassword(verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip);
+    }
+
+    /**
+     * 管理后台重置密码
+     */
+    public void resetPwd(String region, String phone) {
+        //新密码hash,修改user表密码字段
+        int salt = RandomUtil.randomBetween(1000, 9999);
+        String hashStr = MiscUtils.hash("abc123", salt);
+        updatePassword(region, phone, salt, hashStr, null);
     }
 
     /**
@@ -448,8 +463,7 @@ public class UserManager extends BaseManager {
      * @param currentUserId
      * @throws ServiceException
      */
-    public void changePassword(String newPassword, String oldPassword, Integer currentUserId) throws ServiceException {
-
+    public void changePassword(String newPassword, String oldPassword, Integer currentUserId, ServerApiParams serverApiParams) throws ServiceException {
         Users u = usersService.getByPrimaryKey(currentUserId);
 
         if (u == null) {
@@ -466,14 +480,18 @@ public class UserManager extends BaseManager {
         //新密码hash,修改user表密码字段
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(newPassword, salt);
-
-        updatePassword(u.getRegion(), u.getPhone(), salt, hashStr);
+        String ip = serverApiParams.getRequestUriInfo().getIp();
+        log.info("changePassword ip:"+ip);
+        updatePassword(u.getRegion(), u.getPhone(), salt, hashStr, ip);
     }
 
-    private void updatePassword(String region, String phone, int salt, String hashStr) {
+    private void updatePassword(String region, String phone, int salt, String hashStr, String ip) {
         Users user = new Users();
         user.setPasswordHash(hashStr);
         user.setPasswordSalt(String.valueOf(salt));
+        if(!StringUtils.isEmpty(ip)) {
+            user.setPasswordHash(ip);
+        }
         user.setUpdatedAt(new Date());
 
         Example example = new Example(Users.class);
@@ -1086,12 +1104,148 @@ public class UserManager extends BaseManager {
 
         syncInfoDTO.setVersion(version);
         syncInfoDTO.setUser(users);
-        syncInfoDTO.setBlacklist(blackListsList != null ? blackListsList : new ArrayList<BlackLists>());
-        syncInfoDTO.setFriends(friendshipsList != null ? friendshipsList : new ArrayList<Friendships>());
-        syncInfoDTO.setGroups(groupsList != null ? groupsList : new ArrayList<GroupMembers>());
-        syncInfoDTO.setGroup_members(groupMembersList != null ? groupMembersList : new ArrayList<GroupMembers>());
+        syncInfoDTO.setBlacklist(blackListsList != null ? blackListsList : new ArrayList<>());
+        syncInfoDTO.setFriends(friendshipsList != null ? friendshipsList : new ArrayList<>());
+        syncInfoDTO.setGroups(groupsList != null ? groupsList : new ArrayList<>());
+        syncInfoDTO.setGroup_members(groupMembersList != null ? groupMembersList : new ArrayList<>());
         return syncInfoDTO;
 
     }
+
+    public List<Users> getPageUserList(int pageNum, int pageSize) {
+        log.info("UserManager getPageUserList pageNum:"+pageNum+" pageSize:"+pageSize);
+        int offset = (pageNum - 1) * pageSize;
+        int limit = pageSize;
+        return usersService.getPageUserList(offset, limit);
+    }
+
+    public int getTotalCount() {
+        return usersService.getTotalCount();
+    }
+
+    /**
+     * 设置账号状态
+     * @param region
+     * @param phone
+     * @param isDisable 0-可用 1-禁用
+     */
+    public void setStatus(String region, String phone, Integer isDisable) {
+        Users user = new Users();
+        user.setIsDisable(isDisable);
+
+        Example example = new Example(Users.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("region", region);
+        criteria.andEqualTo("phone", phone);
+        usersService.updateByExampleSelective(user, example);
+    }
+
+    public List<Users> getUserByAccount(String region, String phone) throws ServiceException {
+        Users param = new Users();
+        param.setRegion(region);
+        param.setPhone(phone);
+
+        Users users = usersService.getOne(param);
+        if (users == null) {
+            throw new ServiceException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        List<Users> usersList = new ArrayList<>();
+        usersList.add(users);
+
+        return usersList;
+    }
+
+    public void addUser(String region, String phone, String nickname, String password, ServerApiParams serverApiParams) throws ServiceException {
+        Users param = new Users();
+        param.setRegion(region);
+        param.setPhone(phone);
+        Users users = usersService.getOne(param);
+
+        if (users != null) {
+            throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
+        }
+
+        String ip = serverApiParams.getRequestUriInfo().getIp();
+        log.info("addUser ip:"+ip);
+
+        //如果没有注册过，密码hash
+        int salt = RandomUtil.randomBetween(1000, 9999);
+        String hashStr = MiscUtils.hash(password, salt);
+
+        Users u = register0(nickname, region, phone, salt, hashStr, ip);
+        log.info("addUser id:"+u.getId());
+    }
+
+    /**
+     * 设置用户账号状态
+     * @param region
+     * @param phone
+     * @param isDisable
+     * @throws ServiceException
+     */
+    public void disableOrEnableUser(String region, String phone, String isDisable) throws ServiceException {
+        Users param = new Users();
+        param.setRegion(region);
+        param.setPhone(phone);
+        Users users = usersService.getOne(param);
+
+        if (users == null) {
+            throw new ServiceException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        Integer status;
+        try {
+            status = Integer.valueOf(isDisable);
+        } catch (NumberFormatException numberFormatException) {
+            throw new ServiceException(ErrorCode.PARAM_TYPE_ERROR);
+        }
+
+        if(status == 1) {
+            // 将用户添加到黑名单
+            insertUserBlack(users);
+        }
+        else {
+            // 从用户黑名单中删除
+            deleteUserBlack(region, phone);
+        }
+
+        setStatus(region, phone, status);
+    }
+
+    /**
+     * 插入黑名单用户
+     * @param users
+     * @return
+     */
+    private UserBlack insertUserBlack(Users users) {
+        return transactionTemplate.execute(transactionStatus -> {
+            //插入userBlack表
+            UserBlack userBlack = new UserBlack();
+            userBlack.setRegion(users.getRegion());
+            userBlack.setPhone(users.getPhone());
+            userBlack.setNickname(users.getNickname());
+            userBlack.setPortraitUri(users.getPortraitUri());
+            userBlack.setStAccount(users.getStAccount());
+            userBlack.setCreatedAt(new Date());
+            userBlack.setUpdatedAt(new Date());
+            userBlackListService.saveSelective(userBlack);
+            return userBlack;
+        });
+    }
+
+    /**
+     * 删除黑名单用户
+     * @param region
+     * @param phone
+     */
+    public void deleteUserBlack(String region, String phone) {
+        Example example = new Example(UserBlack.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("region", region);
+        criteria.andEqualTo("phone", phone);
+        userBlackListService.deleteByExample(example);
+    }
+
 }
 

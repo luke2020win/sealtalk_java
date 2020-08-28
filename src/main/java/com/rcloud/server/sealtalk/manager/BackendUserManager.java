@@ -3,6 +3,7 @@ import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.rongcloud.RongCloudClient;
 import com.rcloud.server.sealtalk.service.*;
 import com.rcloud.server.sealtalk.util.*;
@@ -34,59 +35,6 @@ public class BackendUserManager extends BaseManager {
     private TransactionTemplate transactionTemplate;
 
     /**
-     * 注册
-     * @param account
-     * @param password
-     * @param roleType
-     * @return
-     * @throws ServiceException
-     */
-    public Integer register(String account, String password, String roleType) throws ServiceException {
-        BackendUsers param = new BackendUsers();
-        param.setAccount(account);
-        BackendUsers backendUsers = backendUsersService.getOne(param);
-
-        if (backendUsers != null) {
-            throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
-        }
-
-        //如果没有注册过，密码hash
-        int salt = RandomUtil.randomBetween(1000, 9999);
-        String hashStr = MiscUtils.hash(password, salt);
-
-        BackendUsers u = register0(account, salt, hashStr, roleType);
-
-        return u.getId();
-    }
-
-    /**
-     * 注册插入user 表、dataversion表
-     * 同一事务
-     *
-     * @param account
-     * @param salt
-     * @param hashStr
-     * @param roleType
-     * @return
-     */
-    private BackendUsers register0(String account, int salt, String hashStr, String roleType) {
-        return transactionTemplate.execute(transactionStatus -> {
-            //插入user表
-            BackendUsers backendUsers = new BackendUsers();
-            backendUsers.setAccount(account);
-            backendUsers.setPasswordHash(hashStr);
-            backendUsers.setRoleType(roleType);
-            backendUsers.setPasswordSalt(String.valueOf(salt));
-            backendUsers.setIp("0.0.0.0");
-            backendUsers.setCreatedAt(new Date());
-            backendUsers.setUpdatedAt(backendUsers.getCreatedAt());
-            backendUsers.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
-            backendUsersService.saveSelective(backendUsers);
-            return backendUsers;
-        });
-    }
-
-    /**
      * 用户登录
      *
      * @param account
@@ -94,7 +42,7 @@ public class BackendUserManager extends BaseManager {
      * @return Pair<L, R> L=用户ID，R=融云token
      * @throws ServiceException
      */
-    public BackendUsers login(String account, String password) throws ServiceException {
+    public BackendUsers login(String account, String password, ServerApiParams serverApiParams) throws ServiceException {
 
         BackendUsers param = new BackendUsers();
         param.setAccount(account);
@@ -112,11 +60,12 @@ public class BackendUserManager extends BaseManager {
         }
 
         String token = backendUsers.getToken();
+        String ip = serverApiParams.getRequestUriInfo().getIp();
         log.info("login id:" + backendUsers.getId());
         log.info("login account:" + backendUsers.getAccount());
         log.info("login token:" + token);
+        log.info("login ip:" + ip);
         log.info("login portraitUri:" + backendUsers.getPortraitUri());
-
 
         BackendUsers users = new BackendUsers();
         if (StringUtils.isEmpty(token)) {
@@ -134,6 +83,7 @@ public class BackendUserManager extends BaseManager {
             users.setId(backendUsers.getId());
             users.setRoleType(backendUsers.getRoleType());
             users.setToken(token);
+            users.setIp(ip);
             users.setUpdatedAt(new Date());
             backendUsersService.updateByPrimaryKeySelective(users);
         }
@@ -141,10 +91,11 @@ public class BackendUserManager extends BaseManager {
             users.setId(backendUsers.getId());
             users.setRoleType(backendUsers.getRoleType());
             users.setToken(token);
+            users.setIp(ip);
             users.setUpdatedAt(backendUsers.getUpdatedAt());
         }
 
-        //返回userId、token
+        //返回users
         return users;
     }
 
@@ -171,7 +122,7 @@ public class BackendUserManager extends BaseManager {
             //如果没有注册过，密码hash
             int salt = RandomUtil.randomBetween(1000, 9999);
             String hashStr = MiscUtils.hash(password, salt);
-            BackendUsers u = register0(accountTemp, salt, hashStr, roleType);
+            BackendUsers u = addBackendUser(accountTemp, salt, hashStr, roleType);
             return u.getId();
         }
     }
@@ -281,6 +232,34 @@ public class BackendUserManager extends BaseManager {
         backendUsersList.add(backendUsers);
 
         return backendUsersList;
+    }
+
+
+    /**
+     * 注册插入user 表、dataversion表
+     * 同一事务
+     *
+     * @param account
+     * @param salt
+     * @param hashStr
+     * @param roleType
+     * @return
+     */
+    private BackendUsers addBackendUser(String account, int salt, String hashStr, String roleType) {
+        return transactionTemplate.execute(transactionStatus -> {
+            //插入user表
+            BackendUsers backendUsers = new BackendUsers();
+            backendUsers.setAccount(account);
+            backendUsers.setPasswordHash(hashStr);
+            backendUsers.setRoleType(roleType);
+            backendUsers.setPasswordSalt(String.valueOf(salt));
+            backendUsers.setIp("0.0.0.0");
+            backendUsers.setCreatedAt(new Date());
+            backendUsers.setUpdatedAt(backendUsers.getCreatedAt());
+            backendUsers.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
+            backendUsersService.saveSelective(backendUsers);
+            return backendUsers;
+        });
     }
 }
 

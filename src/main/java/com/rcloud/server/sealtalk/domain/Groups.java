@@ -1,7 +1,5 @@
 package com.rcloud.server.sealtalk.domain;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;

@@ -13,6 +13,7 @@ public enum ErrorCode {
     ILLEGAL_PARAMETER(400,"Illegal parameter .",400),
     EMPTY_PARAMETER(400,"Parameter is empty.",400),
     PARAMETER_ERROR(400,"Parameter error.",400),
+    PARAM_TYPE_ERROR(400, "参数类型错误，请检查。",400),
 
     EMPTY_STACCOUNT_LENGHT_ERROR(400,"Incorrect parameter length.",400),
     EMPTY_STACCOUNT_ERROR(400,"Not letter beginning or invalid symbol.",400),
@@ -114,7 +115,8 @@ public enum ErrorCode {
     YP_SNED_TIMES_VIOLATION(3004, "Too many times sent",3004),
 
     // 后台管理系统
-    VAR_NOT_EXIST(4000, "该变量不存在", 4000);
+    VAR_NOT_EXIST(4000, "该变量不存在", 4000),
+    IP_NOT_EXIST(4000, "该IP地址不存在", 4000);
 
     private int errorCode;
     private String errorMessage;

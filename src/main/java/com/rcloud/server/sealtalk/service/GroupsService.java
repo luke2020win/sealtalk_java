@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.common.Mapper;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @Author: xiuwei.nie
@@ -57,5 +58,18 @@ public class GroupsService extends AbstractBaseService<Groups, Integer> {
         groups.setTimestamp(timestamp);
         groups.setCreatorId(creatorId);
         this.updateByPrimaryKeySelective(groups);
+    }
+
+    public List<Groups> getPageGroupsList(Integer offset, Integer limit) {
+        log.info("GroupsService getPageGroupsList offset:"+offset+" limit:"+limit);
+        return mapper.getPageGroupsList(offset, limit);
+    }
+
+    public Integer getTotalCount() {
+        return mapper.getTotalCount();
+    }
+
+    public List<Groups> getGroupsByName(String name) {
+        return mapper.getGroupsByName(name);
     }
 }

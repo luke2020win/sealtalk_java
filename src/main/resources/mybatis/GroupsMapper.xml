@@ -23,4 +23,17 @@
     <result column="deletedAt" jdbcType="TIMESTAMP" property="deletedAt" />
     <result column="bulletin" jdbcType="LONGVARCHAR" property="bulletin" />
   </resultMap>
+
+  <select id="getPageGroupsList" resultMap="BaseResultMap">
+      select * from groups limit #{limit} offset #{offset};
+  </select>
+
+  <select id="getGroupsByName" resultMap="BaseResultMap">
+      select * from groups where name = #{name};
+  </select>
+
+  <select id="getTotalCount" resultType="int">
+      select count(*) from groups;
+  </select>
+
 </mapper>

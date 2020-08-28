@@ -2322,4 +2322,22 @@ public class GroupManager extends BaseManager {
         //删除群组退出列表
         groupExitedListsService.deleteGroupExitedListItems(groupId, ImmutableList.of(receiverId));
     }
+
+    /**
+     * @return
+     */
+    public List<Groups> getPageGroupsList(Integer pageNum, Integer pageSize) {
+        log.info("GroupManager getPageGroupsList pageNum:"+pageNum+" pageSize:"+pageSize);
+        int offset = (pageNum - 1) * pageSize;
+        int limit = pageSize;
+        return groupsService.getPageGroupsList(offset, limit);
+    }
+
+    public int getTotalCount() {
+        return groupsService.getTotalCount();
+    }
+
+    public List<Groups> getGroupsByName(String name) {
+        return groupsService.getGroupsByName(name);
+    }
 }

@@ -19,8 +19,6 @@ public class Users implements Serializable {
     public static final Integer ST_SEARCH_VERIFY_NEED = 0;
 
 
-
-
     @Id
     @GeneratedValue(generator = "JDBC")
     private Integer id;
@@ -47,6 +45,12 @@ public class Users implements Serializable {
 
     @Column(name="stAccount")
     private String stAccount;
+
+    @Column(name="ip")
+    private String ip;
+
+    @Column(name="isDisable")
+    private Integer isDisable;
 
     @Column(name="phoneVerify")
     private Integer phoneVerify;
@@ -370,6 +374,22 @@ public class Users implements Serializable {
         this.deletedAt = deletedAt;
     }
 
+    public Integer getIsDisable() {
+        return isDisable;
+    }
+
+    public void setIsDisable(Integer isDisable) {
+        this.isDisable = isDisable;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
     @Override
     public String toString() {
         return "Users{" +
@@ -383,6 +403,8 @@ public class Users implements Serializable {
                 ", rongCloudToken='" + rongCloudToken + '\'' +
                 ", gender='" + gender + '\'' +
                 ", stAccount='" + stAccount + '\'' +
+                ", ip='" + ip + '\'' +
+                ", isDisable='" + isDisable + '\'' +
                 ", phoneVerify=" + phoneVerify +
                 ", stSearchVerify=" + stSearchVerify +
                 ", friVerify=" + friVerify +
