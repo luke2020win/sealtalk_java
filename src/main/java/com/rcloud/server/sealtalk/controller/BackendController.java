@@ -92,24 +92,24 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/Role/list", method = RequestMethod.POST)
     public APIResult<Object> roleList(
-            @ApiParam(name = "page", value = "页码", required = true, type = "String", example = "1")
-            @RequestParam String page,
-            @ApiParam(name = "limit", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String limit) {
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
 
-        log.info("BackendController roleList page:"+page+" limit:"+limit);
+        log.info("BackendController roleList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageTemp = 1;
         try {
-            pageTemp = Integer.valueOf(page);
+            pageTemp = Integer.valueOf(currentPage);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
         }
 
-        int pageSize = 10;
+        int pageSizeT = 10;
         try {
-            pageSize = Integer.valueOf(limit);
+            pageSizeT = Integer.valueOf(pageSize);
         }
         catch (NumberFormatException numberFormatException) {
            numberFormatException.printStackTrace();
@@ -117,11 +117,11 @@ public class BackendController extends BaseController {
 
         PageBeanRes<BackendUsers> pageBeanRes = new PageBeanRes();
 
-        log.info("BackendController roleList pageTemp:"+pageTemp+" pageSize:"+pageSize);
-        List<BackendUsers> backendUsersList = backendUserManager.getPageBackendUsers(pageTemp, pageSize);
+        log.info("BackendController roleList pageTemp:"+pageTemp+" pageSize:"+pageSizeT);
+        List<BackendUsers> backendUsersList = backendUserManager.getPageBackendUsers(pageTemp, pageSizeT);
         if(backendUsersList == null || backendUsersList.isEmpty()) {
             pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(0);
             pageBeanRes.setData(null);
         }
@@ -129,7 +129,7 @@ public class BackendController extends BaseController {
             int total = backendUserManager.getTotalCount();
             log.info("BackendController roleList total:"+total);
             pageBeanRes.setPage(pageTemp);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(total);
             pageBeanRes.setData(backendUsersList);
         }
@@ -202,25 +202,25 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/Variable/list", method = RequestMethod.POST)
     public APIResult<Object> variableList(
-            @ApiParam(name = "page", value = "页码", required = true, type = "String", example = "1")
-            @RequestParam String page,
-            @ApiParam(name = "limit", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String limit) {
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
 
 
-        log.info("BackendController variableList page:"+page+" limit:"+limit);
+        log.info("BackendController variableList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageT = 1;
         try {
-            pageT = Integer.valueOf(page);
+            pageT = Integer.valueOf(currentPage);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
         }
 
-        int pageSize = 10;
+        int pageSizeT = 10;
         try {
-            pageSize = Integer.valueOf(limit);
+            pageSizeT = Integer.valueOf(pageSize);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
@@ -228,11 +228,11 @@ public class BackendController extends BaseController {
 
         PageBeanRes<BackendSystemConfig> pageBeanRes = new PageBeanRes<>();
 
-        log.info("BackendController variableList pageTemp:"+pageT+" pageSize:"+pageSize);
-        List<BackendSystemConfig> backendSystemConfigList = backendSystemConfigManager.getPageBackendSystemConfig(pageT, pageSize);
+        log.info("BackendController variableList pageTemp:"+pageT+" pageSize:"+pageSizeT);
+        List<BackendSystemConfig> backendSystemConfigList = backendSystemConfigManager.getPageBackendSystemConfig(pageT, pageSizeT);
         if(backendSystemConfigList == null || backendSystemConfigList.isEmpty()) {
             pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(0);
             pageBeanRes.setData(null);
         }
@@ -240,7 +240,7 @@ public class BackendController extends BaseController {
             int total = backendSystemConfigManager.getTotalCount();
             log.info("BackendController variableList total:"+total);
             pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(total);
             pageBeanRes.setData(backendSystemConfigList);
         }
@@ -300,25 +300,25 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/IpBackendWhite/list", method = RequestMethod.POST)
     public APIResult<Object> ipBackendWhiteList(
-            @ApiParam(name = "page", value = "页码", required = true, type = "String", example = "1")
-            @RequestParam String page,
-            @ApiParam(name = "limit", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String limit) {
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
 
 
-        log.info("BackendController ipBackendWhiteList page:"+page+" limit:"+limit);
+        log.info("BackendController ipBackendWhiteList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageT = 1;
         try {
-            pageT = Integer.valueOf(page);
+            pageT = Integer.valueOf(currentPage);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
         }
 
-        int pageSize = 10;
+        int pageSizeT = 10;
         try {
-            pageSize = Integer.valueOf(limit);
+            pageSizeT = Integer.valueOf(pageSize);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
@@ -326,11 +326,11 @@ public class BackendController extends BaseController {
 
         PageBeanRes<BackendIPWhite> pageBeanRes = new PageBeanRes<>();
 
-        log.info("BackendController ipBackendWhiteList pageTemp:"+pageT+" pageSize:"+pageSize);
-        List<BackendIPWhite> backendIPWhites = backendIPWhiteListManager.getPageBackendIPWhiteList(pageT, pageSize);
+        log.info("BackendController ipBackendWhiteList pageTemp:"+pageT+" pageSize:"+pageSizeT);
+        List<BackendIPWhite> backendIPWhites = backendIPWhiteListManager.getPageBackendIPWhiteList(pageT, pageSizeT);
         if(backendIPWhites == null || backendIPWhites.isEmpty()) {
             pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(0);
             pageBeanRes.setData(null);
         }
@@ -338,7 +338,7 @@ public class BackendController extends BaseController {
             int total = backendIPWhiteListManager.getTotalCount();
             log.info("BackendController ipBackendWhiteList total:"+total);
             pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(total);
             pageBeanRes.setData(backendIPWhites);
         }
@@ -413,25 +413,25 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/IpBlack/list", method = RequestMethod.POST)
     public APIResult<Object> ipBlackList(
-            @ApiParam(name = "page", value = "页码", required = true, type = "String", example = "1")
-            @RequestParam String page,
-            @ApiParam(name = "limit", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String limit) {
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
 
 
-        log.info("BackendController ipBlackList page:"+page+" limit:"+limit);
+        log.info("BackendController ipBlackList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageT = 1;
         try {
-            pageT = Integer.valueOf(page);
+            pageT = Integer.valueOf(currentPage);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
         }
 
-        int pageSize = 10;
+        int pageSizeT = 10;
         try {
-            pageSize = Integer.valueOf(limit);
+            pageSizeT = Integer.valueOf(pageSize);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
@@ -439,11 +439,11 @@ public class BackendController extends BaseController {
 
         PageBeanRes<UserIPBlack> pageBeanRes = new PageBeanRes<>();
 
-        log.info("BackendController ipBlackList pageTemp:"+pageT+" pageSize:"+pageSize);
-        List<UserIPBlack> userIPBlacks = userIPBlackListManager.getPageUserIPBlackList(pageT, pageSize);
+        log.info("BackendController ipBlackList pageTemp:"+pageT+" pageSize:"+pageSizeT);
+        List<UserIPBlack> userIPBlacks = userIPBlackListManager.getPageUserIPBlackList(pageT, pageSizeT);
         if(userIPBlacks == null || userIPBlacks.isEmpty()) {
             pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(0);
             pageBeanRes.setData(null);
         }
@@ -451,7 +451,7 @@ public class BackendController extends BaseController {
             int total = userIPBlackListManager.getTotalCount();
             log.info("BackendController ipBlackList total:"+total);
             pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(total);
             pageBeanRes.setData(userIPBlacks);
         }
@@ -526,25 +526,25 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/UserBlack/list", method = RequestMethod.POST)
     public APIResult<Object> userBlackList(
-            @ApiParam(name = "page", value = "页码", required = true, type = "String", example = "1")
-            @RequestParam String page,
-            @ApiParam(name = "limit", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String limit) {
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
 
 
-        log.info("BackendController userBlackList page:"+page+" limit:"+limit);
+        log.info("BackendController userBlackList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageT = 1;
         try {
-            pageT = Integer.valueOf(page);
+            pageT = Integer.valueOf(currentPage);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
         }
 
-        int pageSize = 10;
+        int pageSizeT = 10;
         try {
-            pageSize = Integer.valueOf(limit);
+            pageSizeT = Integer.valueOf(pageSize);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
@@ -552,11 +552,11 @@ public class BackendController extends BaseController {
 
         PageBeanRes<UserBlack> pageBeanRes = new PageBeanRes<>();
 
-        log.info("BackendController userBlackList pageTemp:"+pageT+" pageSize:"+pageSize);
-        List<UserBlack> userBlacks = userBlackListManager.getPageUserBlackList(pageT, pageSize);
+        log.info("BackendController userBlackList pageTemp:"+pageT+" pageSize:"+pageSizeT);
+        List<UserBlack> userBlacks = userBlackListManager.getPageUserBlackList(pageT, pageSizeT);
         if(userBlacks == null || userBlacks.isEmpty()) {
             pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(0);
             pageBeanRes.setData(null);
         }
@@ -564,7 +564,7 @@ public class BackendController extends BaseController {
             int total = userIPBlackListManager.getTotalCount();
             log.info("BackendController userBlackList total:"+total);
             pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(total);
             pageBeanRes.setData(userBlacks);
         }
@@ -638,24 +638,24 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/User/list", method = RequestMethod.POST)
     public APIResult<Object> userList(
-            @ApiParam(name = "page", value = "页码", required = true, type = "String", example = "1")
-            @RequestParam String page,
-            @ApiParam(name = "limit", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String limit) {
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
 
-        log.info("BackendController userList page:"+page+" limit:"+limit);
+        log.info("BackendController userList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageT = 1;
         try {
-            pageT = Integer.valueOf(page);
+            pageT = Integer.valueOf(currentPage);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
         }
 
-        int pageSize = 10;
+        int pageSizeT = 10;
         try {
-            pageSize = Integer.valueOf(limit);
+            pageSizeT = Integer.valueOf(pageSize);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
@@ -663,11 +663,11 @@ public class BackendController extends BaseController {
 
         PageBeanRes<Users> pageBeanRes = new PageBeanRes<>();
 
-        log.info("BackendController userList pageTemp:"+pageT+" pageSize:"+pageSize);
-        List<Users> usersList = userManager.getPageUserList(pageT, pageSize);
+        log.info("BackendController userList pageTemp:"+pageT+" pageSize:"+pageSizeT);
+        List<Users> usersList = userManager.getPageUserList(pageT, pageSizeT);
         if(usersList == null || usersList.isEmpty()) {
             pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(0);
             pageBeanRes.setData(null);
         }
@@ -675,7 +675,7 @@ public class BackendController extends BaseController {
             int total = userManager.getTotalCount();
             log.info("BackendController userList total:"+total);
             pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(total);
             pageBeanRes.setData(usersList);
         }
@@ -761,6 +761,8 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/User/add", method = RequestMethod.POST)
     public APIResult<Object> addUser(
+            @ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
+            @RequestParam String region,
             @ApiParam(name = "phone", value = "手机号", required = true, type = "String", example = "138xxxxxxxx")
             @RequestParam String phone,
             @ApiParam(name = "nickname", value = "昵称", required = true, type = "String", example = "138xxxxxxxx")
@@ -768,14 +770,19 @@ public class BackendController extends BaseController {
             @ApiParam(name = "password", value = "密码", required = true, type = "String", example = "abc123")
             @RequestParam String password) throws ServiceException {
 
-        log.info("BackendController addUser "+" phone:"+phone+" password:"+password);
+        log.info("BackendController addUser region:"+region+" phone:"+phone+" password:"+password);
+
+        String regionT = "86";
+        if(!StringUtils.isEmpty(region)) {
+            regionT = region;
+        }
 
         ValidateUtils.notEmpty(phone);
 
         ValidateUtils.checkPassword(password);
 
         ServerApiParams serverApiParams = getServerApiParams();
-        userManager.addUser("86", phone, nickname, password, serverApiParams);
+        userManager.addUser(regionT, phone, nickname, password, serverApiParams);
 
         return APIResultWrap.ok();
     }
@@ -785,25 +792,25 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/Group/list", method = RequestMethod.POST)
     public APIResult<Object> groupList(
-            @ApiParam(name = "page", value = "页码", required = true, type = "String", example = "1")
-            @RequestParam String page,
-            @ApiParam(name = "limit", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String limit) {
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
 
 
-        log.info("BackendController groupList page:"+page+" limit:"+limit);
+        log.info("BackendController groupList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageT = 1;
         try {
-            pageT = Integer.valueOf(page);
+            pageT = Integer.valueOf(currentPage);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
         }
 
-        int pageSize = 10;
+        int pageSizeT = 10;
         try {
-            pageSize = Integer.valueOf(limit);
+            pageSizeT = Integer.valueOf(pageSize);
         }
         catch (NumberFormatException numberFormatException) {
             numberFormatException.printStackTrace();
@@ -811,11 +818,11 @@ public class BackendController extends BaseController {
 
         PageBeanRes<Groups> pageBeanRes = new PageBeanRes<>();
 
-        log.info("BackendController groupList pageTemp:"+pageT+" pageSize:"+pageSize);
-        List<Groups> groupsList = groupManager.getPageGroupsList(pageT, pageSize);
+        log.info("BackendController groupList pageTemp:"+pageT+" pageSize:"+pageSizeT);
+        List<Groups> groupsList = groupManager.getPageGroupsList(pageT, pageSizeT);
         if(groupsList == null || groupsList.isEmpty()) {
             pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(0);
             pageBeanRes.setData(null);
         }
@@ -823,7 +830,7 @@ public class BackendController extends BaseController {
             int total = groupManager.getTotalCount();
             log.info("BackendController groupList total:"+total);
             pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSize);
+            pageBeanRes.setPageSize(pageSizeT);
             pageBeanRes.setTotal(total);
             pageBeanRes.setData(groupsList);
         }
@@ -833,7 +840,7 @@ public class BackendController extends BaseController {
     }
 
 
-    
+
     @ApiOperation(value = "后台管理-查询群")
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/Group/search", method = RequestMethod.POST)

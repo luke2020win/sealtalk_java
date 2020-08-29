@@ -34,7 +34,8 @@ public class WebConfiguration implements WebMvcConfigurer {
                 .addPathPatterns("/friendship/**")
                 .addPathPatterns("/user/**")
                 .addPathPatterns("/misc/**")
-                .addPathPatterns("/group/**");
+                .addPathPatterns("/group/**")
+                .addPathPatterns("/api/**");
     }
 
     @Override
