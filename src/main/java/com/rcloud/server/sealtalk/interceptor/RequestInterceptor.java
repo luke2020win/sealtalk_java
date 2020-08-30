@@ -5,6 +5,9 @@ import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.manager.BackendIPWhiteListManager;
+import com.rcloud.server.sealtalk.manager.UserIPBlackListManager;
+import com.rcloud.server.sealtalk.manager.UserManager;
 import com.rcloud.server.sealtalk.model.RequestUriInfo;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.util.AES256;
@@ -62,6 +65,15 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Resource
     private SealtalkConfig sealtalkConfig;
 
+    @Resource
+    private BackendIPWhiteListManager backendIPWhiteListManager;
+
+    @Resource
+    private UserIPBlackListManager userIPBlackListManager;
+
+    @Resource
+    private UserManager userManager;
+
     @PostConstruct
     public void postConstruct() {
         String excludeUrls = sealtalkConfig.getExcludeUrl();
@@ -87,6 +99,21 @@ public class RequestInterceptor implements HandlerInterceptor {
         log.info("preHandle requestUriInfo: ip={}, remoteAddress={},uri={}", requestUriInfo.getIp(), requestUriInfo.getRemoteAddress(), requestUriInfo.getUri());
         serverApiParams.setRequestUriInfo(requestUriInfo);
 
+        String ip = requestUriInfo.getIp();
+        // 后台白名单
+        if(uri.startsWith("/api") && !backendIPWhiteListManager.checkWhiteIp(ip)) {
+            log.error("该用IP"+ip+"不是后台白名单IP");
+            response.setStatus(ErrorCode.IP_NOT_ACCESS.getErrorCode());
+            return false;
+        }
+
+        // 用户黑名单
+        if(!uri.startsWith("/api") && userIPBlackListManager.checkBlackIp(ip)) {
+            log.error("该用IP"+ip+"黑名单IP");
+            response.setStatus(ErrorCode.IP_IS_DISABLE.getErrorCode());
+            return false;
+        }
+
         if (!excludeUrlSet.contains(uri)) {
             //不在排除auth认证的url，需要进行身份认证
             Cookie authCookie = getAuthCookie(request);
@@ -103,6 +130,12 @@ public class RequestInterceptor implements HandlerInterceptor {
                 serverApiParams.setCurrentUserId(currentUserId);
             } catch (Exception e) {
                 log.error("获取currentUserId异常,error: " + e.getMessage(), e);
+            }
+
+            if(currentUserId != null && userManager.checkBlackUser(currentUserId)) {
+                log.error("该用户为黑名单用户");
+                response.setStatus(ErrorCode.USER_IS_DISABLE.getErrorCode());
+                return false;
             }
 
             if (currentUserId == null) {

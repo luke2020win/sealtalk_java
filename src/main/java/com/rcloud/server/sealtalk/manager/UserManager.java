@@ -9,6 +9,7 @@ import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.constant.SmsServiceType;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.interceptor.ServerApiParamHolder;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.model.dto.SyncInfoDTO;
 import com.rcloud.server.sealtalk.rongcloud.RongCloudClient;
@@ -1156,7 +1157,7 @@ public class UserManager extends BaseManager {
         return usersList;
     }
 
-    public void addUser(String region, String phone, String nickname, String password, ServerApiParams serverApiParams) throws ServiceException {
+    public void addUser(String region, String phone, String nickname, String password) throws ServiceException {
         Users param = new Users();
         param.setRegion(region);
         param.setPhone(phone);
@@ -1166,6 +1167,7 @@ public class UserManager extends BaseManager {
             throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
         }
 
+        ServerApiParams serverApiParams = ServerApiParamHolder.get();
         String ip = serverApiParams.getRequestUriInfo().getIp();
         log.info("addUser ip:"+ip);
 
@@ -1247,5 +1249,35 @@ public class UserManager extends BaseManager {
         userBlackListService.deleteByExample(example);
     }
 
+    public boolean checkBlackUser(Integer currentUserId) {
+        //修改昵称
+        Users param = new Users();
+        param.setId(currentUserId);
+        Users users = usersService.getOne(param);
+        if(users == null) {
+            return false;
+        }
+
+        UserBlack userBlackparam = new UserBlack();
+        userBlackparam.setRegion(users.getRegion());
+        userBlackparam.setPhone(users.getPhone());
+        UserBlack userBlack = userBlackListService.getOne(userBlackparam);
+        if(userBlack != null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void checkBlackUser(String region, String phone) throws ServiceException {
+        //修改昵称
+        UserBlack userBlackparam = new UserBlack();
+        userBlackparam.setRegion(region);
+        userBlackparam.setPhone(phone);
+        UserBlack userBlack = userBlackListService.getOne(userBlackparam);
+        if(userBlack != null) {
+            throw new ServiceException(ErrorCode.USER_IS_DISABLE);
+        }
+    }
 }
 

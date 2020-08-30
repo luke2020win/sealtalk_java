@@ -18,7 +18,7 @@ spring:
     clean-disabled: true
     baseline-description: baselines
     # 如果数据库不是空表，需要设置成 true，否则启动报错
-    baseline-on-migrate: true
+    baseline-on-migrate: false
     baseline-version: 2
   swagger2:
     enabled: false

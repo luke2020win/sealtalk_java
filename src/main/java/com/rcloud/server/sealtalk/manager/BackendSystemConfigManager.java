@@ -67,7 +67,7 @@ public class BackendSystemConfigManager extends BaseManager {
      * @param varDes
      * @return
      */
-    public void saveVariable(String varName, String varValue, String varDes) {
+    public void saveVariable(String varName, String varValue, String varDes, String description) {
         // 查询参数
         BackendSystemConfig param = new BackendSystemConfig();
         param.setVarName(varName);
@@ -75,10 +75,10 @@ public class BackendSystemConfigManager extends BaseManager {
         BackendSystemConfig users = backendSystemConfigService.getOne(param);
 
         if(users != null) {
-            updateBackendSystemConfig(varName, varValue, varDes);
+            updateBackendSystemConfig(varName, varValue, varDes, description);
         }
         else {
-            insertBackendSystemConfig(varName, varValue, varDes);
+            insertBackendSystemConfig(varName, varValue, varDes, description);
         }
     }
 
@@ -91,13 +91,14 @@ public class BackendSystemConfigManager extends BaseManager {
      * @param varDes
      * @return
      */
-    private BackendSystemConfig insertBackendSystemConfig(String varName, String varValue, String varDes) {
+    private BackendSystemConfig insertBackendSystemConfig(String varName, String varValue, String varDes, String description) {
         return transactionTemplate.execute(transactionStatus -> {
             //插入user表
             BackendSystemConfig backendSystemConfig = new BackendSystemConfig();
             backendSystemConfig.setVarName(varName);
             backendSystemConfig.setVarValue(varValue);
             backendSystemConfig.setVarDes(varDes);
+            backendSystemConfig.setDescription(description);
             backendSystemConfig.setCreatedAt(new Date());
             backendSystemConfig.setUpdatedAt(new Date());
             backendSystemConfigService.saveSelective(backendSystemConfig);
@@ -111,10 +112,11 @@ public class BackendSystemConfigManager extends BaseManager {
      * @param varValue
      * @param varDes
      */
-    private void updateBackendSystemConfig(String varName, String varValue, String varDes) {
+    private void updateBackendSystemConfig(String varName, String varValue, String varDes, String description) {
         BackendSystemConfig backendSystemConfig = new BackendSystemConfig();
         backendSystemConfig.setVarValue(varValue);
         backendSystemConfig.setVarDes(varDes);
+        backendSystemConfig.setDescription(description);
         backendSystemConfig.setUpdatedAt(new Date());
 
         Example example = new Example(BackendSystemConfig.class);

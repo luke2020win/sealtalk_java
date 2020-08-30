@@ -115,8 +115,12 @@ public enum ErrorCode {
     YP_SNED_TIMES_VIOLATION(3004, "Too many times sent",3004),
 
     // 后台管理系统
-    VAR_NOT_EXIST(4000, "该变量不存在", 4000),
-    IP_NOT_EXIST(4000, "该IP地址不存在", 4000);
+    VAR_NOT_EXIST(4001, "该变量不存在", 4001),
+    IP_NOT_EXIST(4002, "该IP地址不存在", 4002),
+    IP_NOT_DELETE_SELF(4003, "不能删除自己的白名单IP", 4003),
+    IP_NOT_ACCESS(4004, "该IP地址不被允许，请联系管理员", 4004),
+    IP_IS_DISABLE(4005, "该IP被限制访问，请联系管理员", 4005),
+    USER_IS_DISABLE(4006, "该用户被限制访问，请联系管理员", 4006);
 
     private int errorCode;
     private String errorMessage;
@@ -126,7 +130,6 @@ public enum ErrorCode {
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.httpStatusCode = httpStatusCode;
-
     }
 
     public int getErrorCode() {

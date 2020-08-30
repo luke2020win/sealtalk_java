@@ -1,8 +1,11 @@
 package com.rcloud.server.sealtalk.manager;
 
 import com.rcloud.server.sealtalk.constant.ErrorCode;
+import com.rcloud.server.sealtalk.domain.BackendIPWhite;
 import com.rcloud.server.sealtalk.domain.UserIPBlack;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.interceptor.ServerApiParamHolder;
+import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.service.UserIPBlackListService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +81,10 @@ public class UserIPBlackListManager extends BaseManager {
             //插入user表
             UserIPBlack userIPBlack = new UserIPBlack();
             userIPBlack.setIp(ip);
-            userIPBlack.setDescription(description);
+            if(StringUtils.isEmpty(description)) {
+                userIPBlack.setDescription("暂无备注");
+            }
+
             userIPBlack.setCreatedAt(new Date());
             userIPBlack.setUpdatedAt(new Date());
             userIPBlackListService.saveSelective(userIPBlack);
@@ -138,5 +144,19 @@ public class UserIPBlackListManager extends BaseManager {
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("ip", ip);
         userIPBlackListService.deleteByExample(example);
+    }
+
+    public boolean checkBlackIp(String ip) {
+        log.info("UserIPBlackListManager checkBlackIp ip:"+ip);
+
+        UserIPBlack param = new UserIPBlack();
+        param.setIp(ip);
+
+        UserIPBlack userIPBlack = userIPBlackListService.getOne(param);
+        if (userIPBlack != null) {
+            return true;
+        }
+
+        return false;
     }
 }

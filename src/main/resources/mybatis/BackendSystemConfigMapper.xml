@@ -10,6 +10,7 @@
     <result column="varName" jdbcType="VARCHAR" property="varName" />
     <result column="varValue" jdbcType="VARCHAR" property="varValue" />
     <result column="varDes" jdbcType="VARCHAR" property="varDes" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
     <result column="updatedAt" jdbcType="TIMESTAMP" property="updatedAt" />
   </resultMap>
 

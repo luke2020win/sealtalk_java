@@ -24,6 +24,9 @@ public class BackendSystemConfig implements Serializable {
     @Column(name="varDes")
     private String varDes;
 
+    @Column(name="description")
+    private String description;
+
     @Column(name="timestamp")
     private Long timestamp;
 
@@ -98,5 +101,13 @@ public class BackendSystemConfig implements Serializable {
 
     public void setDeletedAt(Date deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -6,13 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.controller.param.ScreenCaptureParam;
 import com.rcloud.server.sealtalk.controller.param.SendMessageParam;
+import com.rcloud.server.sealtalk.domain.BackendSystemConfig;
 import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.domain.ScreenStatuses;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.manager.BackendSystemConfigManager;
 import com.rcloud.server.sealtalk.manager.GroupManager;
 import com.rcloud.server.sealtalk.manager.MiscManager;
 import com.rcloud.server.sealtalk.model.dto.DemoSquareDTO;
-import com.rcloud.server.sealtalk.model.response.APINoResult;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.*;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -63,6 +65,9 @@ public class MiscController extends BaseController {
 
     @Autowired
     private MiscManager miscManager;
+
+    @Resource
+    private BackendSystemConfigManager backendSystemConfigManager;
 
     @ApiOperation(value = "获取客户端最新版本（ Desktop 使用 ）")
     @RequestMapping(value = "/latest_update", method = RequestMethod.GET)
@@ -213,7 +218,7 @@ public class MiscController extends BaseController {
 
     @ApiOperation(value = "Server API 发送消息")
     @RequestMapping(value = "/send_message", method = RequestMethod.POST)
-    public APINoResult sendMessage(@RequestBody SendMessageParam sendMessageParam) throws ServiceException {
+    public APIResult sendMessage(@RequestBody SendMessageParam sendMessageParam) throws ServiceException {
 
         String conversationType = sendMessageParam.getConversationType();
         String targetId = sendMessageParam.getConversationType();
@@ -228,13 +233,13 @@ public class MiscController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         miscManager.sendMessage(currentUserId, conversationType, N3d.decode(targetId), objectName, content, pushContent, targetId);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
 
     @ApiOperation(value = "截屏通知状态设置")
     @RequestMapping(value = "/set_screen_capture", method = RequestMethod.POST)
-    public APINoResult setScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
+    public APIResult setScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
 
         Integer conversationType = screenCaptureParam.getConversationType();
         String targetId = screenCaptureParam.getTargetId();
@@ -247,7 +252,7 @@ public class MiscController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         miscManager.setScreenCapture(currentUserId, N3d.decode(targetId), conversationType, noticeStatus);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
 
@@ -275,7 +280,7 @@ public class MiscController extends BaseController {
 
     @ApiOperation(value = "发送截屏通知消息")
     @RequestMapping(value = "/send_sc_msg", method = RequestMethod.POST)
-    public APINoResult sendScreenCaptureMsg(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
+    public APIResult sendScreenCaptureMsg(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
 
         Integer conversationType = screenCaptureParam.getConversationType();
         String targetId = screenCaptureParam.getTargetId();
@@ -287,8 +292,13 @@ public class MiscController extends BaseController {
 
         miscManager.sendScreenCaptureMsg(currentUserId, N3d.decode(targetId), conversationType);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
-
+    @ApiOperation(value = "获取配置信息")
+    @RequestMapping(value = "/app_config_info", method = RequestMethod.GET)
+    public APIResult appConfigInfo() {
+        List<BackendSystemConfig> backendSystemConfigList = backendSystemConfigManager.getAllBackendSystemConfig();
+        return APIResultWrap.ok(backendSystemConfigList);
+    }
 }

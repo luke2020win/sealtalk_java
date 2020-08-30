@@ -2,6 +2,7 @@ package com.rcloud.server.sealtalk.manager;
 
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.domain.UserBlack;
+import com.rcloud.server.sealtalk.domain.UserIPBlack;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.service.UserBlackListService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,5 +72,26 @@ public class UserBlackListManager extends BaseManager {
         criteria.andEqualTo("region", region);
         criteria.andEqualTo("phone", phone);
         userBlackListService.deleteByExample(example);
+    }
+
+    /**
+     * 检测是否是黑名单用户
+     * @param region
+     * @param phone
+     * @return
+     */
+    public boolean checkBlackUser(String region, String phone) {
+        log.info("UserBlackListManager checkBlackUser region:"+region+" phone:"+phone);
+
+        UserBlack param = new UserBlack();
+        param.setRegion(region);
+        param.setPhone(phone);
+
+        UserBlack userIPBlack = userBlackListService.getOne(param);
+        if (userIPBlack != null) {
+            return true;
+        }
+
+        return false;
     }
 }

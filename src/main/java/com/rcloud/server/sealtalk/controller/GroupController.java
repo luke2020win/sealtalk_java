@@ -9,7 +9,7 @@ import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.GroupManager;
 import com.rcloud.server.sealtalk.model.dto.*;
-import com.rcloud.server.sealtalk.model.response.APINoResult;
+import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
@@ -92,7 +92,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "用户加入群组")
     @RequestMapping(value = "/join", method = RequestMethod.POST)
-    public APINoResult joinGroup(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult joinGroup(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
 
@@ -101,12 +101,12 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
         groupManager.joinGroup(currentUserId, N3d.decode(groupId), groupId);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "群主或群管理将群成员移出群组")
     @RequestMapping(value = "/kick", method = RequestMethod.POST)
-    public APINoResult kickMember(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult kickMember(@RequestBody GroupParam groupParam) throws ServiceException {
         String groupId = groupParam.getGroupId();
         String[] memberIds = groupParam.getMemberIds();
 
@@ -116,7 +116,7 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
         groupManager.kickMember(currentUserId, N3d.decode(groupId), groupId, MiscUtils.decodeIds(memberIds), memberIds);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "退出群组")
@@ -135,7 +135,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "解散群组")
     @RequestMapping(value = "/dismiss", method = RequestMethod.POST)
-    public APINoResult dismiss(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult dismiss(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
 
@@ -144,12 +144,12 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         groupManager.dismiss(currentUserId, N3d.decode(groupId), groupId);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "转让群主")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public APINoResult transfer(@RequestBody TransferGroupParam transferGroupParam) throws ServiceException {
+    public APIResult transfer(@RequestBody TransferGroupParam transferGroupParam) throws ServiceException {
 
         String groupId = transferGroupParam.getGroupId();
         String userId = transferGroupParam.getUserId();
@@ -160,12 +160,12 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         groupManager.transfer(currentUserId, N3d.decode(groupId), N3d.decode(userId), userId);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "批量增加管理员")
     @RequestMapping(value = "/set_manager", method = RequestMethod.POST)
-    public APINoResult batchSetManager(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult batchSetManager(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         String[] memberIds = groupParam.getMemberIds();
@@ -175,12 +175,12 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         groupManager.batchSetManager(currentUserId, N3d.decode(groupId), MiscUtils.decodeIds(memberIds), memberIds);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "批量删除管理员")
     @RequestMapping(value = "/remove_manager", method = RequestMethod.POST)
-    public APINoResult batchRemoveManager(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult batchRemoveManager(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         String[] memberIds = groupParam.getMemberIds();
@@ -192,12 +192,12 @@ public class GroupController extends BaseController {
 
         groupManager.batchRemoveManager(currentUserId, N3d.decode(groupId), MiscUtils.decodeIds(memberIds), memberIds);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "群组重命名")
     @RequestMapping(value = "/rename", method = RequestMethod.POST)
-    public APINoResult rename(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult rename(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String name = groupParam.getName();
         String groupId = groupParam.getGroupId();
@@ -208,12 +208,12 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
         groupManager.rename(currentUserId, N3d.decode(groupId), name, groupId);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "保存群组至通讯录")
     @RequestMapping(value = "/fav", method = RequestMethod.POST)
-    public APINoResult fav(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult fav(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
 
@@ -221,24 +221,24 @@ public class GroupController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         groupManager.fav(currentUserId, N3d.decode(groupId));
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "删除群组通讯录")
     @RequestMapping(value = "/fav", method = RequestMethod.DELETE)
-    public APINoResult deleteGroupFav(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult deleteGroupFav(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         ValidateUtils.notEmpty(groupId);
 
         Integer currentUserId = getCurrentUserId();
         groupManager.deletefav(currentUserId, N3d.decode(groupId));
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "发布群公告")
     @RequestMapping(value = "/set_bulletin", method = RequestMethod.POST)
-    public APINoResult setBulletin(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult setBulletin(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         String bulletin = groupParam.getBulletin();
@@ -253,7 +253,7 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
         groupManager.setBulletin(currentUserId, N3d.decode(groupId), bulletin);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "获取群公告")
@@ -284,7 +284,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "设置群头像")
     @RequestMapping(value = "/set_portrait_uri", method = RequestMethod.POST)
-    public APINoResult setGroupPortraitUri(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult setGroupPortraitUri(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         String portraitUri = groupParam.getPortraitUri();
@@ -298,12 +298,12 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         groupManager.setGroupPortraitUri(currentUserId, N3d.decode(groupId), portraitUri);
-        return APIResultWrap.ok1("群头像设置成功");
+        return APIResultWrap.ok(null,"群头像设置成功");
     }
 
     @ApiOperation(value = "设置自己的群名片")
     @RequestMapping(value = "/set_display_name", method = RequestMethod.POST)
-    public APINoResult setDisplayName(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult setDisplayName(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         String displayName = groupParam.getDisplayName();
@@ -316,7 +316,7 @@ public class GroupController extends BaseController {
         Integer currentUserId = getCurrentUserId();
 
         groupManager.setDisPlayName(currentUserId, N3d.decode(groupId), displayName);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
 
@@ -454,19 +454,19 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "清空群验证通知消息")
     @RequestMapping(value = "/clear_notice", method = RequestMethod.POST)
-    public APINoResult clearNotice() throws ServiceException {
+    public APIResult clearNotice() throws ServiceException {
 
         Integer currentUserId = getCurrentUserId();
 
         groupManager.clearNotice(currentUserId);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
 
     @ApiOperation(value = "设置/取消 全员禁言")
     @RequestMapping(value = "/mute_all", method = RequestMethod.POST)
-    public APINoResult setMuteAll(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult setMuteAll(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         Integer muteStatus = groupParam.getMuteStatus();
@@ -480,12 +480,12 @@ public class GroupController extends BaseController {
 
         groupManager.setMuteAll(currentUserId, N3d.decode(groupId), muteStatus, MiscUtils.decodeIds(userId));
 
-        return APIResultWrap.ok1("全员禁言成功");
+        return APIResultWrap.ok(null,"全员禁言成功");
     }
 
     @ApiOperation(value = "设置群定时清理状态")
     @RequestMapping(value = "/set_regular_clear", method = RequestMethod.POST)
-    public APINoResult setRegularClear(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult setRegularClear(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         Integer clearStatus = groupParam.getClearStatus();
@@ -498,7 +498,7 @@ public class GroupController extends BaseController {
 
         groupManager.setRegularClear(currentUserId, N3d.decode(groupId), clearStatus);
 
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "获取群定时清理状态")
@@ -518,7 +518,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "设置群成员信息")
     @RequestMapping(value = "/set_member_info", method = RequestMethod.POST)
-    public APINoResult setMemberInfo(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult setMemberInfo(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         String memberId = groupParam.getMemberId();
@@ -535,7 +535,7 @@ public class GroupController extends BaseController {
 
 
         groupManager.setMemberInfo(N3d.decode(groupId), N3d.decode(memberId), groupNickname, region, phone, WeChat, Alipay, memberDesc);
-        return APIResultWrap.ok1("设置成功");
+        return APIResultWrap.ok(null,"设置成功");
     }
 
 
@@ -602,7 +602,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "设置群成员保护模式")
     @RequestMapping(value = "/set_member_protection", method = RequestMethod.POST)
-    public APINoResult setMemberProtection(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult setMemberProtection(@RequestBody GroupParam groupParam) throws ServiceException {
 
         String groupId = groupParam.getGroupId();
         Integer memberProtection = groupParam.getMemberProtection();
@@ -611,7 +611,7 @@ public class GroupController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         groupManager.setMemberProtection(currentUserId, N3d.decode(groupId), memberProtection);
-        return APIResultWrap.ok1("");
+        return APIResultWrap.ok();
 
     }
 

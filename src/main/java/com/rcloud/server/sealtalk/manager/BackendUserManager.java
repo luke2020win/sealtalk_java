@@ -3,6 +3,7 @@ import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.interceptor.ServerApiParamHolder;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.rongcloud.RongCloudClient;
 import com.rcloud.server.sealtalk.service.*;
@@ -42,7 +43,7 @@ public class BackendUserManager extends BaseManager {
      * @return Pair<L, R> L=用户ID，R=融云token
      * @throws ServiceException
      */
-    public BackendUsers login(String account, String password, ServerApiParams serverApiParams) throws ServiceException {
+    public BackendUsers login(String account, String password) throws ServiceException {
 
         BackendUsers param = new BackendUsers();
         param.setAccount(account);
@@ -60,6 +61,8 @@ public class BackendUserManager extends BaseManager {
         }
 
         String token = backendUsers.getToken();
+
+        ServerApiParams serverApiParams = ServerApiParamHolder.get();
         String ip = serverApiParams.getRequestUriInfo().getIp();
         log.info("login id:" + backendUsers.getId());
         log.info("login account:" + backendUsers.getAccount());

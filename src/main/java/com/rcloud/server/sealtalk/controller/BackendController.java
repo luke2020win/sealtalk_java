@@ -5,6 +5,7 @@ import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.controller.param.PageBeanRes;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.interceptor.ServerApiParamHolder;
 import com.rcloud.server.sealtalk.manager.*;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.model.response.APIResult;
@@ -65,8 +66,8 @@ public class BackendController extends BaseController {
 
         ValidateUtils.notEmpty(account);
         ValidateUtils.checkPassword(password);
-        ServerApiParams serverApiParams = getServerApiParams();
-        BackendUsers backendUsers = backendUserManager.login(account, password, serverApiParams);
+
+        BackendUsers backendUsers = backendUserManager.login(account, password);
 
         //设置cookie  userId加密存入cookie
         //登录成功后的其他请求，当前登录用户useId获取从cookie中获取
@@ -95,7 +96,7 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) {
+            @RequestParam String pageSize) throws ServiceException {
 
         log.info("BackendController roleList currentPage:"+currentPage+" pageSize:"+pageSize);
 
@@ -207,7 +208,6 @@ public class BackendController extends BaseController {
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
             @RequestParam String pageSize) {
 
-
         log.info("BackendController variableList currentPage:"+currentPage+" pageSize:"+pageSize);
 
         int pageT = 1;
@@ -259,13 +259,15 @@ public class BackendController extends BaseController {
             @ApiParam(name = "varValue", value = "变量值", required = true, type = "String", example = "123456")
             @RequestParam String varValue,
             @ApiParam(name = "varDes", value = "变量描述", required = true, type = "String", example = "123456")
-            @RequestParam String varDes) throws ServiceException {
+            @RequestParam String varDes,
+            @ApiParam(name = "description", value = "描述", required = true, type = "String", example = "123456")
+            @RequestParam String description) throws ServiceException {
 
-        log.info("BackendController saveVariable varName:"+varName+" varValue:"+varValue+" varDes:"+varDes);
+        log.info("BackendController saveVariable varName:"+varName+" varValue:"+varValue+" varDes:"+varDes+" description:"+description);
 
         ValidateUtils.notEmpty(varName);
 
-        backendSystemConfigManager.saveVariable(varName, varValue, varDes);
+        backendSystemConfigManager.saveVariable(varName, varValue, varDes, description);
 
         return APIResultWrap.ok();
     }
@@ -295,7 +297,6 @@ public class BackendController extends BaseController {
 
 
 
-
     @ApiOperation(value = "后台管理-获取后台白名单列表")
     @CrossOrigin("http://localhost:9999")
     @RequestMapping(value = "/IpBackendWhite/list", method = RequestMethod.POST)
@@ -303,7 +304,7 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) {
+            @RequestParam String pageSize) throws ServiceException {
 
 
         log.info("BackendController ipBackendWhiteList currentPage:"+currentPage+" pageSize:"+pageSize);
@@ -376,6 +377,7 @@ public class BackendController extends BaseController {
 
         log.info("BackendController searchIpBackendWhite ip:"+ip);
 
+
         ValidateUtils.notEmpty(ip);
 
         List<BackendIPWhite> backendIPWhites = backendIPWhiteListManager.getBackendIPWhiteListByAccount(ip);
@@ -391,7 +393,7 @@ public class BackendController extends BaseController {
 
     @ApiOperation(value = "后台管理-删除白名单IP")
     @CrossOrigin("http://localhost:9999")
-    @RequestMapping(value = "/IpBackendWhite/delete", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/IpBackendWhite/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteBackenWhiteIP(
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "172.1.1.1")
             @RequestParam String ip) throws ServiceException {
@@ -399,6 +401,12 @@ public class BackendController extends BaseController {
         log.info("BackendController deleteBackenWhiteIP ip:"+ip);
 
         ValidateUtils.notEmpty(ip);
+
+        ServerApiParams serverApiParams = ServerApiParamHolder.get();
+        String requestIp = serverApiParams.getRequestUriInfo().getIp();
+        if(ip.equals(requestIp)) {
+            throw new ServiceException(ErrorCode.IP_NOT_DELETE_SELF);
+        }
 
         backendIPWhiteListManager.delete(ip);
 
@@ -416,8 +424,7 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) {
-
+            @RequestParam String pageSize) throws ServiceException {
 
         log.info("BackendController ipBlackList currentPage:"+currentPage+" pageSize:"+pageSize);
 
@@ -504,12 +511,12 @@ public class BackendController extends BaseController {
 
     @ApiOperation(value = "后台管理-解禁用户IP")
     @CrossOrigin("http://localhost:9999")
-    @RequestMapping(value = "/IpBlack/enable", method = RequestMethod.POST)
-    public APIResult<Object> enableIpBlack(
+    @RequestMapping(value = "/IpBlack/delete", method = RequestMethod.POST)
+    public APIResult<Object> deleteIpBlack(
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "172.1.1.1")
             @RequestParam String ip) throws ServiceException {
 
-        log.info("BackendController enableIpBlack ip:"+ip);
+        log.info("BackendController deleteIpBlack ip:"+ip);
 
         ValidateUtils.notEmpty(ip);
 
@@ -529,8 +536,7 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) {
-
+            @RequestParam String pageSize) throws ServiceException {
 
         log.info("BackendController userBlackList currentPage:"+currentPage+" pageSize:"+pageSize);
 
@@ -608,14 +614,14 @@ public class BackendController extends BaseController {
 
     @ApiOperation(value = "后台管理-解禁用户IP")
     @CrossOrigin("http://localhost:9999")
-    @RequestMapping(value = "/UserBlack/enable", method = RequestMethod.POST)
-    public APIResult<Object> enableUserBlack(
+    @RequestMapping(value = "/UserBlack/delete", method = RequestMethod.POST)
+    public APIResult<Object> deleteUserBlack(
             @ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
             @RequestParam String region,
             @ApiParam(name = "phone", value = "手机号", required = true, type = "String", example = "138xxxxxxxx")
             @RequestParam String phone) throws ServiceException {
 
-        log.info("BackendController enableUserBlack region:"+region);
+        log.info("BackendController deleteUserBlack region:"+region);
 
         ValidateUtils.notEmpty(region);
 
@@ -641,7 +647,7 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) {
+            @RequestParam String pageSize) throws ServiceException {
 
         log.info("BackendController userList currentPage:"+currentPage+" pageSize:"+pageSize);
 
@@ -781,8 +787,7 @@ public class BackendController extends BaseController {
 
         ValidateUtils.checkPassword(password);
 
-        ServerApiParams serverApiParams = getServerApiParams();
-        userManager.addUser(regionT, phone, nickname, password, serverApiParams);
+        userManager.addUser(regionT, phone, nickname, password);
 
         return APIResultWrap.ok();
     }
@@ -795,8 +800,7 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) {
-
+            @RequestParam String pageSize) throws ServiceException {
 
         log.info("BackendController groupList currentPage:"+currentPage+" pageSize:"+pageSize);
 

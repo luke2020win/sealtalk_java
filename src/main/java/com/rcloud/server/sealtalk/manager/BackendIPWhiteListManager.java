@@ -3,6 +3,8 @@ package com.rcloud.server.sealtalk.manager;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.domain.BackendIPWhite;
 import com.rcloud.server.sealtalk.exception.ServiceException;
+import com.rcloud.server.sealtalk.interceptor.ServerApiParamHolder;
+import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.service.BackendIPWhiteListService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,5 +144,18 @@ public class BackendIPWhiteListManager extends BaseManager {
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("ip", ip);
         backendIPWhiteListService.deleteByExample(example);
+    }
+
+    public boolean checkWhiteIp(String ip) {
+        log.info("BackendIPWhiteListManager checkWhiteIp ip:"+ip);
+        BackendIPWhite param = new BackendIPWhite();
+        param.setIp(ip);
+
+        BackendIPWhite backendIPWhite = backendIPWhiteListService.getOne(param);
+        if (backendIPWhite != null) {
+            return true;
+        }
+
+        return false;
     }
 }
