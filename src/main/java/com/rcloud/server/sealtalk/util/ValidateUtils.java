@@ -1,11 +1,13 @@
 package com.rcloud.server.sealtalk.util;
 
 import com.google.common.collect.ImmutableList;
+import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -18,6 +20,8 @@ import java.util.regex.Pattern;
  */
 public class ValidateUtils {
 
+    @Resource
+    protected SealtalkConfig sealtalkConfig;
 
     public static final int NICKNAME_MIN_LENGTH = 1;
 

@@ -21,6 +21,7 @@ import com.rcloud.server.sealtalk.util.CacheUtil;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
 import com.rcloud.server.sealtalk.util.MiscUtils;
 import com.rcloud.server.sealtalk.util.N3d;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -788,8 +789,7 @@ public class FriendShipManager extends BaseManager {
     public void setFriendDescription(Integer currentUserId, Integer friendId, String displayName, String region, String phone, String description, String imageUri) throws ServiceException {
 
         Example example = new Example(Friendships.class);
-        example.createCriteria().andEqualTo("userId", currentUserId)
-                .andEqualTo("friendId", friendId);
+        example.createCriteria().andEqualTo("userId", currentUserId).andEqualTo("friendId", friendId);
 
         Friendships friendships = friendshipsService.getOneByExample(example);
 
@@ -829,11 +829,12 @@ public class FriendShipManager extends BaseManager {
      * @param currentUserId
      * @param friendId
      */
-    public FriendDTO getFriendDescription(Integer currentUserId, String friendId) {
+    public FriendDTO getFriendDescription(Integer currentUserId, Integer friendId) {
         FriendDTO friendDTO = new FriendDTO();
+        log.info("getFriendDescription currentUserId:"+currentUserId);
+        log.info("getFriendDescription friendId:"+friendId);
         Example example = new Example(Friendships.class);
-        example.createCriteria().andEqualTo("userId", currentUserId)
-                .andEqualTo("friendId", friendId);
+        example.createCriteria().andEqualTo("userId", currentUserId).andEqualTo("friendId", friendId);
         example.selectProperties("displayName", "region", "phone", "description", "imageUri");
 
         Friendships friendships = friendshipsService.getOneByExample(example);

@@ -31,6 +31,10 @@ public class YunPianVerifyCodeAuthentication extends BaseVerifyCodeAuthenticatio
             return;
         }
 
+        if (sealtalkConfig.getIsOpenPassCode() == 1 && Constants.DEFAULT_VERIFY_CODE.equals(code)) {
+            return;
+        }
+
         //判断验证码是否正确
         if(verificationCodes.getSessionId().equals(code)){
             return ;
