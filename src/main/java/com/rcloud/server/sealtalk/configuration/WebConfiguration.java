@@ -41,10 +41,19 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
+                //针对的origin域名
                 .allowedOrigins(sealtalkConfig.getCorsHosts())
+                //针对的方法
                 .allowedMethods("GET,POST,PUT,DELETE,HEAD,OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+                //是否允许发送Cookie
+                .allowCredentials(true)
+                //从预检请求得到相应的最大时间,默认30分钟
+                .maxAge(Integer.valueOf(sealtalkConfig.getAuthCookieMaxAge()))
+                //针对的请求头
+                .allowedHeaders("*");
 
     }
+
+
+
 }
