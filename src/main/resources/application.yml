@@ -21,7 +21,7 @@ spring:
     baseline-on-migrate: true
     baseline-version: 2
   swagger2:
-    enabled: false
+    enabled: true
 
 #MyBatis 是一款优秀的持久层框架
 mybatis:
