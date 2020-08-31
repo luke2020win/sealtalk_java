@@ -57,7 +57,7 @@ sealtalk-config:
   is_open_pass_code : 1
 
   # 默认配置不需要修改
-  exclude_url: api/login, /miscapp_config_info, /misc/demo_square,/misc/latest_update, /user/verify_code_yp_t,/misc/client_version,/misc/mobile_version,/user/login,/user/register,/user/reset_password, /user/send_code, /user/send_code_yp,/user/verify_code, /user/verify_code_yp, /user/delete, /user/get_sms_img_code,/user/check_username_available,/user/check_phone_available,/user/regionlist,/ping
+  exclude_url: api/login, /miscapp_config_info, /misc/demo_square, /misc/latest_update, /user/verify_code_yp_t, /misc/client_version, /misc/mobile_version, /user/login, /user/register, /user/reset_password, /user/send_code, /user/send_code_yp, /user/verify_code, /user/verify_code_yp, /user/delete, /user/get_sms_img_code, /user/check_username_available, /user/check_phone_available, /user/regionlist, /ping
   #本服务部署的 HTTP 端口号
   server_port: '8585'
 
