@@ -116,6 +116,7 @@ public class RequestInterceptor implements HandlerInterceptor {
         }
 
         if (!excludeUrlSet.contains(uri)) {
+            log.error("该用IP"+ip+"黑名单IP");
             //不在排除auth认证的url，需要进行身份认证
             Cookie authCookie = getAuthCookie(request);
             if (authCookie == null) {
