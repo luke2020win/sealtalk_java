@@ -53,7 +53,7 @@ public class BackendController extends BaseController {
     private GroupManager groupManager;
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-登陆")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public APIResult<Object> login(
@@ -91,7 +91,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-获取角色列表")
     @RequestMapping(value = "/Role/list", method = RequestMethod.POST)
     public APIResult<Object> roleList(
@@ -142,7 +142,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-编辑/添加角色")
     @RequestMapping(value = "/Role/save", method = RequestMethod.POST)
     public APIResult<Object> saveRole(
@@ -164,7 +164,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-根据账户搜索用户")
     @RequestMapping(value = "/Role/search", method = RequestMethod.POST)
     public APIResult<Object> searchUser(
@@ -187,7 +187,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-删除角色")
     @RequestMapping(value = "/Role/delete", method = RequestMethod.POST)
     public APIResult<Object> delete(
@@ -205,7 +205,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-获取变量列表")
     @RequestMapping(value = "/Variable/list", method = RequestMethod.POST)
     public APIResult<Object> variableList(
@@ -257,7 +257,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-编辑/添加角色")
     @RequestMapping(value = "/Variable/save", method = RequestMethod.POST)
     public APIResult<Object> saveVariable(
@@ -281,7 +281,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-根据账户搜索用户")
     @RequestMapping(value = "/Variable/search", method = RequestMethod.POST)
     public APIResult<Object> searchVariable(
@@ -306,7 +306,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-获取后台白名单列表")
     @RequestMapping(value = "/IpBackendWhite/list", method = RequestMethod.POST)
     public APIResult<Object> ipBackendWhiteList(
@@ -359,7 +359,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-编辑/添加后台白名单")
     @RequestMapping(value = "/IpBackendWhite/save", method = RequestMethod.POST)
     public APIResult<Object> saveIpBackendWhite(
@@ -379,7 +379,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-根据IP搜索后台白名单")
     @RequestMapping(value = "/IpBackendWhite/search", method = RequestMethod.POST)
     public APIResult<Object> searchIpBackendWhite(
@@ -403,7 +403,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-删除白名单IP")
     @RequestMapping(value = "/IpBackendWhite/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteBackenWhiteIP(
@@ -430,7 +430,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-获取用户黑名单列表")
     @RequestMapping(value = "/IpBlack/list", method = RequestMethod.POST)
     public APIResult<Object> ipBlackList(
@@ -482,7 +482,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-编辑/添加用户IP黑名单")
     @RequestMapping(value = "/IpBlack/save", method = RequestMethod.POST)
     public APIResult<Object> saveIpBlack(
@@ -502,7 +502,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-搜索用户IP")
     @RequestMapping(value = "/IpBlack/search", method = RequestMethod.POST)
     public APIResult<Object> searchIpBlack(
@@ -525,7 +525,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-解禁用户IP")
     @RequestMapping(value = "/IpBlack/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteIpBlack(
@@ -546,7 +546,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-获取用户黑名单列表")
     @RequestMapping(value = "/UserBlack/list", method = RequestMethod.POST)
     public APIResult<Object> userBlackList(
@@ -598,7 +598,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-搜索用户IP")
     @RequestMapping(value = "/UserBlack/search", method = RequestMethod.POST)
     public APIResult<Object> searchUserBlack(
@@ -631,7 +631,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-解禁用户IP")
     @RequestMapping(value = "/UserBlack/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteUserBlack(
@@ -660,7 +660,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-获取注册用户列表")
     @RequestMapping(value = "/User/list", method = RequestMethod.POST)
     public APIResult<Object> userList(
@@ -712,7 +712,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-重制密码")
     @RequestMapping(value = "/User/resetPwd", method = RequestMethod.POST)
     public APIResult<Object> resetPwd(
@@ -735,7 +735,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-设置账号状态")
     @RequestMapping(value = "/User/disableOrEnable", method = RequestMethod.POST)
     public APIResult<Object> disableOrEnableUser(
@@ -759,7 +759,7 @@ public class BackendController extends BaseController {
     }
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-搜索注册用户")
     @RequestMapping(value = "/User/search", method = RequestMethod.POST)
     public APIResult<Object> searchUser(
@@ -787,7 +787,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-添加账户")
     @RequestMapping(value = "/User/add", method = RequestMethod.POST)
     public APIResult<Object> addUser(
@@ -818,7 +818,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-获取群列表")
     @RequestMapping(value = "/Group/list", method = RequestMethod.POST)
     public APIResult<Object> groupList(
@@ -871,7 +871,7 @@ public class BackendController extends BaseController {
 
 
     //@CrossOrigin("http://web.hotchatvip.com")
-    //@CrossOrigin("http://localhost:9999")
+    @CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-查询群")
     @RequestMapping(value = "/Group/search", method = RequestMethod.POST)
     public APIResult<Object> searchGroup(
