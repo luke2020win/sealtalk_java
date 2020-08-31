@@ -101,11 +101,11 @@ public class RequestInterceptor implements HandlerInterceptor {
 
         String ip = requestUriInfo.getIp();
         // 后台白名单
-        if(uri.startsWith("/api") && !backendIPWhiteListManager.checkWhiteIp(ip)) {
-            log.error("该用IP"+ip+"不是后台白名单IP");
-            response.setStatus(ErrorCode.IP_NOT_ACCESS.getErrorCode());
-            return false;
-        }
+//        if(uri.startsWith("/api") && !backendIPWhiteListManager.checkWhiteIp(ip)) {
+//            log.error("该用IP"+ip+"不是后台白名单IP");
+//            response.setStatus(ErrorCode.IP_NOT_ACCESS.getErrorCode());
+//            return false;
+//        }
 
         // 用户黑名单
         if(!uri.startsWith("/api") && userIPBlackListManager.checkBlackIp(ip)) {
