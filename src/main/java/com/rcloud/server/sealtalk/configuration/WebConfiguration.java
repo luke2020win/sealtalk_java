@@ -42,7 +42,8 @@ public class WebConfiguration implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 //针对的origin域名
-                .allowedOrigins(sealtalkConfig.getCorsHosts())
+                //.allowedOrigins(sealtalkConfig.getCorsHosts())
+                .allowedOrigins("*")
                 //针对的方法
                 .allowedMethods("GET,POST,PUT,DELETE,HEAD,OPTIONS")
                 //是否允许发送Cookie
