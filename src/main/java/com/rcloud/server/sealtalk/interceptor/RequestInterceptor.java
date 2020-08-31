@@ -116,7 +116,6 @@ public class RequestInterceptor implements HandlerInterceptor {
         }
 
         if (!excludeUrlSet.contains(uri)) {
-            log.error("该用IP"+ip+"黑名单IP");
             //不在排除auth认证的url，需要进行身份认证
             Cookie authCookie = getAuthCookie(request);
             if (authCookie == null) {
@@ -131,11 +130,11 @@ public class RequestInterceptor implements HandlerInterceptor {
                 log.info("preHandle currentUserId:" + currentUserId);
                 serverApiParams.setCurrentUserId(currentUserId);
             } catch (Exception e) {
-                log.error("获取currentUserId异常,error: " + e.getMessage(), e);
+                log.info("获取currentUserId异常,error: " + e.getMessage(), e);
             }
 
             if(currentUserId != null && userManager.checkBlackUser(currentUserId)) {
-                log.error("该用户为黑名单用户");
+                log.info("该用户为黑名单用户");
                 response.setStatus(ErrorCode.USER_IS_DISABLE.getErrorCode());
                 return false;
             }
@@ -143,6 +142,7 @@ public class RequestInterceptor implements HandlerInterceptor {
             if (currentUserId == null) {
                 response.setStatus(500);
                 response.getWriter().write("Invalid cookie value");
+                log.info("Invalid cookie value");
                 return false;
             }
         }
