@@ -189,7 +189,7 @@ public class BackendController extends BaseController {
     @CrossOrigin("http://web.hotchatvip.com")
     //@CrossOrigin("http://localhost:9999")
     @ApiOperation(value = "后台管理-删除角色")
-    @RequestMapping(value = "/Role/delete", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/Role/delete", method = RequestMethod.POST)
     public APIResult<Object> delete(
             @ApiParam(name = "account", value = "用户名", required = true, type = "String", example = "admin")
             @RequestParam String account) throws ServiceException {
