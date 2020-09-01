@@ -38,6 +38,18 @@ public class WebConfiguration implements WebMvcConfigurer {
                 .addPathPatterns("/api/**");
     }
 
+//    @Override
+//    public void addCorsMappings(CorsRegistry registry) {
+//        registry.addMapping("/**")
+//                //针对的origin域名
+//                .allowedOrigins(sealtalkConfig.getCorsHosts())
+//                //针对的方法
+//                .allowedMethods("GET,POST,PUT,DELETE,HEAD,OPTIONS")
+//                //是否允许发送Cookie
+//                .allowCredentials(true)
+//                //针对的请求头
+//                .allowedHeaders("*");
+//    }
 
 
 }
