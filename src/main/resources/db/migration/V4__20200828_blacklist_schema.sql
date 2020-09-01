@@ -15,6 +15,7 @@ CREATE TABLE `backend_ip_white`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+INSERT INTO backend_ip_white(id, ip, description, timestamp, createdAt, updatedAt, deletedAt) VALUES (1, '112.211.5.24', '暂无备注', NOW(), NOW(), NOW(), NOW());
 
 # 创建注册用户ip黑名单
 DROP TABLE IF EXISTS `user_ip_black`;

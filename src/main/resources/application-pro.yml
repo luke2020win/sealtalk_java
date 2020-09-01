@@ -53,11 +53,14 @@ sealtalk-config:
   auth_cookie_domain: 'hotchatvip.com'
   #跨域支持所需配置的域名信息，包括请求服务器的域名和端口号，如果是 80 端口可以省略端口号。如：http://web.sealtalk.im
   cors_hosts: 'http://web.hotchatvip.com'
-  #是否开启万能验证码
-  is_open_pass_code : 'true'
+
+  #是否开启万能验证码 0-不开启 1-开启
+  is_open_pass_code : 1
 
   # 默认配置不需要修改
-  exclude_url: api/login, /miscapp_config_info, /misc/demo_square,/misc/latest_update, /user/verify_code_yp_t,/misc/client_version,/misc/mobile_version,/user/login,/user/register,/user/reset_password, /user/send_code, /user/send_code_yp,/user/verify_code, /user/verify_code_yp, /user/delete, /user/get_sms_img_code,/user/check_username_available,/user/check_phone_available,/user/regionlist,/ping
+  exclude_url: /api/login, /miscapp_config_info, /misc/demo_square, /misc/latest_update, /user/verify_code_yp_t, /misc/client_version,/misc/mobile_version, /user/login, /user/register, /user/reset_password, /user/send_code, /user/send_code_yp, /user/verify_code,/user/verify_code_yp, /user/delete, /user/get_sms_img_code, /user/check_username_available, /user/check_phone_available, /user/regionlist, /ping
+  #  /api/login, /api/User/list, /api/User/add, /api/User/resetPwd, /api/User/search, /api/User/disableOrEnable,/api/UserBlack/list, /api/UserBlack/search, /api/UserBlack/delete,/api/IpBlack/list, /api/IpBlack/save, /api/IpBlack/search, /api/IpBlack/delete,/api/IpBackendWhite/list, /api/IpBackendWhite/save, /api/IpBackendWhite/search, /api/IpBackendWhite/delete,/api/Role/list, /api/Role/save, /api/Role/search, /api/Role/delete,/api/Variable/list, /api/Variable/save, /api/Variable/search,/api/Group/list, /api/Group/search
+
   #本服务部署的 HTTP 端口号
   server_port: '8585'
 

@@ -159,9 +159,9 @@ public class UserManager extends BaseManager {
      * 发送短信并更新数据库
      */
     private VerificationCodes upsertAndSendToSms(String region, String phone, SmsServiceType smsServiceType) throws ServiceException {
-        if (Constants.ENV_DEV.equals(profileConfig.getEnv())) {
+        if (Constants.ENV_DEV.equals(profileConfig.getEnv()) || sealtalkConfig.getIsOpenPassCode() == 1) {
             //开发环境直接插入数据库，不调用短信接口
-            return verificationCodesService.saveOrUpdate(region, phone, "");
+            return verificationCodesService.saveOrUpdate(region, phone, "999999");
         } else {
             SmsService smsService = SmsServiceFactory.getSmsService(smsServiceType);
             String sessionId = smsService.sendVerificationCode(region, phone);

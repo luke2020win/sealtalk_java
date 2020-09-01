@@ -1,9 +1,11 @@
 package com.rcloud.server.sealtalk.spi.verifycode;
 
+import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.domain.VerificationCodes;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 
+import javax.annotation.Resource;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -14,6 +16,8 @@ import java.util.Date;
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
  */
 public abstract class BaseVerifyCodeAuthentication implements VerifyCodeAuthentication {
+    @Resource
+    protected SealtalkConfig sealtalkConfig;
 
     @Override
     public boolean validate(VerificationCodes verificationCodes, String code, String env) throws ServiceException {

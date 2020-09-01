@@ -242,13 +242,13 @@ public class FriendshipController extends BaseController {
         }
 
         // region,phone 要么都为空，要么都不为空
-        if ((StringUtils.isEmpty(region) && !StringUtils.isEmpty(phone)) ||
-                (!StringUtils.isEmpty(region) && StringUtils.isEmpty(phone))) {
-            return APIResultWrap.error(ErrorCode.PARAM_ERROR);
-        }
+//        if ((StringUtils.isEmpty(region) && !StringUtils.isEmpty(phone)) || (!StringUtils.isEmpty(region) && StringUtils.isEmpty(phone))) {
+//            return APIResultWrap.error(ErrorCode.PARAM_ERROR);
+//        }
 
         Integer currentUserId = getCurrentUserId();
-
+        log.info("setFriendDescription currentUserId:"+currentUserId);
+        log.info("setFriendDescription friendId:"+friendId);
         friendShipManager.setFriendDescription(currentUserId, N3d.decode(friendId), displayName, region, phone, description, imageUri);
 
         return APIResultWrap.ok();
@@ -265,8 +265,9 @@ public class FriendshipController extends BaseController {
         }
 
         Integer currentUserId = getCurrentUserId();
-
-        FriendDTO dto = friendShipManager.getFriendDescription(currentUserId, friendId);
+        log.info("getFriendDescription currentUserId:"+currentUserId);
+        log.info("getFriendDescription friendId:"+friendId);
+        FriendDTO dto = friendShipManager.getFriendDescription(currentUserId, N3d.decode(friendId));
 
         return APIResultWrap.ok(dto);
     }

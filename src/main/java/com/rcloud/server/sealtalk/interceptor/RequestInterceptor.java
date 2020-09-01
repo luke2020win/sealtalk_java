@@ -80,6 +80,7 @@ public class RequestInterceptor implements HandlerInterceptor {
         if (!StringUtils.isEmpty(excludeUrls)) {
             String[] excludeUrlArray = excludeUrls.split(",");
             for (String excludeUrl : excludeUrlArray) {
+                log.info("preHandle excludeUrl="+excludeUrl.trim());
                 excludeUrlSet.add(excludeUrl.trim());
             }
         }
@@ -137,11 +138,11 @@ public class RequestInterceptor implements HandlerInterceptor {
                 log.info("preHandle currentUserId:" + currentUserId);
                 serverApiParams.setCurrentUserId(currentUserId);
             } catch (Exception e) {
-                log.error("获取currentUserId异常,error: " + e.getMessage(), e);
+                log.info("获取currentUserId异常,error: " + e.getMessage(), e);
             }
 
             if(currentUserId != null && userManager.checkBlackUser(currentUserId)) {
-                log.error("该用户为黑名单用户");
+                log.info("该用户为黑名单用户");
                 response.setStatus(ErrorCode.USER_IS_DISABLE.getErrorCode());
                 return false;
             }
@@ -149,6 +150,7 @@ public class RequestInterceptor implements HandlerInterceptor {
             if (currentUserId == null) {
                 response.setStatus(500);
                 response.getWriter().write("Invalid cookie value");
+                log.info("Invalid cookie value");
                 return false;
             }
         }
