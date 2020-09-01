@@ -67,4 +67,7 @@ public class SealtalkConfig {
 
     @Value("${sealtalk-config.exclude_url}")
     private String excludeUrl;
+
+    @Value("${sealtalk-config.allow_methods}")
+    private String allowMethods;
 }

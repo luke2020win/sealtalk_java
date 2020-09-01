@@ -451,17 +451,19 @@ public class UserController extends BaseController {
     }
 
     @ApiOperation(value = "获取当前用户所属群组")
-    @RequestMapping(value = "/groups", method = RequestMethod.POST)
+    @RequestMapping(value = "/groups", method = RequestMethod.GET)
     public APIResult<Object> getGroups() throws ServiceException {
 
         Integer currentUserId = getCurrentUserId();
+        log.info("getGroups currentUserId:"+currentUserId);
         List<Groups> groupsList = userManager.getGroups(currentUserId);
+        log.info("getGroups groupsList size:"+groupsList.size());
 
         return APIResultWrap.ok(MiscUtils.encodeResults(groupsList, "id", "creatorId"));
     }
 
     @ApiOperation(value = "同步用户的好友、黑名单、群组、群组成员数据")
-    @RequestMapping(value = "/sync/{version}", method = RequestMethod.POST)
+    @RequestMapping(value = "/sync/{version}", method = RequestMethod.GET)
     public APIResult<Object> syncInfo(@ApiParam(name = "version", value = "请求的版本号(时间戳)", required = true, type = "String", example = "xxx")
                                       @PathVariable("version") String version) throws ServiceException {
 
@@ -474,7 +476,7 @@ public class UserController extends BaseController {
     }
 
     @ApiOperation(value = "根据手机号查找用户信息")
-    @RequestMapping(value = "/find/{region}/{phone}", method = RequestMethod.POST)
+    @RequestMapping(value = "/find/{region}/{phone}", method = RequestMethod.GET)
     public APIResult<Object> getUserByPhone(@ApiParam(name = "region", value = "region", required = true, type = "String", example = "xxx")
                                             @PathVariable("region") String region,
                                             @ApiParam(name = "phone", value = "phone", required = true, type = "String", example = "xxx")
@@ -490,7 +492,8 @@ public class UserController extends BaseController {
             map.put("portraitUri", users.getPortraitUri());
             return APIResultWrap.ok(MiscUtils.encodeResults(map));
         } else {
-            throw new ServiceException(ErrorCode.UNKNOW_USER);
+            return APIResultWrap.ok(null, "无此用户");
+            //throw new ServiceException(ErrorCode.UNKNOW_USER);
         }
     }
 

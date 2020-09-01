@@ -110,51 +110,82 @@ public class RequestInterceptor implements HandlerInterceptor {
         serverApiParams.setRequestUriInfo(requestUriInfo);
 
         String ip = requestUriInfo.getIp();
-        // 后台白名单
-        if(uri.startsWith("/api") && !backendIPWhiteListManager.checkWhiteIp(ip)) {
-            log.error("该用IP"+ip+"不是后台白名单IP");
-            response.setStatus(ErrorCode.IP_NOT_ACCESS.getErrorCode());
-            return false;
-        }
 
-        // 用户黑名单
-        if(!uri.startsWith("/api") && userIPBlackListManager.checkBlackIp(ip)) {
-            log.error("该用IP"+ip+"黑名单IP");
-            response.setStatus(ErrorCode.IP_IS_DISABLE.getErrorCode());
-            return false;
-        }
-
-        if (!excludeUrlSet.contains(uri)) {
-            //不在排除auth认证的url，需要进行身份认证
-            Cookie authCookie = getAuthCookie(request);
-            if (authCookie == null) {
-                response.setStatus(403);
-                response.getWriter().write("Not loged in.");
+        if(uri.startsWith("/api")) {
+            if(!backendIPWhiteListManager.checkWhiteIp(ip)) {
+                log.info("该用IP"+ip+"不是后台白名单IP");
+                response.setStatus(ErrorCode.IP_NOT_ACCESS.getErrorCode());
                 return false;
             }
 
-            Integer currentUserId = null;
-            try {
-                currentUserId = getCurrentUserId(authCookie);
-                log.info("preHandle currentUserId:" + currentUserId);
-                serverApiParams.setCurrentUserId(currentUserId);
-            } catch (Exception e) {
-                log.info("获取currentUserId异常,error: " + e.getMessage(), e);
-            }
+            if (!excludeUrlSet.contains(uri)) {
+                log.info("该用"+uri+"地址需要判断cookie");
+                //不在排除auth认证的url，需要进行身份认证
+                String authToken = getAuthToken(request);
+                if (authToken == null) {
+                    response.setStatus(403);
+                    response.getWriter().write("Not loged in.");
+                    return false;
+                }
 
-            if(currentUserId != null && userManager.checkBlackUser(currentUserId)) {
-                log.info("该用户为黑名单用户");
-                response.setStatus(ErrorCode.USER_IS_DISABLE.getErrorCode());
-                return false;
-            }
+                Integer currentUserId = null;
+                try {
+                    currentUserId = getCurrentUserId(authToken);
+                    log.info("preHandle currentUserId:" + currentUserId);
+                    serverApiParams.setCurrentUserId(currentUserId);
+                } catch (Exception e) {
+                    log.info("获取currentUserId异常,error: " + e.getMessage(), e);
+                }
 
-            if (currentUserId == null) {
-                response.setStatus(500);
-                response.getWriter().write("Invalid cookie value");
-                log.info("Invalid cookie value");
-                return false;
+                if (currentUserId == null) {
+                    response.setStatus(500);
+                    response.getWriter().write("Invalid cookie value");
+                    log.info("Invalid cookie value");
+                    return false;
+                }
             }
         }
+        else {
+            if(userIPBlackListManager.checkBlackIp(ip)) {
+                log.info("该用IP"+ip+"黑名单IP");
+                response.setStatus(ErrorCode.IP_IS_DISABLE.getErrorCode());
+                return false;
+            }
+
+            if (!excludeUrlSet.contains(uri)) {
+                log.info("该用"+uri+"地址需要判断cookie");
+                //不在排除auth认证的url，需要进行身份认证
+                Cookie authCookie = getAuthCookie(request);
+                if (authCookie == null) {
+                    response.setStatus(403);
+                    response.getWriter().write("Not loged in.");
+                    return false;
+                }
+
+                Integer currentUserId = null;
+                try {
+                    currentUserId = getCurrentUserIdFromCookie(authCookie);
+                    log.info("preHandle currentUserId:" + currentUserId);
+                    serverApiParams.setCurrentUserId(currentUserId);
+                } catch (Exception e) {
+                    log.info("获取currentUserId异常,error: " + e.getMessage(), e);
+                }
+
+                if(currentUserId != null && userManager.checkBlackUser(currentUserId)) {
+                    log.info("该用户为黑名单用户");
+                    response.setStatus(ErrorCode.USER_IS_DISABLE.getErrorCode());
+                    return false;
+                }
+
+                if (currentUserId == null) {
+                    response.setStatus(500);
+                    response.getWriter().write("Invalid cookie value");
+                    log.info("Invalid cookie value");
+                    return false;
+                }
+            }
+        }
+
         ServerApiParamHolder.put(serverApiParams);
         return true;
     }
@@ -165,10 +196,14 @@ public class RequestInterceptor implements HandlerInterceptor {
         ServerApiParamHolder.remove();
     }
 
-    private Integer getCurrentUserId(Cookie authCookie) throws ServiceException {
+    private Integer getCurrentUserIdFromCookie(Cookie authCookie) throws ServiceException {
         String cookieValue = authCookie.getValue();
-        log.info("getCurrentUserId cookieValue:"+cookieValue);
-        String decrypt = AES256.decrypt(cookieValue.getBytes(), sealtalkConfig.getAuthCookieKey());
+        log.info("getCurrentUserIdFromCookie cookieValue:"+cookieValue);
+        return getCurrentUserId(cookieValue);
+    }
+
+    private Integer getCurrentUserId(String value) throws ServiceException {
+        String decrypt = AES256.decrypt(value.getBytes(), sealtalkConfig.getAuthCookieKey());
         log.info("getCurrentUserId decrypt:"+decrypt);
         assert decrypt != null;
         String[] split = decrypt.split(Constants.SEPARATOR_ESCAPE);
@@ -190,6 +225,12 @@ public class RequestInterceptor implements HandlerInterceptor {
             }
         }
         return null;
+    }
+
+    private String getAuthToken(HttpServletRequest request) {
+        String authToken = request.getHeader("token");
+        log.info("getAuthToken authToken:"+authToken);
+        return authToken;
     }
 
     protected RequestUriInfo getRequestUriInfo(HttpServletRequest request) {
