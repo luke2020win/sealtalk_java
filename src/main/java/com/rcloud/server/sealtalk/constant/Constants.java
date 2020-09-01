@@ -33,7 +33,7 @@ public class Constants {
 
     public static final int MAX_USER_GROUP_OWN_COUNT = 500;
 
-    //TODO海外版
+    //TODO海外版 后面改为调用sdk
     public static final String URL_GET_RONGCLOUD_IMG_CODE = "http://api.sms.ronghub.com/getImgCode.json?appKey=";
 
     public static final String SEPARATOR_ESCAPE = "\\|";
@@ -43,7 +43,21 @@ public class Constants {
     //群组申请消息 GrpApplyMessage默认fromUserId标示
     public static final String GrpApplyMessage_fromUserId = "__group_apply__";
 
-    //群组通知消息 GrpApplyMessage默认fromUserId标示
+    /**
+     * 发送群组通知时，一种默认的发送者ID，固定指定为__system__
+     * /group/kick
+     * /group/rename
+     * /group/copy_group
+     * /group/quit
+     * /group/join
+     * /group/dismiss
+     * /group/creator
+     * /group/transfer
+     * /group/agree
+     * /group/add
+     * /group/remove_manager
+     * /group/set_manager
+     */
     public static final String GroupNotificationMessage_fromUserId = "__system__";
 
 

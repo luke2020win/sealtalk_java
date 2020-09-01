@@ -78,6 +78,4 @@ public class GroupExitedListsService extends AbstractBaseService<GroupExitedList
         this.deleteByExample(example);
 
     }
-
-
 }

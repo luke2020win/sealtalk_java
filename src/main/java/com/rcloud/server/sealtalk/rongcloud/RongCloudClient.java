@@ -99,10 +99,8 @@ public interface RongCloudClient {
      */
     public void sendContactNotification(String senderId, String nickname, String[] targetIds, String toUserId, String operation, String messageContent, long timestamp) throws ServiceException;
 
-    //TODO
     ResponseResult sendPrivateMessage(PrivateMessage privateMessage) throws ServiceException;
 
-    //TODO
     ResponseResult sendGroupMessage(GroupMessage groupMessage) throws ServiceException;
 
     /**
@@ -116,7 +114,7 @@ public interface RongCloudClient {
 
 
     /**
-     * 用户加入指定群组 TODO
+     * 用户加入指定群组
      *
      * @param encodedMemberIds
      * @param encodedGroupId
@@ -126,7 +124,7 @@ public interface RongCloudClient {
     Result joinGroup(String[] encodedMemberIds, String encodedGroupId, String groupName) throws ServiceException;
 
     /**
-     * 刷新群组名称 TODO
+     * 刷新群组名称
      *
      * @param encodedGroupId
      * @param name
@@ -271,4 +269,25 @@ public interface RongCloudClient {
      */
     Result sendBulletinNotification(String fromUserId, String[] toGroupId, String content, Integer type, String[] userIds, String mentionedContent) throws ServiceException;
 
+    /**
+     * 发送群组通知，消息类型：ST:MsgClear
+     * @param encodeUserId
+     * @param encodeTargetId
+     * @param operation
+     * @return
+     * @throws ServiceException
+     */
+    Result sendCustomerClearGroupMessage(String encodeUserId, String encodeTargetId, String operation,Long clearTimestamp) throws ServiceException;
+
+
+    /**
+     *  清除历史消息
+     * @param conversationType 会话类型 3 群聊
+     * @param fromUserId
+     * @param targetId
+     * @param msgTimestamp 时间戳，在这时间戳之前的记录会被清除
+     * @return
+     * @throws ServiceException
+     */
+    Result clearHistoryMessage(String conversationType, String fromUserId, String targetId, String msgTimestamp) throws ServiceException;
 }

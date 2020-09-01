@@ -5,6 +5,7 @@ import com.rcloud.server.sealtalk.domain.Users;
 import com.rcloud.server.sealtalk.util.CacheUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.Example;
@@ -31,6 +32,7 @@ public class UsersService extends AbstractBaseService<Users, Integer> {
     }
 
     public String getCurrentUserNickNameWithCache(Integer currentUserId) {
+        Assert.notNull(currentUserId,"currentUserId is null");
 
         String nickName = CacheUtil.get(CacheUtil.NICK_NAME_CACHE_PREFIX+currentUserId);
         if(StringUtils.isEmpty(nickName)){
@@ -44,6 +46,8 @@ public class UsersService extends AbstractBaseService<Users, Integer> {
     }
 
     public List<Users> getUsers(List<Integer> ids) {
+        Assert.notEmpty(ids, "ids is empty");
+
         Example example = new Example(Users.class);
         example.createCriteria().andIn("id",ids);
         return this.getByExample(example);

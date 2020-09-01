@@ -468,7 +468,6 @@ public class UserManager extends BaseManager {
         Users u = usersService.getByPrimaryKey(currentUserId);
 
         if (u == null) {
-            //TODO  未确认的错误
             throw new ServiceException(ErrorCode.REQUEST_ERROR);
         }
 
@@ -663,7 +662,7 @@ public class UserManager extends BaseManager {
         //从缓存中获取blacklist，存在直接返回
         String blackListStr = CacheUtil.get(CacheUtil.USER_BLACKLIST_CACHE_PREFIX + currentUserId);
         if (!StringUtils.isEmpty(blackListStr)) {
-//            return JacksonUtil.jsonToBean(blackListStr,BlackLists.class);
+            return JacksonUtil.fromJson(blackListStr, List.class, BlackLists.class);
         }
         //查询数据库blacklist表
         List<BlackLists> dbBlackLists = blackListsService.getBlackListsWithFriendUsers(currentUserId);
@@ -1005,7 +1004,7 @@ public class UserManager extends BaseManager {
      */
     public String getSmsImgCode() {
 
-        //TODO
+        //TODO 后面改为调用sdk
         String result = httpClient.get(Constants.URL_GET_RONGCLOUD_IMG_CODE + sealtalkConfig.getRongcloudAppKey());
         return result;
     }
@@ -1025,10 +1024,10 @@ public class UserManager extends BaseManager {
         DataVersions dataVersions = dataVersionsService.getByPrimaryKey(currentUserId);
 
         Users users = null;
-        List<BlackLists> blackListsList = null;
-        List<Friendships> friendshipsList = null;
-        List<GroupMembers> groupsList = null;
-        List<GroupMembers> groupMembersList = null;
+        List<BlackLists> blackListsList = new ArrayList<>();
+        List<Friendships> friendshipsList = new ArrayList<>();
+        List<GroupMembers> groupsList = new ArrayList<>();
+        List<GroupMembers> groupMembersList = new ArrayList<>();
 
         if (dataVersions.getUserId() > version) {
             //获取用户信息
@@ -1057,8 +1056,8 @@ public class UserManager extends BaseManager {
         }
 
         if (dataVersions.getGroupVersion() > version) {
-            //TODO
-            groupMembersList = groupMembersService.queryGroupMembersWithUsersByMGroupIds(groupIdList, version);
+
+            groupMembersList = groupMembersService.queryGroupMembersWithUsersByGroupIdsAndVersion(groupIdList, version);
         }
 
         Long maxVersion = 0L;

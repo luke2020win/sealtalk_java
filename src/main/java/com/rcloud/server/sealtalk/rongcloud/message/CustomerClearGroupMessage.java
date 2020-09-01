@@ -6,15 +6,15 @@ import io.rong.util.GsonUtil;
 /**
  * @Author: Jianlu.Yu
  * @Date: 2020/8/24
- * @Description:
+ * @Description:    清理群组消息
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
  */
-public class CustomerConNtfMessage extends BaseMessage {
-    private transient static final String TYPE = "ST:ConNtf";
-
+public class CustomerClearGroupMessage extends BaseMessage {
+    private transient static final String TYPE = "ST:MsgClear";
 
     private String operatorUserId;
     private String operation;
+    private String clearTime;
 
     @Override
     public String getType() {
@@ -23,7 +23,7 @@ public class CustomerConNtfMessage extends BaseMessage {
 
     @Override
     public String toString() {
-        return GsonUtil.toJson(this, CustomerConNtfMessage.class);
+        return GsonUtil.toJson(this, CustomerClearGroupMessage.class);
     }
 
     public String getOperatorUserId() {
@@ -40,5 +40,13 @@ public class CustomerConNtfMessage extends BaseMessage {
 
     public void setOperation(String operation) {
         this.operation = operation;
+    }
+
+    public String getClearTime() {
+        return clearTime;
+    }
+
+    public void setClearTime(String clearTime) {
+        this.clearTime = clearTime;
     }
 }
