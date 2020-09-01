@@ -660,6 +660,7 @@ public class FriendShipManager extends BaseManager {
         String result = CacheUtil.get(CacheUtil.FRIENDSHIP_PROFILE_DISPLAYNAME_CACHE_PREFIX + "_" + currentUserId + "_" + friendId);
 
         if (!StringUtils.isEmpty(result)) {
+            log.info("getFriendProfile result:"+result);
             return JacksonUtil.fromJson(result, Friendships.class);
         }
 
@@ -671,8 +672,7 @@ public class FriendShipManager extends BaseManager {
             throw new ServiceException(ErrorCode.NOT_FRIEND_USER, "Current user is not friend of user " + currentUserId + ".");
         } else {
             result = JacksonUtil.toJson(result);
-            CacheUtil.set(CacheUtil.FRIENDSHIP_PROFILE_DISPLAYNAME_CACHE_PREFIX + "_" + currentUserId + "_" + friendId, result);
-
+            CacheUtil.set(CacheUtil.FRIENDSHIP_ALL_CACHE_PREFIX + "_" + currentUserId + "_" + friendId, result);
             CacheUtil.set(CacheUtil.FRIENDSHIP_PROFILE_DISPLAYNAME_CACHE_PREFIX + currentUserId + "_" + friendId, friendships.getDisplayName());
             CacheUtil.set(CacheUtil.FRIENDSHIP_PROFILE_USER_CACHE_PREFIX + currentUserId + "_" + friendId, JacksonUtil.toJson(friendships.getUsers()));
             return friendships;

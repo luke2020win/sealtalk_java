@@ -166,7 +166,8 @@ public class FriendshipController extends BaseController {
             @PathVariable String friendId) throws ServiceException {
 
         Integer currentUserId = getCurrentUserId();
-
+        log.info("getFriendProfile currentUserId:"+currentUserId);
+        log.info("getFriendProfile friendId:"+friendId);
         Friendships friendships = friendShipManager.getFriendProfile(currentUserId, N3d.decode(friendId));
 
         Map<String, Object> resultMap = new HashMap<>();
@@ -183,6 +184,9 @@ public class FriendshipController extends BaseController {
                 userMap.put("portraitUri", users.getPortraitUri());
             }
             resultMap.put("user", userMap);
+        }
+        else {
+            log.info("getFriendProfile friendships == null");
         }
 
         return APIResultWrap.ok(resultMap);
