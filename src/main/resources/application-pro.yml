@@ -50,12 +50,12 @@ sealtalk-config:
   #N3D 密钥，用来加密所有的 Id 数字，不小于 5 位的字母数字组合
   n3d_key: 'abcdef12345678'
   #认证 Cookie 主域名 如果没有正式域名，请修改本地 hosts 文件配置域名
-  auth_cookie_domain: 'hotchatvip.com'
-#  auth_cookie_domain: 'localhost'
+#  auth_cookie_domain: 'hotchatvip.com'
+  auth_cookie_domain: 'localhost'
   #跨域支持所需配置的域名信息，包括请求服务器的域名和端口号，如果是 80 端口可以省略端口号。如：http://web.sealtalk.im
-  cors_hosts: 'http://web.hotchatvip.com'
+#  cors_hosts: 'http://web.hotchatvip.com'
   # 允许的请求方法
-#  cors_hosts: 'http://localhost'
+  cors_hosts: 'http://localhost'
   allow_methods: 'GET,POST,PUT,DELETE,HEAD,OPTIONS'
   #是否开启万能验证码 0-不开启 1-开启
   is_open_pass_code : 1
@@ -65,7 +65,7 @@ sealtalk-config:
   #  /api/login, /api/User/list, /api/User/add, /api/User/resetPwd, /api/User/search, /api/User/disableOrEnable,/api/UserBlack/list, /api/UserBlack/search, /api/UserBlack/delete,/api/IpBlack/list, /api/IpBlack/save, /api/IpBlack/search, /api/IpBlack/delete,/api/IpBackendWhite/list, /api/IpBackendWhite/save, /api/IpBackendWhite/search, /api/IpBackendWhite/delete,/api/Role/list, /api/Role/save, /api/Role/search, /api/Role/delete,/api/Variable/list, /api/Variable/save, /api/Variable/search,/api/Group/list, /api/Group/search
 
   #本服务部署的 HTTP 端口号
-  server_port: '80'
+  server_port: '8585'
 
   #*************************************数据库配置******************************************************#
   db_name: 'hotchat'

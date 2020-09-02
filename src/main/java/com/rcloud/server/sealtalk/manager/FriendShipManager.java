@@ -204,7 +204,8 @@ public class FriendShipManager extends BaseManager {
                 //返回
                 return new InviteDTO(action, resultMessage);
             }
-        } else {
+        }
+        else {
             //如果双方的好友关系表不是都有记录或都没有记录，说明双方还不是好友
             if (currentUserId.equals(friendId)) {
                 //如果是添加自己,新增一条好友关系记录
@@ -220,7 +221,8 @@ public class FriendShipManager extends BaseManager {
                 CacheUtil.delete(CacheUtil.FRIENDSHIP_ALL_CACHE_PREFIX + currentUserId);
                 //返回
                 return new InviteDTO(action, resultMessage);
-            } else {
+            }
+            else {
                 //如果不是添加自己
                 doAddFriend1(currentUserId, friendId, message, timestamp);
                 //刷新好友关系数据版本
@@ -604,7 +606,6 @@ public class FriendShipManager extends BaseManager {
 
         //更新好友备注
         Friendships friendships = new Friendships();
-        friendships.setStatus(Friendships.FRIENDSHIP_DELETED);
         friendships.setDisplayName(displayName);
         friendships.setTimestamp(timestamp);
 
@@ -655,8 +656,6 @@ public class FriendShipManager extends BaseManager {
      * @return
      */
     public Friendships getFriendProfile(Integer currentUserId, Integer friendId) throws ServiceException {
-
-
         String result = CacheUtil.get(CacheUtil.FRIENDSHIP_PROFILE_DISPLAYNAME_CACHE_PREFIX + "_" + currentUserId + "_" + friendId);
 
         if (!StringUtils.isEmpty(result)) {

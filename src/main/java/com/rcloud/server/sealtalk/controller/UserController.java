@@ -342,6 +342,7 @@ public class UserController extends BaseController {
 
         Integer currentUserId = getCurrentUserId();
         userManager.setNickName(nickname, currentUserId);
+
         return APIResultWrap.ok();
     }
 

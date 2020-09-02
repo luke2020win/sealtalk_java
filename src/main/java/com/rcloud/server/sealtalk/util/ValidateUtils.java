@@ -33,7 +33,7 @@ public class ValidateUtils {
 
     public static final int FRIEND_DISPLAY_NAME_MIN_LENGTH = 1;
 
-    public static final int FRIEND_DISPLAY_NAME_MAX_LENGTH = 32;
+    public static final int FRIEND_DISPLAY_NAME_MAX_LENGTH = 256;
 
     public static final int GROUP_NAME_MIN_LENGTH = 2;
 

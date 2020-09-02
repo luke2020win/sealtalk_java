@@ -112,8 +112,9 @@ public class FriendshipController extends BaseController {
         ValidateUtils.notEmpty(friendId);
 
         String displayName = friendshipParam.getDisplayName();
-        displayName = MiscUtils.xss(displayName, ValidateUtils.FRIEND_REQUEST_MESSAGE_MAX_LENGTH);
+        displayName = MiscUtils.xss(displayName, ValidateUtils.FRIEND_DISPLAY_NAME_MAX_LENGTH);
         ValidateUtils.checkDisplayName(displayName);
+
         Integer currentUserId = getCurrentUserId();
         friendShipManager.setDisplayName(currentUserId, N3d.decode(friendId), displayName);
         return APIResultWrap.ok();
