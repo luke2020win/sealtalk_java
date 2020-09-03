@@ -252,7 +252,7 @@ public class GroupManager extends BaseManager {
         CustomerGroupNtfMessage customerGroupNtfMessage = new CustomerGroupNtfMessage();
         customerGroupNtfMessage.setOperatorUserId(N3d.encode(operatorUserId));
         customerGroupNtfMessage.setOperation(groupOperationType.getType());
-        customerGroupNtfMessage.setMessageData(messageData);
+        customerGroupNtfMessage.setData(messageData);
 
         GroupMessage groupMessage = new GroupMessage();
         groupMessage.setSenderId(Constants.GroupNotificationMessage_fromUserId);
@@ -565,7 +565,7 @@ public class GroupManager extends BaseManager {
 
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("operatorNickname", nickName);
-        messageData.put("targetUserIds", userIds);
+        messageData.put("targetUserIds", MiscUtils.encodeIds(userIds));
         messageData.put("targetUserDisplayNames", targetUserDisplayNames);
         messageData.put("timestamp", timestamp);
         //发送群组通知 TODO
@@ -1014,8 +1014,8 @@ public class GroupManager extends BaseManager {
             return groupMembersList;
         }
 
-        List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithUsersByGroupId(groupId);
-
+//bugfix 查询所有未被删除的群组成员
+        List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithUsersByGroupId(groupId, GroupMembers.IS_DELETED_NO);
         if (CollectionUtils.isEmpty(groupMembersList)) {
             throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR, ErrorCode.GROUP_UNKNOWN_ERROR.getErrorMessage());
         }

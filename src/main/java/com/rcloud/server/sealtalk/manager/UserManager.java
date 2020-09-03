@@ -11,7 +11,7 @@ import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.interceptor.ServerApiParamHolder;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
-import com.rcloud.server.sealtalk.model.dto.SyncInfoDTO;
+import com.rcloud.server.sealtalk.model.dto.sync.*;
 import com.rcloud.server.sealtalk.rongcloud.RongCloudClient;
 import com.rcloud.server.sealtalk.service.*;
 import com.rcloud.server.sealtalk.sms.SmsService;
@@ -284,7 +284,7 @@ public class UserManager extends BaseManager {
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(password, salt);
         String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("register ip:"+ip);
+        log.info("register ip:" + ip);
         Users u = register0(nickname, verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip);
 
         //缓存nickname
@@ -365,14 +365,14 @@ public class UserManager extends BaseManager {
 
         //查询该用户所属的所有组,同步到融云
         List<Groups> groupsList = new ArrayList<>();
-        Map<String,String> idNamePariMap = new HashMap<>();
+        Map<String, String> idNamePariMap = new HashMap<>();
         List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithGroupByMemberId(u.getId());
         if (!CollectionUtils.isEmpty(groupMembersList)) {
             for (GroupMembers gm : groupMembersList) {
                 Groups groups = gm.getGroups();
                 if (groups != null) {
                     groupsList.add(groups);
-                    idNamePariMap.put(N3d.encode(groups.getId()),groups.getName());
+                    idNamePariMap.put(N3d.encode(groups.getId()), groups.getName());
                 }
             }
         }
@@ -408,7 +408,7 @@ public class UserManager extends BaseManager {
 
             token = tokenResult.getToken();
             String ip = serverApiParams.getRequestUriInfo().getIp();
-            log.info("login ip:"+ip);
+            log.info("login ip:" + ip);
             //获取后根据userId更新表中token
             Users users = new Users();
             users.setId(u.getId());
@@ -442,7 +442,7 @@ public class UserManager extends BaseManager {
         String hashStr = MiscUtils.hash(password, salt);
 
         String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("resetPassword ip:"+ip);
+        log.info("resetPassword ip:" + ip);
         updatePassword(verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip);
     }
 
@@ -481,7 +481,7 @@ public class UserManager extends BaseManager {
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(newPassword, salt);
         String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("changePassword ip:"+ip);
+        log.info("changePassword ip:" + ip);
         updatePassword(u.getRegion(), u.getPhone(), salt, hashStr, ip);
     }
 
@@ -489,7 +489,7 @@ public class UserManager extends BaseManager {
         Users user = new Users();
         user.setPasswordHash(hashStr);
         user.setPasswordSalt(String.valueOf(salt));
-        if(!StringUtils.isEmpty(ip)) {
+        if (!StringUtils.isEmpty(ip)) {
             user.setPasswordHash(ip);
         }
         user.setUpdatedAt(new Date());
@@ -1016,7 +1016,7 @@ public class UserManager extends BaseManager {
      * @param currentUserId
      * @param version
      */
-    public SyncInfoDTO getSyncInfo(Integer currentUserId, Long version) {
+    public SyncInfoDTO getSyncInfo(Integer currentUserId, Long version) throws ServiceException {
 
         SyncInfoDTO syncInfoDTO = new SyncInfoDTO();
 
@@ -1029,7 +1029,7 @@ public class UserManager extends BaseManager {
         List<GroupMembers> groupsList = new ArrayList<>();
         List<GroupMembers> groupMembersList = new ArrayList<>();
 
-        if (dataVersions.getUserId() > version) {
+        if (dataVersions.getUserVersion() > version) {
             //获取用户信息
             users = usersService.getByPrimaryKey(currentUserId);
         }
@@ -1046,7 +1046,7 @@ public class UserManager extends BaseManager {
         List<Integer> groupIdList = new ArrayList<>();
         if (dataVersions.getGroupVersion() > version) {
             groupsList = groupMembersService.queryGroupMembersWithGroupByMemberId(currentUserId);
-            if (!CollectionUtils.isEmpty(groupMembersList)) {
+            if (!CollectionUtils.isEmpty(groupsList)) {
                 for (GroupMembers groupMember : groupsList) {
                     if (groupMember.getGroups() != null) {
                         groupIdList.add(groupMember.getGroups().getId());
@@ -1103,17 +1103,121 @@ public class UserManager extends BaseManager {
         log.info("sync info ,maxVersion={}", maxVersion);
 
         syncInfoDTO.setVersion(version);
-        syncInfoDTO.setUser(users);
-        syncInfoDTO.setBlacklist(blackListsList != null ? blackListsList : new ArrayList<>());
-        syncInfoDTO.setFriends(friendshipsList != null ? friendshipsList : new ArrayList<>());
-        syncInfoDTO.setGroups(groupsList != null ? groupsList : new ArrayList<>());
-        syncInfoDTO.setGroup_members(groupMembersList != null ? groupMembersList : new ArrayList<>());
+
+
+        SyncUserDTO userDTO = new SyncUserDTO();
+        if (users != null) {
+            userDTO.setId(N3d.encode(users.getId()));
+            userDTO.setNickname(users.getNickname());
+            userDTO.setPortraitUri(users.getPortraitUri());
+            userDTO.setTimestamp(users.getTimestamp());
+        }
+        syncInfoDTO.setUser(userDTO);
+
+        List<SyncBlackListDTO> syncBlackListDTOList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(blackListsList)) {
+            for (BlackLists blackLists : blackListsList) {
+                SyncBlackListDTO syncBlackListDTO = new SyncBlackListDTO();
+                syncBlackListDTO.setFriendId(N3d.encode(blackLists.getFriendId()));
+                syncBlackListDTO.setStatus(BlackLists.STATUS_VALID.equals(blackLists.getStatus()) ? true : false);
+                syncBlackListDTO.setTimestamp(blackLists.getTimestamp());
+
+                Users u = blackLists.getUsers();
+                SyncUserDTO sUser = new SyncUserDTO();
+
+                if (u != null) {
+                    sUser.setId(N3d.encode(u.getId()));
+                    sUser.setNickname(u.getNickname());
+                    sUser.setPortraitUri(u.getPortraitUri());
+                    sUser.setTimestamp(u.getTimestamp());
+                }
+                syncBlackListDTO.setUser(sUser);
+                syncBlackListDTOList.add(syncBlackListDTO);
+            }
+        }
+
+        syncInfoDTO.setBlacklist(syncBlackListDTOList);
+
+
+        List<SyncFriendshipDTO> syncFriendshipDTOList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(friendshipsList)) {
+            for (Friendships friendships : friendshipsList) {
+                SyncFriendshipDTO syncFriendshipDTO = new SyncFriendshipDTO();
+                syncFriendshipDTO.setFriendId(N3d.encode(friendships.getFriendId()));
+                syncFriendshipDTO.setDisplayName(friendships.getDisplayName());
+                syncFriendshipDTO.setStatus(friendships.getStatus());
+                syncFriendshipDTO.setTimestamp(friendships.getTimestamp());
+                Users u = friendships.getUsers();
+                SyncUserDTO syncUserDTO = new SyncUserDTO();
+                if (u != null) {
+                    syncUserDTO.setId(N3d.encode(u.getId()));
+                    syncUserDTO.setNickname(u.getNickname());
+                    syncUserDTO.setPortraitUri(u.getPortraitUri());
+                    syncUserDTO.setTimestamp(u.getTimestamp());
+                }
+
+                syncFriendshipDTO.setUser(syncUserDTO);
+                syncFriendshipDTOList.add(syncFriendshipDTO);
+            }
+        }
+        syncInfoDTO.setFriends(syncFriendshipDTOList);
+
+        List<SyncGroupDTO> syncGroupDTOList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(groupsList)) {
+            for (GroupMembers groupMembers : groupsList) {
+                SyncGroupDTO syncGroupDTO = new SyncGroupDTO();
+                syncGroupDTO.setGroupId(N3d.encode(groupMembers.getGroupId()));
+                syncGroupDTO.setDisplayName(groupMembers.getDisplayName());
+                syncGroupDTO.setIsDeleted(GroupMembers.IS_DELETED_YES.equals(groupMembers.getIsDeleted()) ? true : false);
+                syncGroupDTO.setRole(groupMembers.getRole());
+                Groups g = groupMembers.getGroups();
+                SyncGroupInnerDTO groupInnerDTO = new SyncGroupInnerDTO();
+                if (g != null) {
+                    groupInnerDTO.setId(N3d.encode(g.getId()));
+                    groupInnerDTO.setName(g.getName());
+                    groupInnerDTO.setPortraitUri(g.getPortraitUri());
+                    groupInnerDTO.setTimestamp(g.getTimestamp());
+                    syncGroupDTO.setGroup(groupInnerDTO);
+                }
+                syncGroupDTOList.add(syncGroupDTO);
+
+            }
+
+        }
+        syncInfoDTO.setGroups(syncGroupDTOList);
+
+
+        List<SyncGroupMemberDTO> syncGroupMemberDTOList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(groupMembersList)) {
+            for (GroupMembers groupMembers : groupMembersList) {
+                SyncGroupMemberDTO syncGroupMemberDTO = new SyncGroupMemberDTO();
+                syncGroupMemberDTO.setGroupId(N3d.encode(groupMembers.getGroupId()));
+                syncGroupMemberDTO.setDisplayName(groupMembers.getDisplayName());
+                syncGroupMemberDTO.setIsDeleted(GroupMembers.IS_DELETED_YES.equals(groupMembers.getIsDeleted()) ? true : false);
+                syncGroupMemberDTO.setMemberId(N3d.encode(groupMembers.getMemberId()));
+                syncGroupMemberDTO.setRole(groupMembers.getRole());
+                syncGroupMemberDTO.setTimestamp(groupMembers.getTimestamp());
+                Users u = groupMembers.getUsers();
+                SyncUserDTO su = new SyncUserDTO();
+                if (u != null) {
+                    su.setId(N3d.encode(u.getId()));
+                    su.setNickname(u.getNickname());
+                    su.setTimestamp(u.getTimestamp());
+                    su.setPortraitUri(u.getPortraitUri());
+                    syncGroupMemberDTO.setUser(su);
+                }
+                syncGroupMemberDTOList.add(syncGroupMemberDTO);
+            }
+        }
+
+
+        syncInfoDTO.setGroup_members(syncGroupMemberDTOList);
         return syncInfoDTO;
 
     }
 
     public List<Users> getPageUserList(int pageNum, int pageSize) {
-        log.info("UserManager getPageUserList pageNum:"+pageNum+" pageSize:"+pageSize);
+        log.info("UserManager getPageUserList pageNum:" + pageNum + " pageSize:" + pageSize);
         int offset = (pageNum - 1) * pageSize;
         int limit = pageSize;
         return usersService.getPageUserList(offset, limit);
@@ -1125,6 +1229,7 @@ public class UserManager extends BaseManager {
 
     /**
      * 设置账号状态
+     *
      * @param region
      * @param phone
      * @param isDisable 0-可用 1-禁用
@@ -1168,18 +1273,19 @@ public class UserManager extends BaseManager {
 
         ServerApiParams serverApiParams = ServerApiParamHolder.get();
         String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("addUser ip:"+ip);
+        log.info("addUser ip:" + ip);
 
         //如果没有注册过，密码hash
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(password, salt);
 
         Users u = register0(nickname, region, phone, salt, hashStr, ip);
-        log.info("addUser id:"+u.getId());
+        log.info("addUser id:" + u.getId());
     }
 
     /**
      * 设置用户账号状态
+     *
      * @param region
      * @param phone
      * @param isDisable
@@ -1202,11 +1308,10 @@ public class UserManager extends BaseManager {
             throw new ServiceException(ErrorCode.PARAM_TYPE_ERROR);
         }
 
-        if(status == 1) {
+        if (status == 1) {
             // 将用户添加到黑名单
             insertUserBlack(users);
-        }
-        else {
+        } else {
             // 从用户黑名单中删除
             deleteUserBlack(region, phone);
         }
@@ -1216,6 +1321,7 @@ public class UserManager extends BaseManager {
 
     /**
      * 插入黑名单用户
+     *
      * @param users
      * @return
      */
@@ -1237,6 +1343,7 @@ public class UserManager extends BaseManager {
 
     /**
      * 删除黑名单用户
+     *
      * @param region
      * @param phone
      */
@@ -1253,7 +1360,7 @@ public class UserManager extends BaseManager {
         Users param = new Users();
         param.setId(currentUserId);
         Users users = usersService.getOne(param);
-        if(users == null) {
+        if (users == null) {
             return false;
         }
 
@@ -1261,7 +1368,7 @@ public class UserManager extends BaseManager {
         userBlackparam.setRegion(users.getRegion());
         userBlackparam.setPhone(users.getPhone());
         UserBlack userBlack = userBlackListService.getOne(userBlackparam);
-        if(userBlack != null) {
+        if (userBlack != null) {
             return true;
         }
 
@@ -1274,7 +1381,7 @@ public class UserManager extends BaseManager {
         userBlackparam.setRegion(region);
         userBlackparam.setPhone(phone);
         UserBlack userBlack = userBlackListService.getOne(userBlackparam);
-        if(userBlack != null) {
+        if (userBlack != null) {
             throw new ServiceException(ErrorCode.USER_IS_DISABLE);
         }
     }

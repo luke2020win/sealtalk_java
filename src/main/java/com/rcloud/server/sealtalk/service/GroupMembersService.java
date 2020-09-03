@@ -167,9 +167,9 @@ public class GroupMembersService extends AbstractBaseService<GroupMembers, Integ
     }
 
 
-    public List<GroupMembers> queryGroupMembersWithUsersByGroupId(Integer groupId) {
+    public List<GroupMembers> queryGroupMembersWithUsersByGroupId(Integer groupId,Integer isDeleted) {
         Assert.notNull(groupId,"groupId is null");
-        return mapper.queryGroupMembersWithUsersByGroupId(groupId);
+        return mapper.queryGroupMembersWithUsersByGroupId(groupId,isDeleted);
     }
 
     public GroupMembers queryGroupMembersWithGroupByGroupIdAndMemberId(Integer groupId, Integer memberId) {

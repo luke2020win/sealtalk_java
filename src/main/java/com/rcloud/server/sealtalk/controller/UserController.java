@@ -12,7 +12,7 @@ import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.UserManager;
 import com.rcloud.server.sealtalk.model.ServerApiParams;
 import com.rcloud.server.sealtalk.model.dto.*;
-import com.rcloud.server.sealtalk.model.response.APIResult;
+import com.rcloud.server.sealtalk.model.dto.sync.SyncInfoDTO;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.*;
@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -263,8 +262,8 @@ public class UserController extends BaseController {
         resultMap.put("id", pairResult.getLeft());
         resultMap.put("token", pairResult.getRight());
 
-        log.info("login id"+pairResult.getLeft());
-        log.info("login token"+pairResult.getRight());
+        log.info("login id" + pairResult.getLeft());
+        log.info("login token" + pairResult.getRight());
 
         //对result编码
         return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
@@ -385,11 +384,11 @@ public class UserController extends BaseController {
 
         List<BlackLists> resultList = userManager.getBlackList(currentUserId);
 
-        List<BlackListDTO>  BlackListDTOList = new ArrayList<>();
+        List<BlackListDTO> BlackListDTOList = new ArrayList<>();
 
         SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
 
-        if(!CollectionUtils.isEmpty(resultList)) {
+        if (!CollectionUtils.isEmpty(resultList)) {
 
             for (BlackLists blackLists : resultList) {
                 BlackListDTO blackListDTO = new BlackListDTO();
@@ -472,9 +471,9 @@ public class UserController extends BaseController {
     public APIResult<Object> getGroups() throws ServiceException {
 
         Integer currentUserId = getCurrentUserId();
-        log.info("getGroups currentUserId:"+currentUserId);
+        log.info("getGroups currentUserId:" + currentUserId);
         List<Groups> groupsList = userManager.getGroups(currentUserId);
-        log.info("getGroups groupsList size:"+groupsList.size());
+        log.info("getGroups groupsList size:" + groupsList.size());
 
         return APIResultWrap.ok(MiscUtils.encodeResults(groupsList, "id", "creatorId"));
     }
@@ -559,17 +558,18 @@ public class UserController extends BaseController {
                                          @PathVariable("id") String id) throws ServiceException {
 
         Integer userId = N3d.decode(id);
-        log.info("getUserInfo userId:"+userId);
+        log.info("getUserInfo userId:" + userId);
         Users users = userManager.getUser(userId);
         if (users != null) {
-            Users t_user = new Users();
-            t_user.setId(users.getId());
-            t_user.setNickname(users.getNickname());
-            t_user.setPortraitUri(users.getPortraitUri());
-            t_user.setGender(users.getGender());
-            t_user.setStAccount(users.getStAccount());
-            t_user.setPhone(users.getPhone());
-            return APIResultWrap.ok(MiscUtils.encodeResults(t_user));
+            UserDTO userDTO = new UserDTO();
+            userDTO.setId(N3d.encode(users.getId()));
+            userDTO.setRegion(users.getRegion());
+            userDTO.setNickname(users.getNickname());
+            userDTO.setPortraitUri(users.getPortraitUri());
+            userDTO.setGender(users.getGender());
+            userDTO.setStAccount(users.getStAccount());
+            userDTO.setPhone(users.getPhone());
+            return APIResultWrap.ok(userDTO);
         } else {
             throw new ServiceException(ErrorCode.UNKNOW_USER);
         }
