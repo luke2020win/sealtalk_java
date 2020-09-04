@@ -16,4 +16,5 @@ public interface GroupMembersMapper extends Mapper<GroupMembers> {
 
     List<GroupMembers> selectGroupMembersWithUsersByGroupIdsAndVersion(@Param("groupIdList") List<Integer> groupIdList, @Param("version") Long version);
 
+    int insertBatch(@Param("groupMemberList") List<GroupMembers > groupMemberList);
 }
