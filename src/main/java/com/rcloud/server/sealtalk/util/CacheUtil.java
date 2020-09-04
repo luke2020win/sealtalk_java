@@ -24,7 +24,7 @@ public class CacheUtil {
 
     public static final String FRIENDSHIP_PROFILE_USER_CACHE_PREFIX = "friendship_profile_user_";
     public static final String FRIENDSHIP_ALL_CACHE_PREFIX = "friendship_all_";
-    public static final String FRIENDSHIP_PROFILE_DISPLAYNAME_CACHE_PREFIX = "friendship_profile_displayName_";
+    public static final String FRIENDSHIP_PROFILE_CACHE_PREFIX = "friendship_profile_";
 
     public static final String LAST_UPDATE_VERSION_INFO = "last_update_version_info";
     public static final String CLIENT_VERSION_INFO = "client_version_info";
