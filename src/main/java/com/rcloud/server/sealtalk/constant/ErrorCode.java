@@ -120,7 +120,9 @@ public enum ErrorCode {
     IP_NOT_DELETE_SELF(4003, "不能删除自己的白名单IP", 4003),
     IP_NOT_ACCESS(4004, "该IP地址不被允许，请联系管理员", 4004),
     IP_IS_DISABLE(4005, "该IP被限制访问，请联系管理员", 4005),
-    USER_IS_DISABLE(4006, "该用户被限制访问，请联系管理员", 4006);
+    USER_IS_DISABLE(4006, "该用户被限制访问，请联系管理员", 4006),
+    VERSION_UPDATE_NOT_EXIST(4007, "该更新记录不存在", 4007);
+
 
     private int errorCode;
     private String errorMessage;

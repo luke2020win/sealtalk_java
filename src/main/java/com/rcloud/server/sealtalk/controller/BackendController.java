@@ -51,6 +51,10 @@ public class BackendController extends BaseController {
 
     @Resource
     private GroupManager groupManager;
+
+    @Resource
+    private MiscManager miscManager;
+
     @ApiOperation(value = "后台管理-登陆")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public APIResult<Object> login(
@@ -73,7 +77,7 @@ public class BackendController extends BaseController {
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", backendUsers.getId());
-        resultMap.put("token", createAuthToken(backendUsers.getId()));
+        resultMap.put("authToken", createAuthToken(backendUsers.getId()));
         resultMap.put("roleType", backendUsers.getRoleType());
 
 //        Map<String, Object> resultMap = new HashMap<>();
@@ -85,6 +89,9 @@ public class BackendController extends BaseController {
         //对result编码
         return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
     }
+
+
+
     @ApiOperation(value = "后台管理-获取角色列表")
     @RequestMapping(value = "/Role/list", method = RequestMethod.POST)
     public APIResult<Object> roleList(
@@ -133,6 +140,8 @@ public class BackendController extends BaseController {
         //对result编码
         return APIResultWrap.ok(pageBeanRes);
     }
+
+
     @ApiOperation(value = "后台管理-编辑/添加角色")
     @RequestMapping(value = "/Role/save", method = RequestMethod.POST)
     public APIResult<Object> saveRole(
@@ -152,6 +161,8 @@ public class BackendController extends BaseController {
 
         return APIResultWrap.ok(resultMap);
     }
+
+
     @ApiOperation(value = "后台管理-根据账户搜索用户")
     @RequestMapping(value = "/Role/search", method = RequestMethod.POST)
     public APIResult<Object> searchUser(
@@ -172,6 +183,8 @@ public class BackendController extends BaseController {
 
         return APIResultWrap.ok(pageBeanRes);
     }
+
+
     @ApiOperation(value = "后台管理-删除角色")
     @RequestMapping(value = "/Role/delete", method = RequestMethod.POST)
     public APIResult<Object> delete(
@@ -187,6 +200,8 @@ public class BackendController extends BaseController {
         //对result编码
         return APIResultWrap.ok();
     }
+
+
     @ApiOperation(value = "后台管理-获取变量列表")
     @RequestMapping(value = "/Variable/list", method = RequestMethod.POST)
     public APIResult<Object> variableList(
@@ -329,6 +344,7 @@ public class BackendController extends BaseController {
         return APIResultWrap.ok(pageBeanRes);
     }
 
+
     @ApiOperation(value = "后台管理-编辑/添加后台白名单")
     @RequestMapping(value = "/IpBackendWhite/save", method = RequestMethod.POST)
     public APIResult<Object> saveIpBackendWhite(
@@ -345,6 +361,7 @@ public class BackendController extends BaseController {
 
         return APIResultWrap.ok();
     }
+
 
     @ApiOperation(value = "后台管理-根据IP搜索后台白名单")
     @RequestMapping(value = "/IpBackendWhite/search", method = RequestMethod.POST)
@@ -367,6 +384,7 @@ public class BackendController extends BaseController {
 
         return APIResultWrap.ok(pageBeanRes);
     }
+
     @ApiOperation(value = "后台管理-删除白名单IP")
     @RequestMapping(value = "/IpBackendWhite/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteBackenWhiteIP(
@@ -477,6 +495,7 @@ public class BackendController extends BaseController {
 
         return APIResultWrap.ok(pageBeanRes);
     }
+
     @ApiOperation(value = "后台管理-解禁用户IP")
     @RequestMapping(value = "/IpBlack/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteIpBlack(
@@ -574,6 +593,7 @@ public class BackendController extends BaseController {
 
         return APIResultWrap.ok(pageBeanRes);
     }
+
     @ApiOperation(value = "后台管理-解禁用户IP")
     @RequestMapping(value = "/UserBlack/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteUserBlack(
@@ -690,6 +710,7 @@ public class BackendController extends BaseController {
         //对result编码
         return APIResultWrap.ok();
     }
+
     @ApiOperation(value = "后台管理-搜索注册用户")
     @RequestMapping(value = "/User/search", method = RequestMethod.POST)
     public APIResult<Object> searchUser(
@@ -821,6 +842,154 @@ public class BackendController extends BaseController {
 
         return APIResultWrap.ok(pageBeanRes);
     }
+
+
+
+    @ApiOperation(value = "后台管理-获取变量列表")
+    @RequestMapping(value = "/Version/list", method = RequestMethod.POST)
+    public APIResult<Object> versionList(
+            @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
+            @RequestParam String currentPage,
+            @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
+            @RequestParam String pageSize) {
+
+        log.info("BackendController versionList currentPage:"+currentPage+" pageSize:"+pageSize);
+
+        try {
+            PageBeanRes<VersionUpdate> pageBeanRes = new PageBeanRes<>();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController versionList page:"+page+" pagesize:"+pagesize);
+            List<VersionUpdate> versionUpdateList = miscManager.getPageVersionUpdateList(page, pagesize);
+            if(versionUpdateList == null || versionUpdateList.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = miscManager.getTotalCount();
+                log.info("BackendController versionList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(versionUpdateList);
+            }
+
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
+    }
+
+    @ApiOperation(value = "后台管理-编辑/添加角色")
+    @RequestMapping(value = "/Version/save", method = RequestMethod.POST)
+    public APIResult<Object> saveVersion(
+            @ApiParam(name = "clientType", value = "变量名", required = true, type = "String", example = "ios")
+            @RequestParam String clientType,
+            @ApiParam(name = "version", value = "变量值", required = true, type = "String", example = "5.0.0")
+            @RequestParam String version,
+            @ApiParam(name = "channel", value = "变量描述", required = true, type = "String", example = "official")
+            @RequestParam String channel,
+
+            @ApiParam(name = "isShowUpdate", value = "变量描述", required = true, type = "String", example = "0")
+            @RequestParam String isShowUpdate,
+            @ApiParam(name = "isForce", value = "变量描述", required = true, type = "String", example = "0")
+            @RequestParam String isForce,
+            @ApiParam(name = "isPlist", value = "变量描述", required = true, type = "String", example = "0")
+            @RequestParam String isPlist,
+
+            @ApiParam(name = "content", value = "变量描述", required = true, type = "String", example = "更新内容")
+            @RequestParam String content,
+            @ApiParam(name = "url", value = "变量描述", required = true, type = "String", example = "http://")
+            @RequestParam String url,
+
+            @ApiParam(name = "description", value = "备注", required = true, type = "String", example = "暂无备注")
+            @RequestParam String description) {
+
+        log.info("BackendController saveVersion clientType:"+clientType+" version:"+version+" channel:"+channel);
+        log.info("BackendController saveVersion isShowUpdate:"+isShowUpdate+" isForce:"+isForce+" isPlist:"+isPlist);
+        log.info("BackendController saveVersion content:"+content);
+        log.info("BackendController saveVersion url:"+url);
+        log.info("BackendController saveVersion description:"+description);
+
+        try {
+            ValidateUtils.notEmpty(clientType);
+            ValidateUtils.notEmpty(version);
+            ValidateUtils.notEmpty(channel);
+
+            ValidateUtils.notEmpty(isShowUpdate);
+            ValidateUtils.notEmpty(isForce);
+            ValidateUtils.notEmpty(isPlist);
+
+            ValidateUtils.notEmpty(content);
+            ValidateUtils.notEmpty(url);
+
+            miscManager.saveVersionUpdate(clientType, version, channel, isShowUpdate, isForce, isPlist, content, url, description);
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
+    }
+
+    @ApiOperation(value = "后台管理-根据账户搜索用户")
+    @RequestMapping(value = "/Version/search", method = RequestMethod.POST)
+    public APIResult<Object> searchVersion(
+            @ApiParam(name = "version", value = "版本号", required = true, type = "String", example = "5.0.0")
+            @RequestParam String version) {
+
+        log.info("BackendController searchVersion version:"+version);
+
+        try {
+            ValidateUtils.notEmpty(version);
+
+            List<VersionUpdate> backendSystemConfigList = miscManager.getVersionUpdateByVersion(version);
+
+            PageBeanRes pageBeanRes = new PageBeanRes();
+            pageBeanRes.setPage(1);
+            pageBeanRes.setPageSize(10);
+            pageBeanRes.setTotal(1);
+            pageBeanRes.setData(backendSystemConfigList);
+            return APIResultWrap.ok(pageBeanRes);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
+    }
+
+
+    @ApiOperation(value = "后台管理-根据账户搜索用户")
+    @RequestMapping(value = "/Version/enableOrDisable", method = RequestMethod.POST)
+    public APIResult<Object> enableOrDisableVersionUpdate(
+            @ApiParam(name = "clientType", value = "客户端类型", required = true, type = "String", example = "ios")
+            @RequestParam String clientType,
+            @ApiParam(name = "version", value = "版本号", required = true, type = "String", example = "5.0.0")
+            @RequestParam String version,
+            @ApiParam(name = "channel", value = "渠道号", required = true, type = "String", example = "official")
+            @RequestParam String channel,
+            @ApiParam(name = "isShowUpdate", value = "是否更新", required = true, type = "String", example = "0")
+            @RequestParam String isShowUpdate) {
+
+        log.info("BackendController enableOrDisableVersionUpdate clientType:"+clientType+" version:"+version+" channel:"+channel+" isShowUpdate:"+isShowUpdate);
+
+        try {
+            ValidateUtils.notEmpty(clientType);
+            ValidateUtils.notEmpty(version);
+            ValidateUtils.notEmpty(channel);
+
+            ValidateUtils.notEmpty(isShowUpdate);
+
+            miscManager.enableOrDisableVersionUpdate(clientType, version, channel, isShowUpdate);
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
+    }
+
 
     /**
      * createAuthToken

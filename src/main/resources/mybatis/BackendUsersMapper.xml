@@ -20,11 +20,11 @@
   </resultMap>
 
   <select id="getAllBackendUsers" resultMap="resultListWithBackendUsers">
-      select * from backend_users;
+      select * from backend_users order by updatedAt desc;
   </select>
 
   <select id="getPageBackendUsers" resultMap="resultListWithBackendUsers">
-      select * from backend_users limit #{limit} offset #{offset};
+      select * from backend_users order by updatedAt desc limit #{limit} offset #{offset};
   </select>
 
   <select id="getTotalCount" resultType="int">

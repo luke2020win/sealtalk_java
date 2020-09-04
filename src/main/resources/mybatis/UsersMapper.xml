@@ -22,7 +22,7 @@
   </resultMap>
 
   <select id="getPageUserList" resultMap="BaseResultMap">
-      select * from users limit #{limit} offset #{offset};
+      select * from users order by createdAt desc limit #{limit} offset #{offset};
   </select>
 
   <select id="getTotalCount" resultType="int">

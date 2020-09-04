@@ -15,7 +15,7 @@
   </resultMap>
 
   <select id="getPageUserIPBlack" resultMap="BaseResultMap">
-      select * from user_ip_black limit #{limit} offset #{offset};
+      select * from user_ip_black order by updatedAt desc limit #{limit} offset #{offset};
   </select>
 
   <select id="getTotalCount" resultType="int">

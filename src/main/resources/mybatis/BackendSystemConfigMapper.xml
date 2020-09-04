@@ -15,11 +15,11 @@
   </resultMap>
 
   <select id="getAllBackendSystemConfig" resultMap="resultListWithBackendSystemConfig">
-      select * from backend_system_config;
+      select * from backend_system_config order by updatedAt desc;
   </select>
 
   <select id="getPageBackendSystemConfig" resultMap="resultListWithBackendSystemConfig">
-      select * from backend_system_config limit #{limit} offset #{offset};
+      select * from backend_system_config order by updatedAt desc limit #{limit} offset #{offset};
   </select>
 
   <select id="getTotalCount" resultType="int">

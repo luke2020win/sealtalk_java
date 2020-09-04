@@ -228,8 +228,8 @@ public class RequestInterceptor implements HandlerInterceptor {
     }
 
     private String getAuthToken(HttpServletRequest request) {
-        String authToken = request.getHeader("token");
-        log.info("getAuthToken authToken:"+authToken);
+        String authToken = request.getHeader("Authorization");
+        log.info("getAuthToken Authorization:"+authToken);
         return authToken;
     }
 

@@ -1,7 +1,5 @@
 package com.rcloud.server.sealtalk.controller.param;
 
-import com.rcloud.server.sealtalk.exception.ServiceException;
-import com.rcloud.server.sealtalk.util.JacksonUtil;
 import lombok.Data;
 
 /**

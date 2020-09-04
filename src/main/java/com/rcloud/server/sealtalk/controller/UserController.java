@@ -261,9 +261,7 @@ public class UserController extends BaseController {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", pairResult.getLeft());
         resultMap.put("token", pairResult.getRight());
-
-        log.info("login id" + pairResult.getLeft());
-        log.info("login token" + pairResult.getRight());
+        resultMap.put("authToken", createAuthToken(pairResult.getLeft()));
 
         //对result编码
         return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
@@ -555,23 +553,27 @@ public class UserController extends BaseController {
     @ApiOperation(value = "获取用户信息")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public APIResult<Object> getUserInfo(@ApiParam(name = "id", value = "用户ID", required = true, type = "Integer", example = "xxx")
-                                         @PathVariable("id") String id) throws ServiceException {
-
-        Integer userId = N3d.decode(id);
-        log.info("getUserInfo userId:" + userId);
-        Users users = userManager.getUser(userId);
-        if (users != null) {
-            UserDTO userDTO = new UserDTO();
-            userDTO.setId(N3d.encode(users.getId()));
-            userDTO.setRegion(users.getRegion());
-            userDTO.setNickname(users.getNickname());
-            userDTO.setPortraitUri(users.getPortraitUri());
-            userDTO.setGender(users.getGender());
-            userDTO.setStAccount(users.getStAccount());
-            userDTO.setPhone(users.getPhone());
-            return APIResultWrap.ok(userDTO);
-        } else {
-            throw new ServiceException(ErrorCode.UNKNOW_USER);
+                                         @PathVariable("id") String id) {
+        try {
+            Integer userId = N3d.decode(id);
+            log.info("getUserInfo userId:" + userId);
+            Users users = userManager.getUser(userId);
+            if (users != null) {
+                UserDTO userDTO = new UserDTO();
+                userDTO.setId(N3d.encode(users.getId()));
+                userDTO.setRegion(users.getRegion());
+                userDTO.setNickname(users.getNickname());
+                userDTO.setPortraitUri(users.getPortraitUri());
+                userDTO.setGender(users.getGender());
+                userDTO.setStAccount(users.getStAccount());
+                userDTO.setPhone(users.getPhone());
+                return APIResultWrap.ok(userDTO);
+            } else {
+                return APIResultWrap.error(ErrorCode.UNKNOW_USER);
+            }
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
     }
 
@@ -580,49 +582,53 @@ public class UserController extends BaseController {
     public APIResult<Object> getFavGroups(@ApiParam(name = "limit", value = "limit", required = false, type = "Integer", example = "xxx")
                                           @RequestParam(value = "limit", required = false) Integer limit,
                                           @ApiParam(name = "offset", value = "offset", required = false, type = "Integer", example = "xxx")
-                                          @RequestParam(value = "offset", required = false) Integer offset) throws ServiceException {
+                                          @RequestParam(value = "offset", required = false) Integer offset) {
 
-
-        if (limit == null && offset != null) {
-            throw new ServiceException(ErrorCode.REQUEST_ERROR);
-        }
-
-        Integer currentUserId = getCurrentUserId();
-        Pair<Integer, List<Groups>> result = userManager.getFavGroups(currentUserId, limit, offset);
-
-        Integer count = result.getLeft();
-        List<Groups> groupsList = result.getRight();
-
-        SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
-
-        List<FavGroupInfoDTO> favGroupInfoDTOS = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(groupsList)) {
-            for (Groups groups : groupsList) {
-                FavGroupInfoDTO favGroupInfoDTO = new FavGroupInfoDTO();
-                favGroupInfoDTO.setId(N3d.encode(groups.getId()));
-                favGroupInfoDTO.setName(groups.getName());
-                favGroupInfoDTO.setPortraitUri(groups.getPortraitUri());
-                favGroupInfoDTO.setMemberCount(groups.getMemberCount());
-                favGroupInfoDTO.setMaxMemberCount(groups.getMaxMemberCount());
-                favGroupInfoDTO.setMemberProtection(groups.getMemberProtection());
-                favGroupInfoDTO.setCreatorId(N3d.encode(groups.getCreatorId()));
-                favGroupInfoDTO.setIsMute(groups.getIsMute());
-                favGroupInfoDTO.setCertiStatus(groups.getCertiStatus());
-                favGroupInfoDTO.setCreatedAt(sdf.format(groups.getCreatedAt()));
-                favGroupInfoDTO.setUpdatedAt(sdf.format(groups.getUpdatedAt()));
-                favGroupInfoDTO.setCreatedTime(groups.getCreatedAt().getTime());
-                favGroupInfoDTO.setUpdatedTime(groups.getUpdatedAt().getTime());
-                favGroupInfoDTOS.add(favGroupInfoDTO);
+        try {
+            if (limit == null && offset != null) {
+                return APIResultWrap.error(ErrorCode.REQUEST_ERROR);
             }
+
+            Integer currentUserId = getCurrentUserId();
+            Pair<Integer, List<Groups>> result = userManager.getFavGroups(currentUserId, limit, offset);
+
+            Integer count = result.getLeft();
+            List<Groups> groupsList = result.getRight();
+
+            SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
+
+            List<FavGroupInfoDTO> favGroupInfoDTOS = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(groupsList)) {
+                for (Groups groups : groupsList) {
+                    FavGroupInfoDTO favGroupInfoDTO = new FavGroupInfoDTO();
+                    favGroupInfoDTO.setId(N3d.encode(groups.getId()));
+                    favGroupInfoDTO.setName(groups.getName());
+                    favGroupInfoDTO.setPortraitUri(groups.getPortraitUri());
+                    favGroupInfoDTO.setMemberCount(groups.getMemberCount());
+                    favGroupInfoDTO.setMaxMemberCount(groups.getMaxMemberCount());
+                    favGroupInfoDTO.setMemberProtection(groups.getMemberProtection());
+                    favGroupInfoDTO.setCreatorId(N3d.encode(groups.getCreatorId()));
+                    favGroupInfoDTO.setIsMute(groups.getIsMute());
+                    favGroupInfoDTO.setCertiStatus(groups.getCertiStatus());
+                    favGroupInfoDTO.setCreatedAt(sdf.format(groups.getCreatedAt()));
+                    favGroupInfoDTO.setUpdatedAt(sdf.format(groups.getUpdatedAt()));
+                    favGroupInfoDTO.setCreatedTime(groups.getCreatedAt().getTime());
+                    favGroupInfoDTO.setUpdatedTime(groups.getUpdatedAt().getTime());
+                    favGroupInfoDTOS.add(favGroupInfoDTO);
+                }
+            }
+
+            FavGroupsDTO favGroupsDTO = new FavGroupsDTO();
+            favGroupsDTO.setLimit(limit);
+            favGroupsDTO.setOffset(offset);
+            favGroupsDTO.setTotal(count);
+            favGroupsDTO.setList(favGroupInfoDTOS);
+
+            return APIResultWrap.ok(favGroupsDTO);
         }
-
-        FavGroupsDTO favGroupsDTO = new FavGroupsDTO();
-        favGroupsDTO.setLimit(limit);
-        favGroupsDTO.setOffset(offset);
-        favGroupsDTO.setTotal(count);
-        favGroupsDTO.setList(favGroupInfoDTOS);
-
-        return APIResultWrap.ok(favGroupsDTO);
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -763,5 +769,19 @@ public class UserController extends BaseController {
             }
         }
         return APIResultWrap.ok(resultMap);
+    }
+
+    /**
+     * createAuthToken
+     *
+     * @param userId
+     */
+    private String createAuthToken (int userId) {
+        int salt = RandomUtil.randomBetween(1000, 9999);
+        String text = salt + Constants.SEPARATOR_NO + userId + Constants.SEPARATOR_NO + System.currentTimeMillis();
+        byte[] value = AES256.encrypt(text, sealtalkConfig.getAuthCookieKey());
+        String authToken = new String(value);
+        log.info("createAuthToken authToken:"+authToken);
+        return authToken;
     }
 }

@@ -1,11 +1,24 @@
 {
   "iOS": {
     "version": "5.0.0",
-    "build": "202008191848",
+    "build": "202009022048",
     "url": "https://www.pdsign.cn/m1598168900/3931a0f70a6370236aeee56ca2d2da32.htm?tid=1976"
   },
   "Android": {
     "version": "5.0.0",
     "url": "http://download.hotchatvip.com/hotchat-5.0.0.apk"
+  },
+
+
+  "Android": {
+    "clientType": "ios",
+    "isForce": 0,
+    "version": "5.0.0",
+    "content": "本次更新修复bug。。。。。。",
+    "url": "http://download.hotchatvip.com/hotchat-5.0.0.apk",
+    "isPlist": 0,
+    "isShowUpdate": 1,
+    "updateTime": ""
   }
 }
+

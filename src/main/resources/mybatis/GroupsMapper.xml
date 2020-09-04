@@ -25,11 +25,11 @@
   </resultMap>
 
   <select id="getPageGroupsList" resultMap="BaseResultMap">
-      select * from groups limit #{limit} offset #{offset};
+      select * from groups order by createdAt desc limit #{limit} offset #{offset};
   </select>
 
   <select id="getGroupsByName" resultMap="BaseResultMap">
-      select * from groups where name = #{name};
+      select * from groups where name = #{name} order by createdAt desc;
   </select>
 
   <select id="getTotalCount" resultType="int">
