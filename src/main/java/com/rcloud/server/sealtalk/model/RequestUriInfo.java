@@ -10,8 +10,9 @@ import lombok.Data;
  */
 @Data
 public class RequestUriInfo {
-
     private String uri;
     private String remoteAddress;
     private String ip;
+    private String clientType;
+    private String channel;
 }

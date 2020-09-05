@@ -11,6 +11,10 @@
     <result column="nickname" jdbcType="VARCHAR" property="nickname" />
     <result column="portraitUri" jdbcType="VARCHAR" property="portraitUri" />
     <result column="gender" jdbcType="VARCHAR" property="gender" />
+
+    <result column="clientType" jdbcType="CHAR" property="clientType" />
+    <result column="channel" jdbcType="CHAR" property="channel" />
+
     <result column="stAccount" jdbcType="VARCHAR" property="stAccount" />
     <result column="ip" jdbcType="VARCHAR" property="ip" />
     <result column="isDisable" jdbcType="INTEGER" property="isDisable" />

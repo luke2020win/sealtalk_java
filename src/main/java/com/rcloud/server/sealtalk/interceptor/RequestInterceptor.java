@@ -238,9 +238,14 @@ public class RequestInterceptor implements HandlerInterceptor {
         ip = StringUtil.isEmpty(ip) ? "" : ip;
         String uri = request.getRequestURI();
         String remoteAddress = request.getRemoteAddr();
+        String channel = request.getHeader("channel");
+        String clientType = request.getHeader("clientType");
         RequestUriInfo requestUriInfo = new RequestUriInfo();
         requestUriInfo.setUri(uri);
         requestUriInfo.setRemoteAddress(remoteAddress);
+        requestUriInfo.setIp(ip);
+        requestUriInfo.setChannel(clientType);
+        requestUriInfo.setChannel(channel);
         requestUriInfo.setIp(ip);
         return requestUriInfo;
     }

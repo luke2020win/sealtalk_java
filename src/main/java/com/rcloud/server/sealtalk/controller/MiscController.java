@@ -88,13 +88,14 @@ public class MiscController extends BaseController {
             String clientType = clientVersionParam.getClientType();
             String channel = clientVersionParam.getChannel();
             String version = clientVersionParam.getVersion();
+            Integer versionCode = clientVersionParam.getVersionCode();
 
             log.info("MiscController getClientVersion clientType:"+clientType+" channel:"+channel+" version:"+version);
             ValidateUtils.notEmpty(channel);
             ValidateUtils.notEmpty(version);
             ValidateUtils.notEmpty(clientType);
 
-            versionUpdate = miscManager.getClientVersion(version, channel, clientType);
+            versionUpdate = miscManager.getClientVersion(version, versionCode, channel, clientType);
         }
         catch (ServiceException e) {
             return APIResultWrap.error(e.getErrorCode(), e.getErrorMessage());

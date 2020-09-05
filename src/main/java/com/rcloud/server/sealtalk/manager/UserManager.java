@@ -284,8 +284,10 @@ public class UserManager extends BaseManager {
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(password, salt);
         String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("register ip:" + ip);
-        Users u = register0(nickname, verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip);
+        String clientType = serverApiParams.getRequestUriInfo().getClientType();
+        String channel = serverApiParams.getRequestUriInfo().getChannel();
+        log.info("register ip:" + ip+" clientType:"+clientType+" channel:"+channel);
+        Users u = register0(nickname, verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip, clientType, channel);
 
         //缓存nickname
         CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
@@ -304,13 +306,22 @@ public class UserManager extends BaseManager {
      * @param hashStr
      * @return
      */
-    private Users register0(String nickname, String region, String phone, int salt, String hashStr, String ip) {
+    private Users register0(String nickname, String region, String phone, int salt, String hashStr, String ip, String clientType, String channel) {
         return transactionTemplate.execute(transactionStatus -> {
             //插入user表
             Users u = new Users();
             u.setNickname(nickname);
             u.setRegion(region);
             u.setPhone(phone);
+
+            if(!StringUtils.isEmpty(clientType)) {
+                u.setClientType(clientType);
+            }
+
+            if(!StringUtils.isEmpty(channel)) {
+                u.setChannel(channel);
+            }
+
             u.setIp(ip);
             u.setPasswordHash(hashStr);
             u.setPasswordSalt(String.valueOf(salt));
@@ -397,6 +408,7 @@ public class UserManager extends BaseManager {
         log.error("login token:" + token);
         log.error("login nickname:" + u.getNickname());
         log.error("login portraitUri:" + u.getPortraitUri());
+
         if (StringUtils.isEmpty(token)) {
             //如果user表中的融云token为空，调用融云sdk 获取token
             //如果用户头像地址为空，采用默认头像地址
@@ -405,18 +417,22 @@ public class UserManager extends BaseManager {
             if (!Constants.CODE_OK.equals(tokenResult.getCode())) {
                 throw new ServiceException(ErrorCode.SERVER_ERROR, "'RongCloud Server API Error Code: " + tokenResult.getCode());
             }
-
             token = tokenResult.getToken();
-            String ip = serverApiParams.getRequestUriInfo().getIp();
-            log.info("login ip:" + ip);
-            //获取后根据userId更新表中token
-            Users users = new Users();
-            users.setId(u.getId());
-            users.setRongCloudToken(token);
-            users.setIp(ip);
-            users.setUpdatedAt(new Date());
-            usersService.updateByPrimaryKeySelective(users);
         }
+
+        String ip = serverApiParams.getRequestUriInfo().getIp();
+        String clientType = serverApiParams.getRequestUriInfo().getClientType();
+        String channel = serverApiParams.getRequestUriInfo().getChannel();
+        log.info("login ip:" + ip+" clientType:"+clientType+" channel:"+channel);
+        //获取后根据userId更新表中token
+        Users users = new Users();
+        users.setId(u.getId());
+        users.setRongCloudToken(token);
+        users.setIp(ip);
+        users.setChannel(channel);
+        users.setClientType(clientType);
+        users.setUpdatedAt(new Date());
+        usersService.updateByPrimaryKeySelective(users);
 
         //返回userId、token
         return Pair.of(u.getId(), token);
@@ -1279,7 +1295,7 @@ public class UserManager extends BaseManager {
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(password, salt);
 
-        Users u = register0(nickname, region, phone, salt, hashStr, ip);
+        Users u = register0(nickname, region, phone, salt, hashStr, ip, null, null);
         log.info("addUser id:" + u.getId());
     }
 

@@ -239,13 +239,15 @@ public class MiscManager extends BaseManager {
      * @return
      * @throws ServiceException
      */
-    public VersionUpdate getClientVersion(String version, String channel, String clientType) throws ServiceException {
+    public VersionUpdate getClientVersion(String version, Integer versionCode, String channel, String clientType) throws ServiceException {
         log.info("MiscManager getClientVersion version:"+version);
         log.info("MiscManager getClientVersion channel:"+channel);
         log.info("MiscManager getClientVersion clientype:"+clientType);
 
-        // 去掉空格、v、点
-        Integer versionCode = VersionUtils.toVersionCode(version);
+        Integer versioncode = null;
+        if(versionCode == null || versioncode < 0) {
+            versioncode = VersionUtils.toVersionCode(version);
+        }
         String channelStr = VersionUtils.handleClientype(channel);
         String clienttype = VersionUtils.handleClientype(clientType);
 
@@ -254,7 +256,7 @@ public class MiscManager extends BaseManager {
 
         VersionUpdate versionUpdate = versionUpdateService.getLastVersionUpdateByClientTypeAndChannel(clienttype, channelStr);
         if(versionUpdate != null) {
-            if(versionUpdate.getVersionCode() < versionCode && versionUpdate.equals(channelStr)) {
+            if(versionUpdate.getVersionCode() <= versioncode && versionUpdate.getChannel().equals(channelStr)) {
                 versionUpdate.setIsShowUpdate(VersionUpdate.NO_SHOW_UPDATE);
             }
         }

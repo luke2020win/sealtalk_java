@@ -7,4 +7,5 @@ public class ClientVersionParam {
     private String channel;
     private String version;
     private String clientType;
+    private Integer versionCode;
 }

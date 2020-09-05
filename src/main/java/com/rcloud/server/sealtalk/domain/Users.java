@@ -43,6 +43,12 @@ public class Users implements Serializable {
 
     private String gender;
 
+    @Column(name="channel")
+    private String channel;
+
+    @Column(name="clientType")
+    private String clientType;
+
     @Column(name="stAccount")
     private String stAccount;
 
@@ -390,6 +396,22 @@ public class Users implements Serializable {
         this.ip = ip;
     }
 
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public String getClientType() {
+        return clientType;
+    }
+
+    public void setClientType(String clientType) {
+        this.clientType = clientType;
+    }
+
     @Override
     public String toString() {
         return "Users{" +
@@ -402,6 +424,8 @@ public class Users implements Serializable {
                 ", passwordSalt='" + passwordSalt + '\'' +
                 ", rongCloudToken='" + rongCloudToken + '\'' +
                 ", gender='" + gender + '\'' +
+                ", clientType='" + clientType + '\'' +
+                ", channel='" + channel + '\'' +
                 ", stAccount='" + stAccount + '\'' +
                 ", ip='" + ip + '\'' +
                 ", isDisable='" + isDisable + '\'' +
