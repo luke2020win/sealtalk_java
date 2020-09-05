@@ -6,7 +6,7 @@
 
   <groupId>com.csj.hotchat.server</groupId>
   <artifactId>hotchat-server</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>5.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <!--  服务名称以及描述-->
@@ -214,9 +214,6 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>2.3.1.RELEASE</version>
         <configuration>
-          <!--          <mainClass>com.rcloud.server.sealtalk.SealtalkServerApplication</mainClass>-->
-          <!--          &lt;!&ndash; 简化启动命令&ndash;&gt;-->
-          <!--          <executable>true</executable>-->
           <includeSystemScope>true</includeSystemScope>
         </configuration>
       </plugin>
@@ -228,6 +225,15 @@
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
         </configuration>
       </plugin>
 

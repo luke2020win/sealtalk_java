@@ -71,7 +71,7 @@ sealtalk-config:
   db_name: 'hotchat'
   db_user: 'root'
   db_password: 'nkn88uuAla&h#'
-  db_host: '47.57.12.209'
+  db_host: '172.21.148.117'
   db_port: '3306'
 
 
