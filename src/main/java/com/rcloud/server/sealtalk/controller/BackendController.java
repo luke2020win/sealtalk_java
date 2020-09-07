@@ -61,24 +61,23 @@ public class BackendController extends BaseController {
             @ApiParam(name = "account", value = "用户名", required = true, type = "String", example = "admin")
             @RequestParam String account,
             @ApiParam(name = "password", value = "密码", required = true, type = "String", example = "123456")
-            @RequestParam String password,
-            HttpServletResponse response) throws ServiceException {
+            @RequestParam String password){
 
         log.info("BackendController login account:"+account+" password:"+password);
+        try {
+            ValidateUtils.notEmpty(account);
+            ValidateUtils.checkPassword(password);
 
-        ValidateUtils.notEmpty(account);
-        ValidateUtils.checkPassword(password);
+            BackendUsers backendUsers = backendUserManager.login(account, password);
 
-        BackendUsers backendUsers = backendUserManager.login(account, password);
+            //设置cookie  userId加密存入cookie
+            //登录成功后的其他请求，当前登录用户useId获取从cookie中获取
+            //setCookie(response, backendUsers.getId());
 
-        //设置cookie  userId加密存入cookie
-        //登录成功后的其他请求，当前登录用户useId获取从cookie中获取
-        //setCookie(response, backendUsers.getId());
-
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("id", backendUsers.getId());
-        resultMap.put("authToken", createAuthToken(backendUsers.getId()));
-        resultMap.put("roleType", backendUsers.getRoleType());
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("id", backendUsers.getId());
+            resultMap.put("authToken", createAuthToken(backendUsers.getId()));
+            resultMap.put("roleType", backendUsers.getRoleType());
 
 //        Map<String, Object> resultMap = new HashMap<>();
 //        resultMap.put("id", "1");
@@ -86,8 +85,12 @@ public class BackendController extends BaseController {
 //        // 1-超级管理员 2-普通管理员
 //        resultMap.put("roleType", "超级管理员");
 
-        //对result编码
-        return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
+            //对result编码
+            return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -98,47 +101,36 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) throws ServiceException {
+            @RequestParam String pageSize) {
 
         log.info("BackendController roleList currentPage:"+currentPage+" pageSize:"+pageSize);
-
-        int pageTemp = 1;
         try {
-            pageTemp = Integer.valueOf(currentPage);
-        }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
-        }
+            PageBeanRes<BackendUsers> pageBeanRes = new PageBeanRes();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController roleList page:"+page+" pageSize:"+pagesize);
+            List<BackendUsers> backendUsersList = backendUserManager.getPageBackendUsers(page, pagesize);
+            if(backendUsersList == null || backendUsersList.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = backendUserManager.getTotalCount();
+                log.info("BackendController roleList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(backendUsersList);
+            }
 
-        int pageSizeT = 10;
-        try {
-            pageSizeT = Integer.valueOf(pageSize);
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
         }
-        catch (NumberFormatException numberFormatException) {
-           numberFormatException.printStackTrace();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        PageBeanRes<BackendUsers> pageBeanRes = new PageBeanRes();
-
-        log.info("BackendController roleList pageTemp:"+pageTemp+" pageSize:"+pageSizeT);
-        List<BackendUsers> backendUsersList = backendUserManager.getPageBackendUsers(pageTemp, pageSizeT);
-        if(backendUsersList == null || backendUsersList.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
-        }
-        else {
-            int total = backendUserManager.getTotalCount();
-            log.info("BackendController roleList total:"+total);
-            pageBeanRes.setPage(pageTemp);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(total);
-            pageBeanRes.setData(backendUsersList);
-        }
-
-        //对result编码
-        return APIResultWrap.ok(pageBeanRes);
     }
 
 
@@ -150,16 +142,20 @@ public class BackendController extends BaseController {
             @ApiParam(name = "password", value = "密码", required = true, type = "String", example = "123456")
             @RequestParam String password,
             @ApiParam(name = "roleType", value = "角色类型", required = true, type = "String", example = "123456")
-            @RequestParam String roleType) throws ServiceException {
+            @RequestParam String roleType) {
 
         log.info("BackendController saveRole account:"+account+" password:"+password+" roleType:"+roleType);
+        try {
+            Integer id = backendUserManager.saveRole(account, password, roleType);
 
-        Integer id = backendUserManager.saveRole(account, password, roleType);
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("id", N3d.encode(id));
 
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("id", N3d.encode(id));
-
-        return APIResultWrap.ok(resultMap);
+            return APIResultWrap.ok(resultMap);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -167,21 +163,25 @@ public class BackendController extends BaseController {
     @RequestMapping(value = "/Role/search", method = RequestMethod.POST)
     public APIResult<Object> searchUser(
             @ApiParam(name = "account", value = "用户名", required = true, type = "String", example = "admin")
-            @RequestParam String account) throws ServiceException {
+            @RequestParam String account) {
 
         log.info("BackendController searchUser account:"+account);
+        try {
+            ValidateUtils.notEmpty(account);
 
-        ValidateUtils.notEmpty(account);
+            List<BackendUsers> backendUsersList = backendUserManager.getBackendUsersByAccount(account);
 
-        List<BackendUsers> backendUsersList = backendUserManager.getBackendUsersByAccount(account);
+            PageBeanRes pageBeanRes = new PageBeanRes();
+            pageBeanRes.setPage(1);
+            pageBeanRes.setPageSize(10);
+            pageBeanRes.setTotal(1);
+            pageBeanRes.setData(backendUsersList);
 
-        PageBeanRes pageBeanRes = new PageBeanRes();
-        pageBeanRes.setPage(1);
-        pageBeanRes.setPageSize(10);
-        pageBeanRes.setTotal(1);
-        pageBeanRes.setData(backendUsersList);
-
-        return APIResultWrap.ok(pageBeanRes);
+            return APIResultWrap.ok(pageBeanRes);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -189,16 +189,21 @@ public class BackendController extends BaseController {
     @RequestMapping(value = "/Role/delete", method = RequestMethod.POST)
     public APIResult<Object> delete(
             @ApiParam(name = "account", value = "用户名", required = true, type = "String", example = "admin")
-            @RequestParam String account) throws ServiceException {
+            @RequestParam String account) {
 
         log.info("BackendController delete account:"+account);
+        try {
+            ValidateUtils.notEmpty(account);
 
-        ValidateUtils.notEmpty(account);
+            backendUserManager.delete(account);
 
-        backendUserManager.delete(account);
-
-        //对result编码
-        return APIResultWrap.ok();
+            //对result编码
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            //对result编码
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -212,43 +217,33 @@ public class BackendController extends BaseController {
 
         log.info("BackendController variableList currentPage:"+currentPage+" pageSize:"+pageSize);
 
-        int pageT = 1;
         try {
-            pageT = Integer.valueOf(currentPage);
-        }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
-        }
+            PageBeanRes<BackendSystemConfig> pageBeanRes = new PageBeanRes<>();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController variableList page:"+page+" pageSize:"+pagesize);
+            List<BackendSystemConfig> backendSystemConfigList = backendSystemConfigManager.getPageBackendSystemConfig(page, pagesize);
+            if(backendSystemConfigList == null || backendSystemConfigList.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = backendSystemConfigManager.getTotalCount();
+                log.info("BackendController variableList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(backendSystemConfigList);
+            }
 
-        int pageSizeT = 10;
-        try {
-            pageSizeT = Integer.valueOf(pageSize);
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
         }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        PageBeanRes<BackendSystemConfig> pageBeanRes = new PageBeanRes<>();
-
-        log.info("BackendController variableList pageTemp:"+pageT+" pageSize:"+pageSizeT);
-        List<BackendSystemConfig> backendSystemConfigList = backendSystemConfigManager.getPageBackendSystemConfig(pageT, pageSizeT);
-        if(backendSystemConfigList == null || backendSystemConfigList.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
-        }
-        else {
-            int total = backendSystemConfigManager.getTotalCount();
-            log.info("BackendController variableList total:"+total);
-            pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(total);
-            pageBeanRes.setData(backendSystemConfigList);
-        }
-
-        //对result编码
-        return APIResultWrap.ok(pageBeanRes);
     }
 
     @ApiOperation(value = "后台管理-编辑/添加角色")
@@ -261,36 +256,44 @@ public class BackendController extends BaseController {
             @ApiParam(name = "varDes", value = "变量描述", required = true, type = "String", example = "123456")
             @RequestParam String varDes,
             @ApiParam(name = "description", value = "描述", required = true, type = "String", example = "123456")
-            @RequestParam String description) throws ServiceException {
+            @RequestParam String description) {
 
         log.info("BackendController saveVariable varName:"+varName+" varValue:"+varValue+" varDes:"+varDes+" description:"+description);
+        try {
+            ValidateUtils.notEmpty(varName);
 
-        ValidateUtils.notEmpty(varName);
+            backendSystemConfigManager.saveVariable(varName, varValue, varDes, description);
 
-        backendSystemConfigManager.saveVariable(varName, varValue, varDes, description);
-
-        return APIResultWrap.ok();
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "后台管理-根据账户搜索用户")
     @RequestMapping(value = "/Variable/search", method = RequestMethod.POST)
     public APIResult<Object> searchVariable(
             @ApiParam(name = "varName", value = "变量名", required = true, type = "String", example = "admin")
-            @RequestParam String varName) throws ServiceException {
+            @RequestParam String varName) {
 
         log.info("BackendController searchVariable varName:"+varName);
+        try {
+            ValidateUtils.notEmpty(varName);
 
-        ValidateUtils.notEmpty(varName);
+            List<BackendSystemConfig> backendSystemConfigList = backendSystemConfigManager.getBackendSystemConfigByAccount(varName);
 
-        List<BackendSystemConfig> backendSystemConfigList = backendSystemConfigManager.getBackendSystemConfigByAccount(varName);
+            PageBeanRes pageBeanRes = new PageBeanRes();
+            pageBeanRes.setPage(1);
+            pageBeanRes.setPageSize(10);
+            pageBeanRes.setTotal(1);
+            pageBeanRes.setData(backendSystemConfigList);
 
-        PageBeanRes pageBeanRes = new PageBeanRes();
-        pageBeanRes.setPage(1);
-        pageBeanRes.setPageSize(10);
-        pageBeanRes.setTotal(1);
-        pageBeanRes.setData(backendSystemConfigList);
-
-        return APIResultWrap.ok(pageBeanRes);
+            return APIResultWrap.ok(pageBeanRes);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -300,48 +303,37 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) throws ServiceException {
+            @RequestParam String pageSize) {
 
 
         log.info("BackendController ipBackendWhiteList currentPage:"+currentPage+" pageSize:"+pageSize);
-
-        int pageT = 1;
         try {
-            pageT = Integer.valueOf(currentPage);
-        }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
-        }
+            PageBeanRes<BackendIPWhite> pageBeanRes = new PageBeanRes<>();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController ipBackendWhiteList page:"+page+" pageSize:"+pagesize);
+            List<BackendIPWhite> backendIPWhites = backendIPWhiteListManager.getPageBackendIPWhiteList(page, pagesize);
+            if(backendIPWhites == null || backendIPWhites.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = backendIPWhiteListManager.getTotalCount();
+                log.info("BackendController ipBackendWhiteList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(backendIPWhites);
+            }
 
-        int pageSizeT = 10;
-        try {
-            pageSizeT = Integer.valueOf(pageSize);
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
         }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        PageBeanRes<BackendIPWhite> pageBeanRes = new PageBeanRes<>();
-
-        log.info("BackendController ipBackendWhiteList pageTemp:"+pageT+" pageSize:"+pageSizeT);
-        List<BackendIPWhite> backendIPWhites = backendIPWhiteListManager.getPageBackendIPWhiteList(pageT, pageSizeT);
-        if(backendIPWhites == null || backendIPWhites.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
-        }
-        else {
-            int total = backendIPWhiteListManager.getTotalCount();
-            log.info("BackendController ipBackendWhiteList total:"+total);
-            pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(total);
-            pageBeanRes.setData(backendIPWhites);
-        }
-
-        //对result编码
-        return APIResultWrap.ok(pageBeanRes);
     }
 
 
@@ -351,15 +343,19 @@ public class BackendController extends BaseController {
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "172.0.0.1")
             @RequestParam String ip,
             @ApiParam(name = "description", value = "ip描述", required = true, type = "String", example = "暂无描述")
-            @RequestParam String description) throws ServiceException {
+            @RequestParam String description) {
 
         log.info("BackendController saveIpBackendWhite ip:"+ip+" description:"+description);
+        try {
+            ValidateUtils.notEmpty(ip);
 
-        ValidateUtils.notEmpty(ip);
+            backendIPWhiteListManager.saveIP(ip, description);
 
-        backendIPWhiteListManager.saveIP(ip, description);
-
-        return APIResultWrap.ok();
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -367,44 +363,52 @@ public class BackendController extends BaseController {
     @RequestMapping(value = "/IpBackendWhite/search", method = RequestMethod.POST)
     public APIResult<Object> searchIpBackendWhite(
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "admin")
-            @RequestParam String ip) throws ServiceException {
+            @RequestParam String ip) {
 
         log.info("BackendController searchIpBackendWhite ip:"+ip);
+        try {
 
+            ValidateUtils.notEmpty(ip);
 
-        ValidateUtils.notEmpty(ip);
+            List<BackendIPWhite> backendIPWhites = backendIPWhiteListManager.getBackendIPWhiteListByAccount(ip);
 
-        List<BackendIPWhite> backendIPWhites = backendIPWhiteListManager.getBackendIPWhiteListByAccount(ip);
+            PageBeanRes pageBeanRes = new PageBeanRes();
+            pageBeanRes.setPage(1);
+            pageBeanRes.setPageSize(10);
+            pageBeanRes.setTotal(1);
+            pageBeanRes.setData(backendIPWhites);
 
-        PageBeanRes pageBeanRes = new PageBeanRes();
-        pageBeanRes.setPage(1);
-        pageBeanRes.setPageSize(10);
-        pageBeanRes.setTotal(1);
-        pageBeanRes.setData(backendIPWhites);
-
-        return APIResultWrap.ok(pageBeanRes);
+            return APIResultWrap.ok(pageBeanRes);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "后台管理-删除白名单IP")
     @RequestMapping(value = "/IpBackendWhite/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteBackenWhiteIP(
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "172.1.1.1")
-            @RequestParam String ip) throws ServiceException {
+            @RequestParam String ip) {
 
         log.info("BackendController deleteBackenWhiteIP ip:"+ip);
+        try {
+            ValidateUtils.notEmpty(ip);
 
-        ValidateUtils.notEmpty(ip);
+            ServerApiParams serverApiParams = ServerApiParamHolder.get();
+            String requestIp = serverApiParams.getRequestUriInfo().getIp();
+            if(ip.equals(requestIp)) {
+                throw new ServiceException(ErrorCode.IP_NOT_DELETE_SELF);
+            }
 
-        ServerApiParams serverApiParams = ServerApiParamHolder.get();
-        String requestIp = serverApiParams.getRequestUriInfo().getIp();
-        if(ip.equals(requestIp)) {
-            throw new ServiceException(ErrorCode.IP_NOT_DELETE_SELF);
+            backendIPWhiteListManager.delete(ip);
+
+            //对result编码
+            return APIResultWrap.ok();
         }
-
-        backendIPWhiteListManager.delete(ip);
-
-        //对result编码
-        return APIResultWrap.ok();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -415,47 +419,36 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) throws ServiceException {
+            @RequestParam String pageSize) {
 
         log.info("BackendController ipBlackList currentPage:"+currentPage+" pageSize:"+pageSize);
-
-        int pageT = 1;
         try {
-            pageT = Integer.valueOf(currentPage);
-        }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
-        }
+            PageBeanRes<UserIPBlack> pageBeanRes = new PageBeanRes<>();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController ipBlackList page:"+page+" pagesize:"+pagesize);
+            List<UserIPBlack> userIPBlacks = userIPBlackListManager.getPageUserIPBlackList(page, pagesize);
+            if(userIPBlacks == null || userIPBlacks.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = userIPBlackListManager.getTotalCount();
+                log.info("BackendController ipBlackList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(userIPBlacks);
+            }
 
-        int pageSizeT = 10;
-        try {
-            pageSizeT = Integer.valueOf(pageSize);
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
         }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        PageBeanRes<UserIPBlack> pageBeanRes = new PageBeanRes<>();
-
-        log.info("BackendController ipBlackList pageTemp:"+pageT+" pageSize:"+pageSizeT);
-        List<UserIPBlack> userIPBlacks = userIPBlackListManager.getPageUserIPBlackList(pageT, pageSizeT);
-        if(userIPBlacks == null || userIPBlacks.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
-        }
-        else {
-            int total = userIPBlackListManager.getTotalCount();
-            log.info("BackendController ipBlackList total:"+total);
-            pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(total);
-            pageBeanRes.setData(userIPBlacks);
-        }
-
-        //对result编码
-        return APIResultWrap.ok(pageBeanRes);
     }
 
     @ApiOperation(value = "后台管理-编辑/添加用户IP黑名单")
@@ -464,52 +457,65 @@ public class BackendController extends BaseController {
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "172.0.0.1")
             @RequestParam String ip,
             @ApiParam(name = "description", value = "ip描述", required = true, type = "String", example = "暂无描述")
-            @RequestParam String description) throws ServiceException {
+            @RequestParam String description) {
 
         log.info("BackendController saveIpBlack ip:"+ip+" description:"+description);
+        try {
+            ValidateUtils.notEmpty(ip);
 
-        ValidateUtils.notEmpty(ip);
+            userIPBlackListManager.saveIP(ip, description);
 
-        userIPBlackListManager.saveIP(ip, description);
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
 
-        return APIResultWrap.ok();
     }
 
     @ApiOperation(value = "后台管理-搜索用户IP")
     @RequestMapping(value = "/IpBlack/search", method = RequestMethod.POST)
     public APIResult<Object> searchIpBlack(
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "admin")
-            @RequestParam String ip) throws ServiceException {
+            @RequestParam String ip) {
 
         log.info("BackendController searchIpBlack ip:"+ip);
+        try {
+            ValidateUtils.notEmpty(ip);
 
-        ValidateUtils.notEmpty(ip);
+            List<UserIPBlack> userIPBlacks = userIPBlackListManager.getUserIPBlackListByAccount(ip);
 
-        List<UserIPBlack> userIPBlacks = userIPBlackListManager.getUserIPBlackListByAccount(ip);
+            PageBeanRes pageBeanRes = new PageBeanRes();
+            pageBeanRes.setPage(1);
+            pageBeanRes.setPageSize(10);
+            pageBeanRes.setTotal(1);
+            pageBeanRes.setData(userIPBlacks);
 
-        PageBeanRes pageBeanRes = new PageBeanRes();
-        pageBeanRes.setPage(1);
-        pageBeanRes.setPageSize(10);
-        pageBeanRes.setTotal(1);
-        pageBeanRes.setData(userIPBlacks);
-
-        return APIResultWrap.ok(pageBeanRes);
+            return APIResultWrap.ok(pageBeanRes);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "后台管理-解禁用户IP")
     @RequestMapping(value = "/IpBlack/delete", method = RequestMethod.POST)
     public APIResult<Object> deleteIpBlack(
             @ApiParam(name = "ip", value = "ip", required = true, type = "String", example = "172.1.1.1")
-            @RequestParam String ip) throws ServiceException {
+            @RequestParam String ip) {
 
         log.info("BackendController deleteIpBlack ip:"+ip);
+        try {
+            ValidateUtils.notEmpty(ip);
 
-        ValidateUtils.notEmpty(ip);
+            userIPBlackListManager.delete(ip);
 
-        userIPBlackListManager.delete(ip);
-
-        //对result编码
-        return APIResultWrap.ok();
+            //对result编码
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -520,47 +526,36 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) throws ServiceException {
+            @RequestParam String pageSize) {
 
         log.info("BackendController userBlackList currentPage:"+currentPage+" pageSize:"+pageSize);
-
-        int pageT = 1;
         try {
-            pageT = Integer.valueOf(currentPage);
-        }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
-        }
+            PageBeanRes<UserBlack> pageBeanRes = new PageBeanRes<>();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController userBlackList page:"+page+" pageSize:"+pagesize);
+            List<UserBlack> userBlacks = userBlackListManager.getPageUserBlackList(page, pagesize);
+            if(userBlacks == null || userBlacks.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = userIPBlackListManager.getTotalCount();
+                log.info("BackendController userBlackList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(userBlacks);
+            }
 
-        int pageSizeT = 10;
-        try {
-            pageSizeT = Integer.valueOf(pageSize);
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
         }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        PageBeanRes<UserBlack> pageBeanRes = new PageBeanRes<>();
-
-        log.info("BackendController userBlackList pageTemp:"+pageT+" pageSize:"+pageSizeT);
-        List<UserBlack> userBlacks = userBlackListManager.getPageUserBlackList(pageT, pageSizeT);
-        if(userBlacks == null || userBlacks.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
-        }
-        else {
-            int total = userIPBlackListManager.getTotalCount();
-            log.info("BackendController userBlackList total:"+total);
-            pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(total);
-            pageBeanRes.setData(userBlacks);
-        }
-
-        //对result编码
-        return APIResultWrap.ok(pageBeanRes);
     }
 
     @ApiOperation(value = "后台管理-搜索用户IP")
@@ -569,29 +564,33 @@ public class BackendController extends BaseController {
             @ApiParam(name = "region", value = "区号", type = "String", example = "86")
             @RequestParam String region,
             @ApiParam(name = "phone", value = "手机号", required = true, type = "String", example = "138xxxxxxxx")
-            @RequestParam String phone) throws ServiceException {
+            @RequestParam String phone) {
 
         log.info("BackendController searchUserBlack region:"+region +" phone:"+phone);
+        try {
+            String regionT;
+            if(StringUtils.isEmpty(region)) {
+                regionT = "86";
+            }
+            else {
+                regionT = MiscUtils.removeRegionPrefix(region);
+            }
 
-        String regionT;
-        if(StringUtils.isEmpty(region)) {
-            regionT = "86";
+            ValidateUtils.notEmpty(phone);
+
+            List<UserBlack> userBlacks = userBlackListManager.getUserBlackListByAccount(regionT, phone);
+
+            PageBeanRes pageBeanRes = new PageBeanRes();
+            pageBeanRes.setPage(1);
+            pageBeanRes.setPageSize(10);
+            pageBeanRes.setTotal(1);
+            pageBeanRes.setData(userBlacks);
+
+            return APIResultWrap.ok(pageBeanRes);
         }
-        else {
-            regionT = MiscUtils.removeRegionPrefix(region);
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        ValidateUtils.notEmpty(phone);
-
-        List<UserBlack> userBlacks = userBlackListManager.getUserBlackListByAccount(regionT, phone);
-
-        PageBeanRes pageBeanRes = new PageBeanRes();
-        pageBeanRes.setPage(1);
-        pageBeanRes.setPageSize(10);
-        pageBeanRes.setTotal(1);
-        pageBeanRes.setData(userBlacks);
-
-        return APIResultWrap.ok(pageBeanRes);
     }
 
     @ApiOperation(value = "后台管理-解禁用户IP")
@@ -600,22 +599,26 @@ public class BackendController extends BaseController {
             @ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
             @RequestParam String region,
             @ApiParam(name = "phone", value = "手机号", required = true, type = "String", example = "138xxxxxxxx")
-            @RequestParam String phone) throws ServiceException {
+            @RequestParam String phone) {
 
         log.info("BackendController deleteUserBlack region:"+region);
+        try {
+            ValidateUtils.notEmpty(region);
 
-        ValidateUtils.notEmpty(region);
+            ValidateUtils.notEmpty(phone);
 
-        ValidateUtils.notEmpty(phone);
+            // 从用户黑名单中删除
+            userBlackListManager.delete(region, phone);
 
-        // 从用户黑名单中删除
-        userBlackListManager.delete(region, phone);
+            // 设置用户表中的数据为可用
+            userManager.setStatus(region, phone, 0);
 
-        // 设置用户表中的数据为可用
-        userManager.setStatus(region, phone, 0);
-
-        //对result编码
-        return APIResultWrap.ok();
+            //对result编码
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
@@ -626,47 +629,36 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) throws ServiceException {
+            @RequestParam String pageSize) {
 
         log.info("BackendController userList currentPage:"+currentPage+" pageSize:"+pageSize);
-
-        int pageT = 1;
         try {
-            pageT = Integer.valueOf(currentPage);
-        }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
-        }
+            PageBeanRes<Users> pageBeanRes = new PageBeanRes<>();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController userList page:"+page+" pageSize:"+pagesize);
+            List<Users> usersList = userManager.getPageUserList(page, pagesize);
+            if(usersList == null || usersList.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = userManager.getTotalCount();
+                log.info("BackendController userList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(usersList);
+            }
 
-        int pageSizeT = 10;
-        try {
-            pageSizeT = Integer.valueOf(pageSize);
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
         }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        PageBeanRes<Users> pageBeanRes = new PageBeanRes<>();
-
-        log.info("BackendController userList pageTemp:"+pageT+" pageSize:"+pageSizeT);
-        List<Users> usersList = userManager.getPageUserList(pageT, pageSizeT);
-        if(usersList == null || usersList.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
-        }
-        else {
-            int total = userManager.getTotalCount();
-            log.info("BackendController userList total:"+total);
-            pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(total);
-            pageBeanRes.setData(usersList);
-        }
-
-        //对result编码
-        return APIResultWrap.ok(pageBeanRes);
     }
 
     @ApiOperation(value = "后台管理-重制密码")
@@ -675,18 +667,22 @@ public class BackendController extends BaseController {
             @ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
             @RequestParam String region,
             @ApiParam(name = "phone", value = "手机号", required = true, type = "String", example = "86")
-            @RequestParam String phone) throws ServiceException {
+            @RequestParam String phone) {
 
         log.info("BackendController resetPwd region:"+region+" phone:"+phone);
+        try {
+            ValidateUtils.notEmpty(region);
 
-        ValidateUtils.notEmpty(region);
+            ValidateUtils.notEmpty(phone);
 
-        ValidateUtils.notEmpty(phone);
+            userManager.resetPwd(region, phone);
 
-        userManager.resetPwd(region, phone);
-
-        //对result编码
-        return APIResultWrap.ok();
+            //对result编码
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "后台管理-设置账号状态")
@@ -697,18 +693,22 @@ public class BackendController extends BaseController {
             @ApiParam(name = "phone", value = "手机号", required = true, type = "String", example = "138xxxxxxxx")
             @RequestParam String phone,
             @ApiParam(name = "isDisable", value = "是否禁用", required = true, type = "String", example = "0")
-            @RequestParam String isDisable) throws ServiceException {
+            @RequestParam String isDisable) {
 
         log.info("BackendController resetPwd region:"+region+" phone:"+phone+" isDisable:"+isDisable);
+        try {
+            ValidateUtils.notEmpty(region);
 
-        ValidateUtils.notEmpty(region);
+            ValidateUtils.notEmpty(phone);
 
-        ValidateUtils.notEmpty(phone);
+            userManager.disableOrEnableUser(region, phone, isDisable);
 
-        userManager.disableOrEnableUser(region, phone, isDisable);
-
-        //对result编码
-        return APIResultWrap.ok();
+            //对result编码
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "后台管理-搜索注册用户")
@@ -717,23 +717,27 @@ public class BackendController extends BaseController {
             @ApiParam(name = "region", value = "区号", required = true, type = "String", example = "86")
             @RequestParam String region,
             @ApiParam(name = "phone", value = "手机号", required = true, type = "String", example = "138xxxxxxxx")
-            @RequestParam String phone) throws ServiceException {
+            @RequestParam String phone) {
 
         log.info("BackendController searchUser region:"+region+" phone:"+phone);
+        try {
+            ValidateUtils.notEmpty(region);
 
-        ValidateUtils.notEmpty(region);
+            ValidateUtils.notEmpty(phone);
 
-        ValidateUtils.notEmpty(phone);
+            List<Users> userList = userManager.getUserByAccount(region, phone);
 
-        List<Users> userList = userManager.getUserByAccount(region, phone);
+            PageBeanRes pageBeanRes = new PageBeanRes();
+            pageBeanRes.setPage(1);
+            pageBeanRes.setPageSize(10);
+            pageBeanRes.setTotal(1);
+            pageBeanRes.setData(userList);
 
-        PageBeanRes pageBeanRes = new PageBeanRes();
-        pageBeanRes.setPage(1);
-        pageBeanRes.setPageSize(10);
-        pageBeanRes.setTotal(1);
-        pageBeanRes.setData(userList);
-
-        return APIResultWrap.ok(pageBeanRes);
+            return APIResultWrap.ok(pageBeanRes);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "后台管理-添加账户")
@@ -746,22 +750,26 @@ public class BackendController extends BaseController {
             @ApiParam(name = "nickname", value = "昵称", required = true, type = "String", example = "138xxxxxxxx")
             @RequestParam String nickname,
             @ApiParam(name = "password", value = "密码", required = true, type = "String", example = "abc123")
-            @RequestParam String password) throws ServiceException {
+            @RequestParam String password) {
 
         log.info("BackendController addUser region:"+region+" phone:"+phone+" password:"+password);
+        try {
+            String regionT = "86";
+            if(!StringUtils.isEmpty(region)) {
+                regionT = region;
+            }
 
-        String regionT = "86";
-        if(!StringUtils.isEmpty(region)) {
-            regionT = region;
+            ValidateUtils.notEmpty(phone);
+
+            ValidateUtils.checkPassword(password);
+
+            userManager.addUser(regionT, phone, nickname, password);
+
+            return APIResultWrap.ok();
         }
-
-        ValidateUtils.notEmpty(phone);
-
-        ValidateUtils.checkPassword(password);
-
-        userManager.addUser(regionT, phone, nickname, password);
-
-        return APIResultWrap.ok();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "后台管理-获取群列表")
@@ -770,47 +778,36 @@ public class BackendController extends BaseController {
             @ApiParam(name = "currentPage", value = "页码", required = true, type = "String", example = "1")
             @RequestParam String currentPage,
             @ApiParam(name = "pageSize", value = "每页数", required = true, type = "String", example = "10")
-            @RequestParam String pageSize) throws ServiceException {
+            @RequestParam String pageSize) {
 
         log.info("BackendController groupList currentPage:"+currentPage+" pageSize:"+pageSize);
-
-        int pageT = 1;
         try {
-            pageT = Integer.valueOf(currentPage);
-        }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
-        }
+            PageBeanRes<Groups> pageBeanRes = new PageBeanRes<>();
+            int page = TypeConversionUtils.StringToInt(currentPage);
+            int pagesize = TypeConversionUtils.StringToInt(pageSize);
+            log.info("BackendController groupList page:"+page+" pageSize:"+pagesize);
+            List<Groups> groupsList = groupManager.getPageGroupsList(page, pagesize);
+            if(groupsList == null || groupsList.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                int total = groupManager.getTotalCount();
+                log.info("BackendController groupList total:"+total);
+                pageBeanRes.setPage(page);
+                pageBeanRes.setPageSize(pagesize);
+                pageBeanRes.setTotal(total);
+                pageBeanRes.setData(groupsList);
+            }
 
-        int pageSizeT = 10;
-        try {
-            pageSizeT = Integer.valueOf(pageSize);
+            //对result编码
+            return APIResultWrap.ok(pageBeanRes);
         }
-        catch (NumberFormatException numberFormatException) {
-            numberFormatException.printStackTrace();
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        PageBeanRes<Groups> pageBeanRes = new PageBeanRes<>();
-
-        log.info("BackendController groupList pageTemp:"+pageT+" pageSize:"+pageSizeT);
-        List<Groups> groupsList = groupManager.getPageGroupsList(pageT, pageSizeT);
-        if(groupsList == null || groupsList.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
-        }
-        else {
-            int total = groupManager.getTotalCount();
-            log.info("BackendController groupList total:"+total);
-            pageBeanRes.setPage(pageT);
-            pageBeanRes.setPageSize(pageSizeT);
-            pageBeanRes.setTotal(total);
-            pageBeanRes.setData(groupsList);
-        }
-
-        //对result编码
-        return APIResultWrap.ok(pageBeanRes);
     }
 
 
@@ -818,29 +815,33 @@ public class BackendController extends BaseController {
     @RequestMapping(value = "/Group/search", method = RequestMethod.POST)
     public APIResult<Object> searchGroup(
             @ApiParam(name = "name", value = "群名", type = "String", example = "86")
-            @RequestParam String name) throws ServiceException {
+            @RequestParam String name) {
 
         log.info("BackendController searchGroup name:"+name);
+        try {
+            ValidateUtils.notEmpty(name);
 
-        ValidateUtils.notEmpty(name);
+            PageBeanRes<Groups> pageBeanRes = new PageBeanRes<>();
 
-        PageBeanRes<Groups> pageBeanRes = new PageBeanRes<>();
+            List<Groups> groupsList = groupManager.getGroupsByName(name);
+            if(groupsList == null || groupsList.isEmpty()) {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(10);
+                pageBeanRes.setTotal(0);
+                pageBeanRes.setData(null);
+            }
+            else {
+                pageBeanRes.setPage(1);
+                pageBeanRes.setPageSize(groupsList.size());
+                pageBeanRes.setTotal(groupsList.size());
+                pageBeanRes.setData(groupsList);
+            }
 
-        List<Groups> groupsList = groupManager.getGroupsByName(name);
-        if(groupsList == null || groupsList.isEmpty()) {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(10);
-            pageBeanRes.setTotal(0);
-            pageBeanRes.setData(null);
+            return APIResultWrap.ok(pageBeanRes);
         }
-        else {
-            pageBeanRes.setPage(1);
-            pageBeanRes.setPageSize(groupsList.size());
-            pageBeanRes.setTotal(groupsList.size());
-            pageBeanRes.setData(groupsList);
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
         }
-
-        return APIResultWrap.ok(pageBeanRes);
     }
 
 
