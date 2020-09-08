@@ -191,6 +191,7 @@ public class UserController extends BaseController {
             String region = userParam.getRegion();
             String phone = userParam.getPhone();
 
+            region = MiscUtils.removeRegionPrefix(region);
             ValidateUtils.checkRegion(region);
             ValidateUtils.checkCompletePhone(phone);
 

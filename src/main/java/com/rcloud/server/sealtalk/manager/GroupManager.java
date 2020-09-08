@@ -1137,10 +1137,7 @@ public class GroupManager extends BaseManager {
      */
     public GroupBulletins getBulletin(Integer groupId) {
 
-        Example example = new Example(GroupBulletins.class);
-        example.createCriteria().andEqualTo("groupId", groupId);
-        example.setOrderByClause(" timestamp DESC ");
-        return groupBulletinsService.getOneByExample(example);
+        return groupBulletinsService.getGroupBulletins(groupId);
     }
 
     /**

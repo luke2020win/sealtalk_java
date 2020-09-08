@@ -23,4 +23,14 @@ public class GroupBulletinsService extends AbstractBaseService<GroupBulletins, I
     protected Mapper<GroupBulletins> getMapper() {
         return mapper;
     }
+
+    /**
+     * 获取最新群公告
+     * @param groupId
+     * @return
+     */
+    public GroupBulletins getGroupBulletins(Integer groupId){
+        return mapper.getLastestGroupBulletin(groupId);
+
+    }
 }
