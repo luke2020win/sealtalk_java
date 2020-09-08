@@ -1171,7 +1171,8 @@ public class GroupManager extends BaseManager {
         String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
         if (!StringUtils.isEmpty(bulletin) && !StringUtils.isEmpty(nickname)) {
             //发布群通知
-            rongCloudClient.sendBulletinNotification(N3d.encode(currentUserId), new String[]{N3d.encode(groupId)}, bulletin, 1, null, "");
+            String content = "@所有人 " + bulletin;
+            rongCloudClient.sendBulletinNotification(N3d.encode(currentUserId), new String[]{N3d.encode(groupId)}, content, 1, null, "");
         }
 
         return;

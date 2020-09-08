@@ -686,7 +686,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "获取退群列表")
     @RequestMapping(value = "/exited_list", method = RequestMethod.POST)
-    public APIResult<List<GroupExitedListDTO>> getExitedList(@RequestBody GroupParam groupParam) {
+    public APIResult<?> getExitedList(@RequestBody GroupParam groupParam) {
         try {
             String groupId = groupParam.getGroupId();
             ValidateUtils.notEmpty(groupId);
@@ -701,7 +701,8 @@ public class GroupController extends BaseController {
                     groupExitedListDTOList.add(dto);
                 }
             }
-            return APIResultWrap.ok(groupExitedListDTOList);
+            //id,groupId要N3d 编码
+            return APIResultWrap.ok(MiscUtils.encodeResults(groupExitedListDTOList,"quitUserId","operatorId"));
         }
         catch (ServiceException e) {
             return APIResultWrap.error(e);

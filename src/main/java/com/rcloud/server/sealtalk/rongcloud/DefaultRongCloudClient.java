@@ -4,10 +4,7 @@ import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.domain.Groups;
 import com.rcloud.server.sealtalk.exception.ServiceException;
-import com.rcloud.server.sealtalk.rongcloud.message.CustomerClearGroupMessage;
-import com.rcloud.server.sealtalk.rongcloud.message.CustomerConNtfMessage;
-import com.rcloud.server.sealtalk.rongcloud.message.CustomerGroupNtfMessage;
-import com.rcloud.server.sealtalk.rongcloud.message.CustomerGroupApplyMessage;
+import com.rcloud.server.sealtalk.rongcloud.message.*;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
 import com.rcloud.server.sealtalk.util.N3d;
 import io.rong.RongCloud;
@@ -189,7 +186,7 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
 
-    public void sendContactNotification(String senderId, String nickname, String[] targetIds, String toUserId, String operation, String messageContent, long timestamp) throws ServiceException {
+    public void sendContactNotification(String senderId, String nickname, String[] targetIds, String toUserId, String operation, String message, long timestamp) throws ServiceException {
         RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
             @Override
             public Result doInvoker() throws Exception {
@@ -197,14 +194,14 @@ public class DefaultRongCloudClient implements RongCloudClient {
                 Map<String, Object> extraInfoMap = new HashMap<>();
                 extraInfoMap.put("sourceUserNickname", nickname);
                 extraInfoMap.put("version", timestamp);
-                String extraInfo = JacksonUtil.toJson(extraInfoMap);
-                ContactNtfMessage contactNtfMessage = new ContactNtfMessage(operation, extraInfo, senderId, toUserId, messageContent);
+
+                ContactNotificationMessage contactNotificationMessage = new ContactNotificationMessage(senderId, toUserId, operation, message, extraInfoMap);
 
                 SystemMessage systemMessage = new SystemMessage()
                         .setSenderId(senderId)
                         .setTargetId(targetIds)
-                        .setObjectName(contactNtfMessage.getType())
-                        .setContent(contactNtfMessage);
+                        .setObjectName(contactNotificationMessage.getType())
+                        .setContent(contactNotificationMessage);
                 return system.send(systemMessage);
             }
         });
