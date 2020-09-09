@@ -1,0 +1,103 @@
+
+#日志 logging.level设置日志级别。我们可以使用TARCE , DEBUG , INFO , WARN , ERROR , FATAL , OFF
+logging:
+  level:
+    com.rcloud.server.sealtalk:
+      dao: debug
+  file:
+    path: /home/logs
+    name: hotchat_java.log
+  pattern:
+    file: '%d{yyyy-MMM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
+    console: '%d{yyyy-MMM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
+
+
+sealtalk-config:
+  #  认证 Cookie 名称，请根据业务自行定义，如：rong_im_auth
+  auth_cookie_name: 'hotchat_im_auth'
+  #  认证 Cookie 加密密钥，请自行定义，任意字母数字组合
+  auth_cookie_key: 'abc123456'
+  #  认证 Cookie 过期时间，单位为毫秒，2592000000 毫秒 = 30 天
+  auth_cookie_max_age: 8640000
+
+  #*************************************IM--融云******************************************************#
+  #  融云短信服务提供的注册用户短信模板 Id
+  rongcloud_sms_register_template_id: 3931946
+  #  融云颁发的 App Key
+  rongcloud_app_key: 'cpj2xarlche4n'
+  #  融云颁发的 App Secret
+  rongcloud_app_secret: 'QUtrcndCsZm7GU'
+  #融云 Api Url
+  rongcloud_api_url: 'api-sg01.ronghub.com'
+  #默认头像地址
+  rongcloud_default_portrait_url: 'http://download.hotchatvip.com/default_hotchat_avatar.png'
+
+  #*************************************存储--七牛******************************************************#
+  #七牛颁发的 Access Key
+  qiniu_access_key: 'gH7hQL3E4qgV6N2NpNgBqFZ5wLvUwCMz9D1aO4z0'
+  #七牛颁发的 Secret Key
+  qiniu_secret_key: 'NNsIC1giJ4Q-CUGqob82bYuyHB11Kq4BxAljltcd'
+  #七牛创建的空间名称
+  qiniu_bucket_name: 'hotchat-storage-foreign'
+  #七牛创建的空间域名
+  qiniu_bucket_domain: 'image.hotchatvip.com'
+
+  #*************************************短信--云片******************************************************#
+  yunpian_api_key: '25c4f32628c2140bd2d1573fcc90c279'
+  yunpian_limited_time: 1
+  yunpian_limited_count: 20
+
+  #N3D 密钥，用来加密所有的 Id 数字，不小于 5 位的字母数字组合
+  n3d_key: 'abcdef12345678'
+  #认证 Cookie 主域名 如果没有正式域名，请修改本地 hosts 文件配置域名
+  auth_cookie_domain: 'localhost'
+  #跨域支持所需配置的域名信息，包括请求服务器的域名和端口号，如果是 80 端口可以省略端口号。如：http://web.sealtalk.im
+  cors_hosts: 'http://localhost'
+  allow_methods: 'GET,POST,PUT,DELETE,HEAD,OPTIONS'
+  #是否开启万能验证码 0-不开启 1-开启
+  is_open_pass_code : 1
+
+  # 默认配置不需要修改
+  exclude_url: /api/login, /misc/app_config_info, /misc/demo_square, /misc/latest_update, /user/verify_code_yp_t, /misc/client_version,/misc/mobile_version, /user/login, /user/register, /user/reset_password, /user/send_code, /user/send_code_yp, /user/verify_code,/user/verify_code_yp, /user/delete, /user/get_sms_img_code, /user/check_username_available, /user/check_phone_available, /user/regionlist, /ping
+  #  /api/login, /api/User/list, /api/User/add, /api/User/resetPwd, /api/User/search, /api/User/disableOrEnable,/api/UserBlack/list, /api/UserBlack/search, /api/UserBlack/delete,/api/IpBlack/list, /api/IpBlack/save, /api/IpBlack/search, /api/IpBlack/delete,/api/IpBackendWhite/list, /api/IpBackendWhite/save, /api/IpBackendWhite/search, /api/IpBackendWhite/delete,/api/Role/list, /api/Role/save, /api/Role/search, /api/Role/delete,/api/Variable/list, /api/Variable/save, /api/Variable/search,/api/Group/list, /api/Group/search
+
+  #本服务部署的 HTTP 端口号
+  server_port: '8585'
+
+  #*************************************数据库配置******************************************************#
+  db_name: 'hotchat'
+  db_user: 'root'
+  db_password: 'nkn88uuAla&h#'
+  db_host: '47.57.12.209'
+  db_port: '3306'
+
+
+  ## 示例：
+#  sealtalk-config:
+#    auth_cookie_name: rong_auth_cookie
+#    auth_cookie_key: zsyy
+#    auth_cookie_max_age: 8640000
+#    rongcloud_sms_register_template_id: 3910922
+#    rongcloud_app_key: bmdehs6apbauls
+#    rongcloud_app_secret: xvQhSJbgYBtwF
+#    qiniu_access_key: ctk1VIyQlx5CFr_EQMqrQkF5c1PKGuqC2SNTR749
+#    qiniu_secret_key: MRuJJ6AcBkaFQrgm16ayDtv_4L0M2jsQe-QuMBfiw
+#    qiniu_bucket_name: devtalk-image
+#    qiniu_bucket_domain: self.domain.com
+#    yunpian_api_key: 830c361ecb0ef1667e02769e1f33d9942
+#    yunpian_limited_time: 1
+#    yunpian_limited_count: 20
+#    n3d_key: 11EdDIsqpcim
+#    auth_cookie_domain: devtalk.im
+#    cors_hosts: http://web.devtalk.im
+#    # 默认配置不需要修改
+#    exclude_url: /misc/demo_square,/misc/latest_update, /user/verify_code_yp_t,/misc/client_version,/misc/mobile_version,/user/login,/user/register,/user/reset_password, /user/send_code, /user/send_code_yp,/user/verify_code, /user/verify_code_yp, /user/delete, /user/get_sms_img_code,/user/check_username_available,/user/check_phone_available,/user/regionlist,/ping
+#    server_port: 8080
+#    db_name: sealtalk
+#    db_user: root
+#    db_password: 123456
+#    db_host: 127.0.0.1
+#    db_port: 3306
+
+
+

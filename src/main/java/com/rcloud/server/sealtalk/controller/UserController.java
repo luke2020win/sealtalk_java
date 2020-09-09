@@ -332,6 +332,7 @@ public class UserController extends BaseController {
 
             ServerApiParams serverApiParams = getServerApiParams();
             userManager.resetPassword(password, verificationToken, serverApiParams);
+
             return APIResultWrap.ok();
 
     }

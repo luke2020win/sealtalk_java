@@ -51,6 +51,7 @@ import java.util.*;
 @Slf4j
 public class UserManager extends BaseManager {
 
+    private static final String TAG = "UserManager";
     @Resource
     private ProfileConfig profileConfig;
 
@@ -159,10 +160,11 @@ public class UserManager extends BaseManager {
      * 发送短信并更新数据库
      */
     private VerificationCodes upsertAndSendToSms(String region, String phone, SmsServiceType smsServiceType) throws ServiceException {
-        if (Constants.ENV_DEV.equals(profileConfig.getEnv()) || sealtalkConfig.getIsOpenPassCode() == 1) {
+        if (Constants.ENV_DEV.equals(profileConfig.getEnv())) {
             //开发环境直接插入数据库，不调用短信接口
             return verificationCodesService.saveOrUpdate(region, phone, "999999");
-        } else {
+        }
+        else {
             SmsService smsService = SmsServiceFactory.getSmsService(smsServiceType);
             String sessionId = smsService.sendVerificationCode(region, phone);
             return verificationCodesService.saveOrUpdate(region, phone, sessionId);
@@ -352,7 +354,7 @@ public class UserManager extends BaseManager {
      * @throws ServiceException
      */
     public Pair<Integer, String> login(String region, String phone, String password, ServerApiParams serverApiParams) throws ServiceException {
-
+        log.info(TAG+" login "+" region:"+region+" phone:"+phone+" password:"+password);
         Users param = new Users();
         param.setRegion(region);
         param.setPhone(phone);
@@ -363,8 +365,11 @@ public class UserManager extends BaseManager {
             throw new ServiceException(ErrorCode.USER_NOT_EXIST);
         }
 
+        log.info(TAG+" login "+" salt:"+u.getPasswordSalt());
         //校验密码是否正确
         String passwordHash = MiscUtils.hash(password, Integer.valueOf(u.getPasswordSalt()));
+        log.info(TAG+" login "+" passwordHash:"+passwordHash);
+        log.info(TAG+" login "+" u.getPasswordHash():"+u.getPasswordHash());
 
         if (!passwordHash.equals(u.getPasswordHash())) {
             throw new ServiceException(ErrorCode.USER_PASSWORD_WRONG);
@@ -458,14 +463,14 @@ public class UserManager extends BaseManager {
         String hashStr = MiscUtils.hash(password, salt);
 
         String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("resetPassword ip:" + ip);
+        log.info(TAG+" resetPassword password:" + password+" ip:"+ip);
         updatePassword(verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip);
     }
 
     /**
      * 管理后台重置密码
      */
-    public void resetPwd(String region, String phone) {
+    public void resetPwd(String region, String phone) throws ServiceException {
         //新密码hash,修改user表密码字段
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash("abc123", salt);
@@ -497,24 +502,28 @@ public class UserManager extends BaseManager {
         int salt = RandomUtil.randomBetween(1000, 9999);
         String hashStr = MiscUtils.hash(newPassword, salt);
         String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("changePassword ip:" + ip);
+
+        log.info(TAG+" changePassword newPassword:" + newPassword+" newPassword:"+newPassword+" oldPassword:"+oldPassword+" ip:"+ip);
         updatePassword(u.getRegion(), u.getPhone(), salt, hashStr, ip);
     }
 
-    private void updatePassword(String region, String phone, int salt, String hashStr, String ip) {
-        Users user = new Users();
-        user.setPasswordHash(hashStr);
-        user.setPasswordSalt(String.valueOf(salt));
-        if (!StringUtils.isEmpty(ip)) {
-            user.setPasswordHash(ip);
+    private void updatePassword(String region, String phone, int salt, String hashStr, String ip) throws ServiceException {
+        log.info(TAG+" updatePassword region:"+region+" phone:"+phone+" salt:"+salt+" hashStr:"+hashStr+" ip:"+ip);
+        Users param = new Users();
+        param.setRegion(region);
+        param.setPhone(phone);
+        Users users = usersService.getOne(param);
+        if(users == null) {
+            throw new ServiceException(ErrorCode.USER_NOT_EXIST);
         }
-        user.setUpdatedAt(new Date());
 
-        Example example = new Example(Users.class);
-        Example.Criteria criteria = example.createCriteria();
-        criteria.andEqualTo("region", region);
-        criteria.andEqualTo("phone", phone);
-        usersService.updateByExampleSelective(user, example);
+        users.setPasswordSalt(String.valueOf(salt));
+        users.setPasswordHash(hashStr);
+        if (!StringUtils.isEmpty(ip)) {
+            users.setIp(ip);
+        }
+        users.setUpdatedAt(new Date());
+        usersService.updateByPrimaryKey(users);
     }
 
     /**

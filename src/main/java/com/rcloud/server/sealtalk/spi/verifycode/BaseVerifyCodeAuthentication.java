@@ -42,7 +42,8 @@ public abstract class BaseVerifyCodeAuthentication implements VerifyCodeAuthenti
         if (verificationCodes == null) {
             //判断验证码记录是否存在
             throw new ServiceException(ErrorCode.UNKOWN_PHONE_NUMBER);
-        } else {
+        }
+        else {
             Calendar updateAtCal = Calendar.getInstance();
             Date updateAt = verificationCodes.getUpdatedAt();
             updateAtCal.setTime(updateAt);
