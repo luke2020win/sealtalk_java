@@ -758,24 +758,6 @@ public class UserController extends BaseController {
             return APIResultWrap.ok(MiscUtils.encodeResults(result));
     }
 
-    /**
-     * 设置AuthCookie
-     *
-     * @param response
-     * @param userId
-     */
-    private void setCookie(HttpServletResponse response, int userId) {
-        int salt = RandomUtil.randomBetween(1000, 9999);
-        String text = salt + Constants.SEPARATOR_NO + userId + Constants.SEPARATOR_NO + System.currentTimeMillis();
-        byte[] value = AES256.encrypt(text, sealtalkConfig.getAuthCookieKey());
-        Cookie cookie = new Cookie(sealtalkConfig.getAuthCookieName(), new String(value));
-        cookie.setHttpOnly(true);
-        cookie.setDomain(sealtalkConfig.getAuthCookieDomain());
-        cookie.setMaxAge(Integer.valueOf(sealtalkConfig.getAuthCookieMaxAge()));
-        cookie.setPath("/");
-        response.addCookie(cookie);
-    }
-
 
     /**
      * 接口文档中没有此接口，nodejs版本代码里存在。
@@ -809,11 +791,34 @@ public class UserController extends BaseController {
      * @param userId
      */
     private String createAuthToken (int userId) {
-        int salt = RandomUtil.randomBetween(1000, 9999);
+        int salt = getSalt();
         String text = salt + Constants.SEPARATOR_NO + userId + Constants.SEPARATOR_NO + System.currentTimeMillis();
         byte[] value = AES256.encrypt(text, sealtalkConfig.getAuthCookieKey());
         String authToken = new String(value);
         log.info("createAuthToken authToken:"+authToken);
         return authToken;
+    }
+
+    /**
+     * 设置AuthCookie
+     *
+     * @param response
+     * @param userId
+     */
+    private void setCookie(HttpServletResponse response, int userId) {
+        int salt = getSalt();
+        String text = salt + Constants.SEPARATOR_NO + userId + Constants.SEPARATOR_NO + System.currentTimeMillis();
+        byte[] value = AES256.encrypt(text, sealtalkConfig.getAuthCookieKey());
+        Cookie cookie = new Cookie(sealtalkConfig.getAuthCookieName(), new String(value));
+        cookie.setHttpOnly(true);
+        cookie.setDomain(sealtalkConfig.getAuthCookieDomain());
+        cookie.setMaxAge(Integer.valueOf(sealtalkConfig.getAuthCookieMaxAge()));
+        cookie.setPath("/");
+        response.addCookie(cookie);
+    }
+
+    private int getSalt() {
+        int salt = RandomUtil.randomBetween(1000, 9999);
+        return salt;
     }
 }

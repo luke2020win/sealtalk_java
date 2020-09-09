@@ -42,6 +42,7 @@ import static com.rcloud.server.sealtalk.util.N3d.encode;
 public class GroupManager extends BaseManager {
 
 
+    private static final String TAG = "GroupManager";
     @Resource
     private RongCloudClient rongCloudClient;
 
@@ -65,6 +66,9 @@ public class GroupManager extends BaseManager {
 
     @Resource
     private GroupExitedListsService groupExitedListsService;
+
+    @Resource
+    private GroupMuteService groupMuteService;
 
     @Resource
     private GroupBulletinsService groupBulletinsService;
@@ -2430,5 +2434,170 @@ public class GroupManager extends BaseManager {
 
     public List<Groups> getGroupsByName(String name) {
         return groupsService.getGroupsByName(name);
+    }
+
+    /**
+     * 禁言某人
+     * @param currentUserId
+     * @return
+     */
+    public void muteOne(Integer currentUserId, Integer groupId, String encodeGroupId, Integer memberId, String encodeMemberId) throws ServiceException {
+        if (currentUserId == memberId) {
+            throw new ServiceException(ErrorCode.CAN_NOT_MUTE_SELF);
+        }
+
+        //查询群组信息
+        Groups groups = groupsService.getByPrimaryKey(groupId);
+
+        if (groups == null) {
+            throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR);
+        }
+
+        // 不能禁言自己
+        if (memberId == groups.getCreatorId()) {
+            throw new ServiceException(ErrorCode.CAN_NOT_MUTE_SELF);
+        }
+
+        try {
+            // 调用融云禁言接口
+            Result result = rongCloudClient.addMute(encodeGroupId, encodeMemberId, 1);
+            if (!Constants.CODE_OK.equals(result.getCode())) {
+                log.error("Error: add mute failed on IM server, code: {}", result.getCode());
+                throw new ServiceException(ErrorCode.MUTE_IM_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("Error: add mute failed on IM server, error:" + e.getMessage(), e);
+            throw new ServiceException(ErrorCode.MUTE_IM_SERVER_ERROR);
+        }
+
+        // 获取被禁言者的信息
+        Users muteUser = usersService.getByPrimaryKey(memberId);
+        GroupMembers groupMuteUser = groupMembersService.queryGroupMembersWithGroupByGroupIdAndMemberId(groupId, memberId);
+        String userNickName;
+        if(!StringUtils.isEmpty(groupMuteUser.getDisplayName())) {
+            userNickName = groupMuteUser.getDisplayName();
+        }
+        else if(!StringUtils.isEmpty(groupMuteUser.getGroupNickname())){
+            userNickName = groupMuteUser.getGroupNickname();
+        }
+        else {
+            userNickName = muteUser.getNickname();
+        }
+
+        // 获取操作者信息
+        GroupMembers groupOperaterUser = groupMembersService.queryGroupMembersWithGroupByGroupIdAndMemberId(groupId, currentUserId);
+        String operationNickName;
+        if(!StringUtils.isEmpty(groupOperaterUser.getDisplayName())) {
+            operationNickName = groupOperaterUser.getDisplayName();
+        }
+        else if(!StringUtils.isEmpty(groupOperaterUser.getGroupNickname())) {
+            operationNickName = groupOperaterUser.getGroupNickname();
+        }
+        else {
+            // 获取被禁言者的信息
+            Users operationUser = usersService.getByPrimaryKey(currentUserId);
+            operationNickName = operationUser.getNickname();
+        }
+
+        // 添加禁言记录到表中
+        addGroupMute(groupId, memberId, userNickName, muteUser.getPortraitUri(), 0, currentUserId, operationNickName);
+    }
+
+    /**
+     * 插入GroupMute 表
+     * @param groupId
+     * @param muteUserId
+     * @param muteNickname
+     * @param mutePortraitUri
+     * @param operatorId
+     * @param operatorNickName
+     * @return
+     */
+    private void addGroupMute(Integer groupId, Integer muteUserId, String muteNickname, String mutePortraitUri, Integer muteTime, Integer operatorId, String operatorNickName) throws ServiceException {
+        log.info(TAG+" muteOne muteNickname:"+muteNickname+" mutePortraitUri:"+mutePortraitUri+" operatorId:"+operatorId+" operatorNickName:"+operatorNickName);
+
+        GroupMute param = new GroupMute();
+        param.setGroupId(groupId);
+        param.setMuteUserId(muteUserId);
+        groupMuteService.getOne(param);
+
+        if(param != null) {
+           throw new ServiceException(ErrorCode.USER_HAVED_MUTE);
+        }
+
+        insertGroupMute(groupId, muteUserId, muteNickname, mutePortraitUri, muteTime, operatorId, operatorNickName);
+    }
+
+    private GroupMute insertGroupMute(Integer groupId, Integer muteUserId, String muteNickname, String mutePortraitUri, Integer muteTime, Integer operatorId, String operatorNickName) {
+        return transactionTemplate.execute(transactionStatus -> {
+            //插入user表
+            GroupMute groupMute = new GroupMute();
+            groupMute.setGroupId(groupId);
+
+            groupMute.setMuteUserId(muteUserId);
+            groupMute.setMuteNickname(muteNickname);
+            groupMute.setMutePortraitUri(mutePortraitUri);
+
+            groupMute.setMuteTime(muteTime);
+
+            groupMute.setOperatorId(operatorId);
+            groupMute.setOperatorNickName(operatorNickName);
+
+            groupMute.setCreatedAt(new Date());
+            groupMute.setUpdatedAt(groupMute.getCreatedAt());
+            groupMuteService.saveSelective(groupMute);
+            return groupMute;
+        });
+    }
+
+    public void unmuteMore(Integer currentUserId, Integer groupId, String encodeGroupId, Integer[] memberIds, String[] encodeMemberIds) throws ServiceException {
+        GroupMembers groupMembers = groupMembersService.getGroupMember(groupId, currentUserId);
+        if (groupMembers == null || !isManagerRole(groupMembers.getRole())) {
+            throw new ServiceException(ErrorCode.NOT_GROUP_MANAGER);
+        }
+
+        //查询群组信息
+        Groups groups = groupsService.getByPrimaryKey(groupId);
+        if (groups == null) {
+            throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR);
+        }
+
+        try {
+            // 调用融云禁言接口
+            Result result = rongCloudClient.removeMute(encodeGroupId, encodeMemberIds);
+            if (!Constants.CODE_OK.equals(result.getCode())) {
+                log.error("Error: remove mute failed on IM server, code: {}", result.getCode());
+                throw new ServiceException(ErrorCode.MUTE_IM_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("Error: remove mute failed on IM server, error:" + e.getMessage(), e);
+            throw new ServiceException(ErrorCode.MUTE_IM_SERVER_ERROR);
+        }
+
+        // 添加禁言记录到表中
+        removeGroupMute(groupId, memberIds);
+    }
+
+    private void removeGroupMute(int groupId, Integer[] memberIds) {
+        for (Integer memberId : memberIds) {
+            Example example = new Example(GroupMute.class);
+            Example.Criteria criteria = example.createCriteria();
+            criteria.andEqualTo("groupId", groupId).andEqualTo("muteUserId", memberId);
+            groupMuteService.deleteByExample(example);
+        }
+    }
+
+    public List<GroupMute> getMuteList(Integer currentUserId, int groupId) throws ServiceException {
+        GroupMembers groupMembers = groupMembersService.getGroupMember(groupId, currentUserId);
+        if (groupMembers == null || !isManagerRole(groupMembers.getRole())) {
+            throw new ServiceException(ErrorCode.NOT_GROUP_MANAGER);
+        }
+
+        Example example = new Example(GroupMute.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("groupId", groupId);
+        List<GroupMute> groupMuteList = groupMuteService.getByExample(example);
+
+        return groupMuteList ;
     }
 }

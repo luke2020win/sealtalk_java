@@ -1325,9 +1325,14 @@ public class UserManager extends BaseManager {
         }
 
         if (status == 1) {
+            //
+            blockUserFromIM(users);
+
             // 将用户添加到黑名单
             insertUserBlack(users);
         } else {
+            //
+            removeblockUserFromIM(users);
             // 从用户黑名单中删除
             deleteUserBlack(region, phone);
         }
@@ -1345,6 +1350,7 @@ public class UserManager extends BaseManager {
         return transactionTemplate.execute(transactionStatus -> {
             //插入userBlack表
             UserBlack userBlack = new UserBlack();
+            userBlack.setId(users.getId());
             userBlack.setRegion(users.getRegion());
             userBlack.setPhone(users.getPhone());
             userBlack.setNickname(users.getNickname());
@@ -1356,6 +1362,36 @@ public class UserManager extends BaseManager {
             return userBlack;
         });
     }
+
+    private void blockUserFromIM(Users users) throws ServiceException {
+        try {
+            // 调用融云禁言接口
+            Result result = rongCloudClient.blockUser(N3d.encode(users.getId()), users.getNickname(),users.getPortraitUri(), 0);
+            if (!Constants.CODE_OK.equals(result.getCode())) {
+                log.error("Error: block user failed on IM server, code: {}", result.getCode());
+                throw new ServiceException(ErrorCode.BLOCK_IM_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("Error: block user failed on IM server, error:" + e.getMessage(), e);
+            throw new ServiceException(ErrorCode.BLOCK_IM_SERVER_ERROR);
+        }
+    }
+
+
+    private void removeblockUserFromIM(Users users) throws ServiceException {
+        try {
+            // 调用融云禁言接口
+            Result result = rongCloudClient.removeblockUser(N3d.encode(users.getId()));
+            if (!Constants.CODE_OK.equals(result.getCode())) {
+                log.error("Error: remove block user failed on IM server, code: {}", result.getCode());
+                throw new ServiceException(ErrorCode.REMOVE_BLOCK_IM_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("Error: remove block user failed on IM server, error:" + e.getMessage(), e);
+            throw new ServiceException(ErrorCode.REMOVE_BLOCK_IM_SERVER_ERROR);
+        }
+    }
+
 
     /**
      * 删除黑名单用户
@@ -1372,7 +1408,6 @@ public class UserManager extends BaseManager {
     }
 
     public boolean checkBlackUser(Integer currentUserId) {
-        //修改昵称
         Users param = new Users();
         param.setId(currentUserId);
         Users users = usersService.getOne(param);
@@ -1392,7 +1427,6 @@ public class UserManager extends BaseManager {
     }
 
     public void checkBlackUser(String region, String phone) throws ServiceException {
-        //修改昵称
         UserBlack userBlackparam = new UserBlack();
         userBlackparam.setRegion(region);
         userBlackparam.setPhone(phone);

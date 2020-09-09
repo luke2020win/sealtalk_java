@@ -7,6 +7,7 @@ import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.rongcloud.message.*;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
 import com.rcloud.server.sealtalk.util.N3d;
+import com.rcloud.server.sealtalk.util.ValidateUtils;
 import io.rong.RongCloud;
 import io.rong.messages.ContactNtfMessage;
 import io.rong.messages.GroupNotificationMessage;
@@ -25,11 +26,13 @@ import io.rong.models.response.ResponseResult;
 import io.rong.models.response.TokenResult;
 import io.rong.models.response.UserResult;
 import io.rong.models.user.UserModel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,9 +44,12 @@ import java.util.Map;
  * @Description: 调用融云服务客户端实现
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
  */
+@Slf4j
 @Service
 public class DefaultRongCloudClient implements RongCloudClient {
 
+
+    private static final String TAG = "DefaultRongCloudClient";
 
     @Resource
     private SealtalkConfig sealtalkConfig;
@@ -574,6 +580,87 @@ public class DefaultRongCloudClient implements RongCloudClient {
             @Override
             public Result doInvoker() throws Exception {
                 return rongCloud.group.ban.add(encodeGroupIds);
+            }
+        });
+    }
+
+    @Override
+    public Result addMute(String groupId, String encodeMemberId, Integer minute) throws ServiceException {
+        log.info(TAG+" addMute groupId:"+groupId+" encodeMemberId:"+encodeMemberId+" minute:"+minute);
+        ValidateUtils.notEmpty(groupId);
+        ValidateUtils.notEmpty(encodeMemberId);
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+
+                GroupMember groupMember = new GroupMember();
+                //groupMember.setGroupId(groupId);
+                //groupMember.setMunite(minute);
+                groupMember.setId(encodeMemberId);
+
+                GroupMember groupMembers[] = {groupMember};
+
+                GroupModel groupModel = new GroupModel();
+                groupModel.setId(groupId);
+                groupModel.setMembers(groupMembers);
+                groupModel.setMinute(minute);
+                return rongCloud.group.muteMembers.add(groupModel);
+            }
+        });
+    }
+
+    @Override
+    public Result removeMute(String groupId, String[] encodeMemberIds) throws ServiceException {
+
+        ValidateUtils.notEmpty(groupId);
+        ValidateUtils.notEmpty(encodeMemberIds);
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+
+                int count = encodeMemberIds.length;
+                GroupMember[] groupMembers = new GroupMember[count];
+                for (int i = 0; i < count ; i++) {
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.setGroupId(groupId);
+                    groupMember.setMunite(0);
+                    groupMember.setId(encodeMemberIds[i]);
+                    groupMembers[i] = groupMember;
+                }
+
+                GroupModel groupModel = new GroupModel();
+                groupModel.setId(groupId);
+                groupModel.setMembers(groupMembers);
+                return rongCloud.group.muteMembers.remove(groupModel);
+            }
+        });
+    }
+
+    @Override
+    public Result blockUser(String userId, String nickName, String portrait, Integer minute) throws ServiceException {
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                UserModel userModel = new UserModel();
+                userModel.setId(userId);
+                userModel.setName(nickName);
+                userModel.setPortrait(portrait);
+                userModel.setMinute(minute);
+                return rongCloud.user.block.add(userModel);
+            }
+        });
+    }
+
+    @Override
+    public Result removeblockUser(String userId) throws ServiceException {
+        ValidateUtils.notEmpty(userId);
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                return rongCloud.user.block.remove(userId);
             }
         });
     }

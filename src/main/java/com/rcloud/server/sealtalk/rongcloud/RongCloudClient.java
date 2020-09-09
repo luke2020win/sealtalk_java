@@ -186,6 +186,39 @@ public interface RongCloudClient {
     Result setMuteStatus(String[] encodeGroupIds) throws ServiceException;
 
     /**
+     * 禁言
+     *
+     * @param encodeMemberId
+     * @return
+     */
+    Result addMute(String groupId, String encodeMemberId, Integer minute) throws ServiceException;
+
+    /**
+     * 解除禁言
+     *
+     * @param encodeMemberIds
+     * @return
+     */
+    Result removeMute(String groupId, String[] encodeMemberIds) throws ServiceException;
+
+    /**
+     * 用户封禁
+     *
+     * @param userId
+     * @param minute
+     * @return
+     */
+    Result blockUser(String userId, String nickName, String portrait, Integer minute) throws ServiceException;
+
+    /**
+     * 用户封禁
+     *
+     * @param userId
+     * @return
+     */
+    Result removeblockUser(String userId) throws ServiceException;
+
+    /**
      * 发送群组通知消息
      *
      * @param encodeOperatorUserId

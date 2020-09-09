@@ -4,12 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.controller.param.GroupParam;
+import com.rcloud.server.sealtalk.controller.param.MuteMoreParam;
+import com.rcloud.server.sealtalk.controller.param.MuteOneParam;
 import com.rcloud.server.sealtalk.controller.param.TransferGroupParam;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.manager.GroupManager;
 import com.rcloud.server.sealtalk.model.dto.*;
-import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResult;
 import com.rcloud.server.sealtalk.model.response.APIResultWrap;
 import com.rcloud.server.sealtalk.util.JacksonUtil;
@@ -630,5 +631,84 @@ public class GroupController extends BaseController {
             Integer currentUserId = getCurrentUserId();
             groupManager.agree(currentUserId, N3d.decode(groupId), N3d.decode(receiverId), status);
             return APIResultWrap.ok();
+    }
+
+
+
+    @ApiOperation(value = "获取接收戳一下消息状态")
+    @RequestMapping(value = "/mute_one", method = RequestMethod.POST)
+    public APIResult muteOne(@RequestBody MuteOneParam muteOneParam) {
+        try {
+            Integer currentUserId = getCurrentUserId();
+
+            String groupId = muteOneParam.getGroupId();
+            String memberId = muteOneParam.getMemberId();
+
+            ValidateUtils.notEmpty(groupId);
+            ValidateUtils.notEmpty(memberId);
+
+            groupManager.muteOne(currentUserId, N3d.decode(groupId), groupId, N3d.decode(memberId), memberId);
+
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
+
+    }
+
+    @ApiOperation(value = "获取接收戳一下消息状态")
+    @RequestMapping(value = "/unmute_more", method = RequestMethod.POST)
+    public APIResult unmuteMore(@RequestBody MuteMoreParam muteMoreParam) {
+        try {
+            Integer currentUserId = getCurrentUserId();
+
+            String groupId = muteMoreParam.getGroupId();
+            String[] memberIds = muteMoreParam.getMemberIds();
+
+            ValidateUtils.notEmpty(groupId);
+            ValidateUtils.notEmpty(memberIds);
+
+            groupManager.unmuteMore(currentUserId, N3d.decode(groupId), groupId, MiscUtils.decodeIds(memberIds), memberIds);
+
+            return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
+    }
+
+    @ApiOperation(value = "获取接收戳一下消息状态")
+    @RequestMapping(value = "/get_mute_list", method = RequestMethod.POST)
+    public APIResult getMuteList(@RequestBody GroupParam groupParam) throws ServiceException {
+        try {
+            Integer currentUserId = getCurrentUserId();
+
+            String groupId = groupParam.getGroupId();
+
+            ValidateUtils.notEmpty(groupId);
+
+            List<GroupMute> groupMuteList = groupManager.getMuteList(currentUserId, N3d.decode(groupId));
+            List<GroupMuteDTO> groupMuteDTOList = null;
+            if(groupMuteList != null || !groupMuteList.isEmpty()) {
+                groupMuteDTOList = new ArrayList<>();
+                for (GroupMute groupMute : groupMuteList) {
+                    GroupMuteDTO groupMuteDTO = new GroupMuteDTO();
+                    groupMuteDTO.setGroupId(groupMute.getGroupId());
+                    groupMuteDTO.setMuteUserId(groupMute.getMuteUserId());
+                    groupMuteDTO.setMuteNickname(groupMute.getMuteNickname());
+                    groupMuteDTO.setMutePortraitUri(groupMute.getMutePortraitUri());
+                    groupMuteDTO.setOperatorId(groupMute.getOperatorId());
+                    groupMuteDTO.setOperatorNickName(groupMute.getOperatorNickName());
+                    groupMuteDTOList.add(groupMuteDTO);
+                }
+
+
+            }
+            return APIResultWrap.ok(groupMuteDTOList);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 }
