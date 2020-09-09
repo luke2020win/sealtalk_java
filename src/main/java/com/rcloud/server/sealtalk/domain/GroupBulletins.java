@@ -24,7 +24,9 @@ public class GroupBulletins implements Serializable {
 
     @Column(name = "updatedAt")
     private Date updatedAt;
+
     //公告内容
+    @Column(name = "content")
     private String content;
 
     private static final long serialVersionUID = 1L;

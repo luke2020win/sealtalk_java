@@ -15,8 +15,11 @@ public enum GroupOperationType {
     RENAME("Rename"),   //重命名群组
     BULLETIN("Bulletin"),   //群公共
     TRANSFER("Transfer"),   //转让群主
+    JOIN("Join"),   //加入群
     SET_MANAGER("SetManager"),  //设置管理员
     REMOVE_MANAGER("RemoveManager"),    //删除管理员
+    OPEN_MEMBER_PROTECTION("openMemberProtection"),    //打开群保护
+    CLOSE_MEMBER_PROTECTION("closeMemberProtection"),    //关闭群保护
     INVITE("Invite"),       //邀请好友
     CLEARG_GROUP_MSG("clearGroupMsg");       //清理群组历史消息
 

@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * @Author: Jianlu.Yu
  * @Date: 2020/8/24
- * @Description:  客户自定义的群通知消息
+ * @Description:  客户自定义的群通知消息]\]]]]]
  * @Copyright (c) 2020, rongcloud.cn All Rights Reserved
  */
 public class CustomerGroupNtfMessage extends BaseMessage {

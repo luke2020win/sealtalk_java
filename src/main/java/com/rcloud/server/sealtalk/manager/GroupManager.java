@@ -1969,7 +1969,7 @@ public class GroupManager extends BaseManager {
         messageData.put("targetUserIds", encodeMemberIds);
         messageData.put("targetUserDisplayNames", nicknameList);
         messageData.put("timestamp", timestamp);
-        //发送群组通知 TODO
+        //发送群组通知
         sendGroupNotificationMessageBySystem(groupId, messageData, currentUserId, GroupOperationType.KICKED);
 
         //调用融云退群接口
