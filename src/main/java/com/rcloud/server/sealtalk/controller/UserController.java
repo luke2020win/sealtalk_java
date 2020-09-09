@@ -58,8 +58,15 @@ public class UserController extends BaseController {
             @ApiParam(name = "phone", value = "电话号", required = true, type = "String", example = "188xxxxxxxx")
             @RequestParam String phone) throws ServiceException {
 
-            ValidateUtils.checkRegion(region);
-            ValidateUtils.checkCompletePhone(phone);
+            // 万能验证，不验证手机和区域
+            if (sealtalkConfig.getIsOpenPassCode() == 1) {
+                ValidateUtils.notEmpty(region);
+                ValidateUtils.notEmpty(phone);
+            }
+            else {
+                ValidateUtils.checkRegion(region);
+                ValidateUtils.checkCompletePhone(phone);
+            }
 
             // 判断账户黑名单
             userManager.checkBlackUser(region, phone);
@@ -76,8 +83,16 @@ public class UserController extends BaseController {
             String phone = userParam.getPhone();
 
             region = MiscUtils.removeRegionPrefix(region);
-            ValidateUtils.checkRegion(region);
-            ValidateUtils.checkCompletePhone(phone);
+
+            // 万能验证，不验证手机和区域
+            if (sealtalkConfig.getIsOpenPassCode() == 1) {
+                ValidateUtils.notEmpty(region);
+                ValidateUtils.notEmpty(phone);
+            }
+            else {
+                ValidateUtils.checkRegion(region);
+                ValidateUtils.checkCompletePhone(phone);
+            }
 
             // 判断账户黑名单
             userManager.checkBlackUser(region, phone);
@@ -110,8 +125,17 @@ public class UserController extends BaseController {
                                         @RequestParam String phone,
                                         @ApiParam(name = "code", value = "验证码", required = true, type = "String", example = "xxxxxx")
                                         @RequestParam String code) throws ServiceException {
-            ValidateUtils.checkRegion(region);
-            ValidateUtils.checkCompletePhone(phone);
+
+            // 万能验证，不验证手机和区域
+            if (sealtalkConfig.getIsOpenPassCode() == 1  && Constants.DEFAULT_VERIFY_CODE.equals(code)) {
+                ValidateUtils.notEmpty(region);
+                ValidateUtils.notEmpty(phone);
+                ValidateUtils.notEmpty(code);
+            }
+            else {
+                ValidateUtils.checkRegion(region);
+                ValidateUtils.checkCompletePhone(phone);
+            }
 
             // 判断账户黑名单
             userManager.checkBlackUser(region, phone);
@@ -143,8 +167,16 @@ public class UserController extends BaseController {
             String code = userParam.getCode();
             region = MiscUtils.removeRegionPrefix(region);
 
-            ValidateUtils.checkRegion(region);
-            ValidateUtils.checkCompletePhone(phone);
+            // 万能验证，不验证手机和区域
+            if (sealtalkConfig.getIsOpenPassCode() == 1 && Constants.DEFAULT_VERIFY_CODE.equals(code)) {
+                ValidateUtils.notEmpty(region);
+                ValidateUtils.notEmpty(phone);
+                ValidateUtils.notEmpty(code);
+            }
+            else {
+                ValidateUtils.checkRegion(region);
+                ValidateUtils.checkCompletePhone(phone);
+            }
 
             // 判断账户黑名单
             userManager.checkBlackUser(region, phone);
@@ -171,8 +203,16 @@ public class UserController extends BaseController {
             String phone = userParam.getPhone();
 
             region = MiscUtils.removeRegionPrefix(region);
-            ValidateUtils.checkRegion(region);
-            ValidateUtils.checkCompletePhone(phone);
+
+            // 万能验证，不验证手机和区域
+            if (sealtalkConfig.getIsOpenPassCode() == 1) {
+                ValidateUtils.notEmpty(region);
+                ValidateUtils.notEmpty(phone);
+            }
+            else {
+                ValidateUtils.checkRegion(region);
+                ValidateUtils.checkCompletePhone(phone);
+            }
 
             if (userManager.isExistUser(region, phone)) {
                 return APIResultWrap.ok(false, "Phone number has already existed.");
@@ -207,6 +247,7 @@ public class UserController extends BaseController {
 
             ServerApiParams serverApiParams = getServerApiParams();
             Integer id = userManager.register(nickname, password, verification_token, serverApiParams);
+
             //设置cookie
             setCookie(response, id);
             Map<String, Object> resultMap = new HashMap<>();
@@ -236,11 +277,17 @@ public class UserController extends BaseController {
             String region = userParam.getRegion();
             String phone = userParam.getPhone();
             String password = userParam.getPassword();
-
-
             region = MiscUtils.removeRegionPrefix(region);
-            ValidateUtils.checkRegionName(MiscUtils.getRegionName(region));
-            ValidateUtils.checkCompletePhone(phone);
+
+            // 万能验证，不验证手机和区域
+            if (sealtalkConfig.getIsOpenPassCode() == 1) {
+                ValidateUtils.notEmpty(region);
+                ValidateUtils.notEmpty(phone);
+            }
+            else {
+                ValidateUtils.checkRegionName(MiscUtils.getRegionName(region));
+                ValidateUtils.checkCompletePhone(phone);
+            }
 
             // 判断账户黑名单
             userManager.checkBlackUser(region, phone);
