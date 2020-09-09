@@ -285,6 +285,17 @@ public class DefaultRongCloudClient implements RongCloudClient {
     }
 
     @Override
+    public Result sendDirectionCustomerGroupNtfMessage(GroupMessage groupMessage) throws ServiceException {
+
+        return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {
+            @Override
+            public Result doInvoker() throws Exception {
+                return rongCloud.message.group.sendDirection(groupMessage);
+            }
+        });
+    }
+
+    @Override
     public Result sendCustomerGroupNtfMessage(String encodeUserId, String encodeTargetId, String operation) throws ServiceException {
 
         return RongCloudInvokeTemplate.getData(new RongCloudCallBack<Result>() {

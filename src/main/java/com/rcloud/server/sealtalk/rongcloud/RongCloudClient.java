@@ -208,6 +208,14 @@ public interface RongCloudClient {
      */
     Result sendCustomerGroupNtfMessage(GroupMessage groupMessage) throws ServiceException;
 
+    /**
+     * 发送群组通知消息给指定人员
+     *
+     * @param groupMessage
+     * @return
+     * @throws ServiceException
+     */
+    Result sendDirectionCustomerGroupNtfMessage(GroupMessage groupMessage) throws ServiceException;
 
     /**
      * 发送群组通知消息 ST:GrpNtf

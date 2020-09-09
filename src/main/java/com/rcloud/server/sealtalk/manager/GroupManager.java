@@ -260,6 +260,22 @@ public class GroupManager extends BaseManager {
         return rongCloudClient.sendCustomerGroupNtfMessage(groupMessage);
     }
 
+    private Result sendDirectionGroupNotificationMessageBySystem(Integer groupId, String[] toUserIds, Map<String, Object> messageData, Integer operatorUserId, GroupOperationType groupOperationType) throws ServiceException {
+
+        CustomerGroupNtfMessage customerGroupNtfMessage = new CustomerGroupNtfMessage();
+        customerGroupNtfMessage.setOperatorUserId(N3d.encode(operatorUserId));
+        customerGroupNtfMessage.setOperation(groupOperationType.getType());
+        customerGroupNtfMessage.setData(messageData);
+
+        GroupMessage groupMessage = new GroupMessage();
+        groupMessage.setSenderId(Constants.GroupNotificationMessage_fromUserId);
+        groupMessage.setTargetId(new String[]{N3d.encode(groupId)});
+        groupMessage.setToUserId(toUserIds);
+        groupMessage.setObjectName(customerGroupNtfMessage.getType());
+        groupMessage.setContent(customerGroupNtfMessage);
+        return rongCloudClient.sendDirectionCustomerGroupNtfMessage(groupMessage);
+    }
+
     /**
      * 发送群申请消息
      * GroupApplyMessage 消息是 fromUserId 为 '__group_apply__' 的单聊消息
@@ -1017,6 +1033,7 @@ public class GroupManager extends BaseManager {
         if (CollectionUtils.isEmpty(groupMembersList)) {
             throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR, ErrorCode.GROUP_UNKNOWN_ERROR.getErrorMessage());
         }
+
         if (!isInGroupMember(groupMembersList, currentUserId)) {
             throw new ServiceException(ErrorCode.NOT_GROUP_MEMBER_2, ErrorCode.NOT_GROUP_MEMBER_2.getErrorMessage());
         }
@@ -1917,19 +1934,25 @@ public class GroupManager extends BaseManager {
 
         // 获取群成员
         List<GroupMembers> groupMembersList = groupMembersService.getByExample(example);
-
+        // 管理员id列表
+        List<Integer> groupManagerIdList = new ArrayList<>();
         Integer currentUserRole = null;
         if (!CollectionUtils.isEmpty(groupMembersList)) {
             for (GroupMembers groupMembers : groupMembersList) {
                 if (groupMembers.getMemberId().equals(currentUserId)) {
                     currentUserRole = groupMembers.getRole();
-                    break;
+                }
+
+                if(groupMembers.getRole() == GroupRole.CREATOR.getCode() || groupMembers.getRole() == GroupRole.MANAGER.getCode()) {
+                    groupManagerIdList.add(groupMembers.getMemberId());
                 }
             }
+
             if (!GroupRole.MANAGER.getCode().equals(currentUserRole) && !GroupRole.CREATOR.getCode().equals(currentUserRole)) {
                 throw new ServiceException(ErrorCode.NOT_GROUP_MANAGER_3);
             }
-        } else {
+        }
+        else {
             throw new ServiceException(ErrorCode.GROUP_MEMBER_EMPTY);
         }
 
@@ -1938,39 +1961,10 @@ public class GroupManager extends BaseManager {
             dbMemberIdList.add(groupMembers.getMemberId());
         }
 
-        List<Integer> memberIdList = new ArrayList<>();
-        for (Integer memberId : memberIds) {
-            if (memberId == null) {
-                throw new ServiceException(ErrorCode.EMPTY_MEMBERID);
-            }
-            if (!dbMemberIdList.contains(memberId)) {
-                throw new ServiceException(ErrorCode.CANT_NOT_KICK_NONE_MEMBER);
-            }
-            memberIdList.add(memberId);
-        }
-
         //执行踢出
         kickMember0(groupId, memberIds, timestamp, groups);
         //刷新GroupMemberVersion数据版本
         dataVersionsService.updateGroupMemberVersion(groupId, timestamp);
-
-        String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
-        //被踢用户信息
-        List<Users> memberUserList = usersService.getUsers(memberIdList);
-
-        List<String> nicknameList = new ArrayList<>();
-        for (Users u : memberUserList) {
-            nicknameList.add(u.getNickname());
-        }
-
-        //发送组通知消息
-        Map<String, Object> messageData = new HashMap<>();
-        messageData.put("operatorNickname", nickname);
-        messageData.put("targetUserIds", encodeMemberIds);
-        messageData.put("targetUserDisplayNames", nicknameList);
-        messageData.put("timestamp", timestamp);
-        //发送群组通知
-        sendGroupNotificationMessageBySystem(groupId, messageData, currentUserId, GroupOperationType.KICKED);
 
         //调用融云退群接口
         try {
@@ -1983,6 +1977,34 @@ public class GroupManager extends BaseManager {
             log.error("Error: quit group failed on IM server, error:" + e.getMessage(), e);
             throw new ServiceException(ErrorCode.QUIT_IM_SERVER_ERROR);
         }
+
+
+        List<Integer> memberIdList = new ArrayList<>();
+        for (Integer memberId : memberIds) {
+            if (memberId == null) {
+                throw new ServiceException(ErrorCode.EMPTY_MEMBERID);
+            }
+            if (!dbMemberIdList.contains(memberId)) {
+                throw new ServiceException(ErrorCode.CANT_NOT_KICK_NONE_MEMBER);
+            }
+            memberIdList.add(memberId);
+        }
+        String nickname = usersService.getCurrentUserNickNameWithCache(currentUserId);
+        //被踢用户信息
+        List<Users> memberUserList = usersService.getUsers(memberIdList);
+
+        List<String> nicknameList = new ArrayList<>();
+        for (Users u : memberUserList) {
+            nicknameList.add(u.getNickname());
+        }
+        // 发送组通知消息
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("operatorNickname", nickname);
+        messageData.put("targetUserIds", encodeMemberIds);
+        messageData.put("targetUserDisplayNames", nicknameList);
+        messageData.put("timestamp", timestamp);
+        //发送群组通知
+        sendDirectionGroupNotificationMessageBySystem(groupId, MiscUtils.encodeIds(groupManagerIdList), messageData, currentUserId, GroupOperationType.KICKED);
 
         //清除相关缓存
         for (Integer memberId : memberIds) {
@@ -1998,12 +2020,14 @@ public class GroupManager extends BaseManager {
         Users operatorUser = new Users();
         operatorUser.setId(currentUserId);
         operatorUser.setNickname(nickname);
-        Integer quitReason = null;
+        Integer quitReason;
         if (GroupRole.CREATOR.getCode().equals(currentUserRole)) {
             quitReason = GroupExitedLists.QUITE_REASON_CREATOR;
-        } else if (GroupRole.MANAGER.getCode().equals(currentUserRole)) {
+        }
+        else if (GroupRole.MANAGER.getCode().equals(currentUserRole)) {
             quitReason = GroupExitedLists.QUITE_REASON_MANAGER;
-        } else {
+        }
+        else {
             throw new ServiceException(ErrorCode.NOT_GROUP_MANAGER_3);
         }
         groupExitedListsService.saveGroupExitedListItems(groups, memberUserList, operatorUser, quitReason);

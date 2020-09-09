@@ -541,7 +541,7 @@ public class UserController extends BaseController {
                 }
             }
 
-            return APIResultWrap.ok(MiscUtils.encodeResults(map), "查无此人");
+            return APIResultWrap.error(ErrorCode.USER_NOT_EXIST);
 
     }
 

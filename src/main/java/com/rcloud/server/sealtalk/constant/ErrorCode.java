@@ -79,7 +79,7 @@ public enum ErrorCode {
     NOT_GROUP_MEMBER(404,"Not a group member",404),
     NOT_GROUP_OWNER(400,"Not a group owner .",400),
     NO_PERMISSION(20001,"No permission",20001),
-    NOT_GROUP_MEMBER_2(403,"Only group member can get group member info.",403),
+    NOT_GROUP_MEMBER_2(403,"你已不在该群中，只有群成员才可以群成员.",403),
     INVALID_DISPLAY_NAME_LENGTH(400,"Length of display name invalid.",400),
     INVALID_GROUP_PORTRAITURI_LENGTH(400,"Length of portraitUri invalid.",400),
     GROUP_OR_CREATOR_UNKNOW(400,"Unknown group or not creator.",400),

@@ -338,46 +338,51 @@ public class GroupController extends BaseController {
     @RequestMapping(value = "/{id}/members", method = RequestMethod.GET)
     public APIResult<?> getGroupMembers(
             @ApiParam(name = "groupId", value = "群组ID", required = true, type = "String", example = "86")
-            @PathVariable("id") String groupId) throws ServiceException {
-            ValidateUtils.notEmpty(groupId);
+            @PathVariable("id") String groupId) {
+            try {
+                ValidateUtils.notEmpty(groupId);
 
-            Integer currentUserId = getCurrentUserId();
+                Integer currentUserId = getCurrentUserId();
 
-            List<GroupMembers> groupMembersList = groupManager.getGroupMembers(currentUserId, N3d.decode(groupId));
+                List<GroupMembers> groupMembersList = groupManager.getGroupMembers(currentUserId, N3d.decode(groupId));
 
-            List<MemberDTO> memberDTOList = new ArrayList<>();
+                List<MemberDTO> memberDTOList = new ArrayList<>();
 
-            SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
+                SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
 
-            if (!CollectionUtils.isEmpty(groupMembersList)) {
-                for (GroupMembers groupMembers : groupMembersList) {
-                    MemberDTO memberDTO = new MemberDTO();
-                    memberDTO.setGroupNickname(groupMembers.getGroupNickname());
-                    memberDTO.setRole(groupMembers.getRole());
-                    memberDTO.setCreatedAt(sdf.format(groupMembers.getCreatedAt()));
-                    memberDTO.setCreatedTime(groupMembers.getCreatedAt().getTime());
-                    memberDTO.setUpdatedAt(sdf.format(groupMembers.getUpdatedAt()));
-                    memberDTO.setUpdatedTime(groupMembers.getUpdatedAt().getTime());
+                if (!CollectionUtils.isEmpty(groupMembersList)) {
+                    for (GroupMembers groupMembers : groupMembersList) {
+                        MemberDTO memberDTO = new MemberDTO();
+                        memberDTO.setGroupNickname(groupMembers.getGroupNickname());
+                        memberDTO.setRole(groupMembers.getRole());
+                        memberDTO.setCreatedAt(sdf.format(groupMembers.getCreatedAt()));
+                        memberDTO.setCreatedTime(groupMembers.getCreatedAt().getTime());
+                        memberDTO.setUpdatedAt(sdf.format(groupMembers.getUpdatedAt()));
+                        memberDTO.setUpdatedTime(groupMembers.getUpdatedAt().getTime());
 
-                    UserDTO userDTO = new UserDTO();
-                    memberDTO.setUser(userDTO);
+                        UserDTO userDTO = new UserDTO();
+                        memberDTO.setUser(userDTO);
 
-                    Users u = groupMembers.getUsers();
-                    if (u != null) {
-                        userDTO.setId(N3d.encode(u.getId()));
-                        userDTO.setNickname(u.getNickname());
-                        userDTO.setRegion(u.getRegion());
-                        userDTO.setPhone(u.getPhone());
-                        userDTO.setGender(u.getGender());
-                        userDTO.setPortraitUri(u.getPortraitUri());
-                        userDTO.setStAccount(u.getStAccount());
+                        Users u = groupMembers.getUsers();
+                        if (u != null) {
+                            userDTO.setId(N3d.encode(u.getId()));
+                            userDTO.setNickname(u.getNickname());
+                            userDTO.setRegion(u.getRegion());
+                            userDTO.setPhone(u.getPhone());
+                            userDTO.setGender(u.getGender());
+                            userDTO.setPortraitUri(u.getPortraitUri());
+                            userDTO.setStAccount(u.getStAccount());
 
+                        }
+                        memberDTOList.add(memberDTO);
                     }
-                    memberDTOList.add(memberDTO);
                 }
-            }
 
-            return APIResultWrap.ok(memberDTOList);
+                return APIResultWrap.ok(memberDTOList);
+            }
+            catch (ServiceException e) {
+                return APIResultWrap.error(e);
+            }
     }
 
     @ApiOperation(value = "设置群认证")
