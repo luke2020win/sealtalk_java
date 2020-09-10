@@ -2463,17 +2463,9 @@ public class GroupManager extends BaseManager {
             throw new ServiceException(ErrorCode.CAN_NOT_MUTE_SELF);
         }
 
-        GroupMute param = new GroupMute();
-        param.setGroupId(groupId);
-        param.setMuteUserId(memberId);
-        GroupMute groupMute = groupMuteService.getOne(param);
-        if(groupMute != null) {
-            throw new ServiceException(ErrorCode.USER_HAVED_MUTE);
-        }
-
         try {
             // 调用融云禁言接口
-            Result result = rongCloudClient.addMute(encodeGroupId, encodeMemberId, 1);
+            Result result = rongCloudClient.addMute(encodeGroupId, encodeMemberId, 0);
             if (!Constants.CODE_OK.equals(result.getCode())) {
                 log.error("Error: add mute failed on IM server, code: {}", result.getCode());
                 throw new ServiceException(ErrorCode.MUTE_IM_SERVER_ERROR);
@@ -2510,6 +2502,14 @@ public class GroupManager extends BaseManager {
             // 获取被禁言者的信息
             Users operationUser = usersService.getByPrimaryKey(currentUserId);
             operationNickName = operationUser.getNickname();
+        }
+
+        GroupMute param = new GroupMute();
+        param.setGroupId(groupId);
+        param.setMuteUserId(memberId);
+        GroupMute groupMute = groupMuteService.getOne(param);
+        if(groupMute != null) {
+            throw new ServiceException(ErrorCode.USER_HAVED_MUTE);
         }
 
         log.info(TAG+" muteOne " + " groupId:"+groupId + " memberId:"+memberId+" userNickName:"+userNickName+" mutePortraitUri:"+ muteUser.getPortraitUri()+" operatorId:"+currentUserId+" operatorNickName:"+operationNickName);
