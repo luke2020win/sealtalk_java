@@ -2216,7 +2216,7 @@ public class GroupManager extends BaseManager {
                     messageData.put("timestamp", timestamp);
 
                     //发送群组通知 TODO
-                    Result result1 = sendGroupNotificationMessageBySystem(groupId, messageData, currentUserId, GroupOperationType.CREATE);
+                    Result result1 = sendGroupNotificationMessageBySystem(newGroups.getId(), messageData, currentUserId, GroupOperationType.CREATE);
                     log.info("sendGroupNotificationMessage result1:{}", result1);
                 } catch (Exception e) {
                     log.error("sendGroupNotificationMessage exception:" + e.getMessage(), e);
@@ -2245,6 +2245,11 @@ public class GroupManager extends BaseManager {
         for (Integer memberId : memberIds) {
             CacheUtil.delete(CacheUtil.USER_GROUP_CACHE_PREFIX + memberId);
         }
+        //更新复制时间
+        Groups updateGroup = new Groups();
+        updateGroup.setId(groupId);
+        updateGroup.setCopiedTime(timestamp);
+        groupsService.updateByPrimaryKeySelective(updateGroup);
 
         //构建返回结果
         GroupAddStatusDTO groupAddStatusDTO = new GroupAddStatusDTO();
