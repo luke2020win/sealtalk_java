@@ -2524,9 +2524,8 @@ public class GroupManager extends BaseManager {
         GroupMute param = new GroupMute();
         param.setGroupId(groupId);
         param.setMuteUserId(muteUserId);
-        groupMuteService.getOne(param);
-
-        if(param != null) {
+        GroupMute groupMute = groupMuteService.getOne(param);
+        if(groupMute != null) {
            throw new ServiceException(ErrorCode.USER_HAVED_MUTE);
         }
 
@@ -2592,9 +2591,9 @@ public class GroupManager extends BaseManager {
         }
     }
 
-    public List<GroupMute> getMuteList(Integer currentUserId, int groupId) throws ServiceException {
-        GroupMembers groupMembers = groupMembersService.getGroupMember(groupId, currentUserId);
-        if (groupMembers == null || !isManagerRole(groupMembers.getRole())) {
+    public List<GroupMembers> getMuteList(Integer currentUserId, int groupId) throws ServiceException {
+        GroupMembers groupMember = groupMembersService.getGroupMember(groupId, currentUserId);
+        if (groupMember == null || !isManagerRole(groupMember.getRole())) {
             throw new ServiceException(ErrorCode.NOT_GROUP_MANAGER);
         }
 
@@ -2602,7 +2601,30 @@ public class GroupManager extends BaseManager {
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("groupId", groupId);
         List<GroupMute> groupMuteList = groupMuteService.getByExample(example);
+        if(groupMuteList == null) {
+            return null;
+        }
 
-        return groupMuteList ;
+        List<Integer> memberIdList = new ArrayList<>();
+        HashMap<Integer, GroupMute> groupMuteHashMap = new HashMap<>();
+        for (GroupMute groupMute : groupMuteList) {
+            memberIdList.add(groupMute.getMuteUserId());
+            groupMuteHashMap.put(groupMute.getMuteUserId(), groupMute);
+        }
+
+        Example example1 = new Example(GroupMembers.class);
+        example1.createCriteria().andEqualTo("groupId", groupId).andIn("memberId", memberIdList);
+        List<GroupMembers> groupMemberList = groupMembersService.getByExample(example1);
+        for (GroupMembers groupMembers : groupMemberList) {
+            GroupMute groupMute = groupMuteHashMap.get(groupMembers.getMemberId());
+            Users users = new Users();
+            users.setId(groupMute.getMuteUserId());
+            users.setNickname(groupMute.getMuteNickname());
+            users.setPortraitUri(groupMute.getMutePortraitUri());
+            groupMembers.setDisplayName(groupMute.getMuteNickname());
+            groupMembers.setUsers(users);
+        }
+
+        return groupMemberList ;
     }
 }

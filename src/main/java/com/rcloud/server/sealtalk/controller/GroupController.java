@@ -688,24 +688,41 @@ public class GroupController extends BaseController {
 
             ValidateUtils.notEmpty(groupId);
 
-            List<GroupMute> groupMuteList = groupManager.getMuteList(currentUserId, N3d.decode(groupId));
-            List<GroupMuteDTO> groupMuteDTOList = null;
-            if(groupMuteList != null || !groupMuteList.isEmpty()) {
-                groupMuteDTOList = new ArrayList<>();
-                for (GroupMute groupMute : groupMuteList) {
-                    GroupMuteDTO groupMuteDTO = new GroupMuteDTO();
-                    groupMuteDTO.setGroupId(groupMute.getGroupId());
-                    groupMuteDTO.setMuteUserId(groupMute.getMuteUserId());
-                    groupMuteDTO.setMuteNickname(groupMute.getMuteNickname());
-                    groupMuteDTO.setMutePortraitUri(groupMute.getMutePortraitUri());
-                    groupMuteDTO.setOperatorId(groupMute.getOperatorId());
-                    groupMuteDTO.setOperatorNickName(groupMute.getOperatorNickName());
-                    groupMuteDTOList.add(groupMuteDTO);
+            List<GroupMembers> groupMuteList = groupManager.getMuteList(currentUserId, N3d.decode(groupId));
+
+            List<MemberDTO> memberDTOList = new ArrayList<>();
+
+            SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMATR_PATTERN);
+
+            if (!CollectionUtils.isEmpty(groupMuteList)) {
+                for (GroupMembers groupMembers : groupMuteList) {
+                    MemberDTO memberDTO = new MemberDTO();
+                    memberDTO.setGroupNickname(groupMembers.getGroupNickname());
+                    memberDTO.setRole(groupMembers.getRole());
+                    memberDTO.setCreatedAt(sdf.format(groupMembers.getCreatedAt()));
+                    memberDTO.setCreatedTime(groupMembers.getCreatedAt().getTime());
+                    memberDTO.setUpdatedAt(sdf.format(groupMembers.getUpdatedAt()));
+                    memberDTO.setUpdatedTime(groupMembers.getUpdatedAt().getTime());
+
+                    UserDTO userDTO = new UserDTO();
+                    memberDTO.setUser(userDTO);
+
+                    Users u = groupMembers.getUsers();
+                    if (u != null) {
+                        userDTO.setId(N3d.encode(u.getId()));
+                        userDTO.setNickname(u.getNickname());
+                        userDTO.setRegion(u.getRegion());
+                        userDTO.setPhone(u.getPhone());
+                        userDTO.setGender(u.getGender());
+                        userDTO.setPortraitUri(u.getPortraitUri());
+                        userDTO.setStAccount(u.getStAccount());
+
+                    }
+                    memberDTOList.add(memberDTO);
                 }
-
-
             }
-            return APIResultWrap.ok(groupMuteDTOList);
+
+            return APIResultWrap.ok(memberDTOList);
         }
         catch (ServiceException e) {
             return APIResultWrap.error(e);
