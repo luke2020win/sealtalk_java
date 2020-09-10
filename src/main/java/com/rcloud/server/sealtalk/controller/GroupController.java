@@ -680,7 +680,7 @@ public class GroupController extends BaseController {
 
     @ApiOperation(value = "获取接收戳一下消息状态")
     @RequestMapping(value = "/get_mute_list", method = RequestMethod.POST)
-    public APIResult getMuteList(@RequestBody GroupParam groupParam) throws ServiceException {
+    public APIResult getMuteList(@RequestBody GroupParam groupParam) {
         try {
             Integer currentUserId = getCurrentUserId();
 

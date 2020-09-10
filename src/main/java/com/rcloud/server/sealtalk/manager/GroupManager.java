@@ -2463,6 +2463,14 @@ public class GroupManager extends BaseManager {
             throw new ServiceException(ErrorCode.CAN_NOT_MUTE_SELF);
         }
 
+        GroupMute param = new GroupMute();
+        param.setGroupId(groupId);
+        param.setMuteUserId(memberId);
+        GroupMute groupMute = groupMuteService.getOne(param);
+        if(groupMute != null) {
+            throw new ServiceException(ErrorCode.USER_HAVED_MUTE);
+        }
+
         try {
             // 调用融云禁言接口
             Result result = rongCloudClient.addMute(encodeGroupId, encodeMemberId, 1);
@@ -2504,8 +2512,9 @@ public class GroupManager extends BaseManager {
             operationNickName = operationUser.getNickname();
         }
 
+        log.info(TAG+" muteOne " + " groupId:"+groupId + " memberId:"+memberId+" userNickName:"+userNickName+" mutePortraitUri:"+ muteUser.getPortraitUri()+" operatorId:"+currentUserId+" operatorNickName:"+operationNickName);
         // 添加禁言记录到表中
-        addGroupMute(groupId, memberId, userNickName, muteUser.getPortraitUri(), 0, currentUserId, operationNickName);
+        insertGroupMute(groupId, memberId, userNickName, muteUser.getPortraitUri(), 0, currentUserId, operationNickName);
     }
 
     /**
@@ -2518,20 +2527,6 @@ public class GroupManager extends BaseManager {
      * @param operatorNickName
      * @return
      */
-    private void addGroupMute(Integer groupId, Integer muteUserId, String muteNickname, String mutePortraitUri, Integer muteTime, Integer operatorId, String operatorNickName) throws ServiceException {
-        log.info(TAG+" muteOne muteNickname:"+muteNickname+" mutePortraitUri:"+mutePortraitUri+" operatorId:"+operatorId+" operatorNickName:"+operatorNickName);
-
-        GroupMute param = new GroupMute();
-        param.setGroupId(groupId);
-        param.setMuteUserId(muteUserId);
-        GroupMute groupMute = groupMuteService.getOne(param);
-        if(groupMute != null) {
-           throw new ServiceException(ErrorCode.USER_HAVED_MUTE);
-        }
-
-        insertGroupMute(groupId, muteUserId, muteNickname, mutePortraitUri, muteTime, operatorId, operatorNickName);
-    }
-
     private GroupMute insertGroupMute(Integer groupId, Integer muteUserId, String muteNickname, String mutePortraitUri, Integer muteTime, Integer operatorId, String operatorNickName) {
         return transactionTemplate.execute(transactionStatus -> {
             //插入user表
@@ -2582,13 +2577,16 @@ public class GroupManager extends BaseManager {
         removeGroupMute(groupId, memberIds);
     }
 
-    private void removeGroupMute(int groupId, Integer[] memberIds) {
-        for (Integer memberId : memberIds) {
-            Example example = new Example(GroupMute.class);
-            Example.Criteria criteria = example.createCriteria();
-            criteria.andEqualTo("groupId", groupId).andEqualTo("muteUserId", memberId);
-            groupMuteService.deleteByExample(example);
+    private void removeGroupMute(int groupId, Integer[] memberIds) throws ServiceException {
+        if(memberIds == null) {
+            throw new ServiceException(ErrorCode.PARAM_ERROR);
         }
+
+        Example example = new Example(GroupMute.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("groupId", groupId).andIn("muteUserId", CollectionUtils.arrayToList(memberIds));
+        groupMuteService.deleteByExample(example);
+
     }
 
     public List<GroupMembers> getMuteList(Integer currentUserId, int groupId) throws ServiceException {
