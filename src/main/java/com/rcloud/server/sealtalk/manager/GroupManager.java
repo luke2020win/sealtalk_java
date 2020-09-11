@@ -986,10 +986,7 @@ public class GroupManager extends BaseManager {
      */
     public List<GroupReceivers> getNoticeInfo(Integer currentUserId) {
 
-        Example example = new Example(GroupReceivers.class);
-        example.createCriteria().andEqualTo("userId", currentUserId);
-        example.setOrderByClause(" timestamp DESC ");
-        return groupReceiversService.getByExample(example);
+        return groupReceiversService.getGroupReceiversWithIncludes(currentUserId);
 
     }
 
