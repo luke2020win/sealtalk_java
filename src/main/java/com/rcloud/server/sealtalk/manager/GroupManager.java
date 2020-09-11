@@ -315,7 +315,7 @@ public class GroupManager extends BaseManager {
 
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("operatorNickname", requesterName);
-        messageData.put("targetGroupId", targetGroupId);
+        messageData.put("targetGroupId", N3d.encode(targetGroupId));
         messageData.put("targetGroupName", targetGroupName == null ? "" : targetGroupName);
         messageData.put("status", status);
         messageData.put("type", type);
