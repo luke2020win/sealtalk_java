@@ -1565,7 +1565,7 @@ public class GroupManager extends BaseManager {
         messageData.put("operatorId", N3d.encode(currentUserId));
         messageData.put("operatorNickname", currentUserNickName);
         messageData.put("targetUserIds", ImmutableList.of(N3d.encode(userId)));
-        messageData.put("targetUserDisplayNames", userNickName);
+        messageData.put("targetUserDisplayNames", ImmutableList.of(userNickName));
         messageData.put("timestamp", timestamp);
 
         //发送群组通知消息 TODO
