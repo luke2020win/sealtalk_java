@@ -81,7 +81,9 @@ public class MiscController extends BaseController {
 
     @ApiOperation(value = "Android、iOS 获取更新版本")
     @RequestMapping(value = "/client_version", method = RequestMethod.POST)
-    public APIResult<Object>  getClientVersion(@RequestBody ClientVersionParam clientVersionParam) throws ServiceException {
+    public APIResult<Object>  getClientVersion(@RequestBody ClientVersionParam clientVersionParam) {
+        try {
+
             VersionUpdate versionUpdate;
             String clientType = clientVersionParam.getClientType();
             String channel = clientVersionParam.getChannel();
@@ -95,12 +97,17 @@ public class MiscController extends BaseController {
 
             versionUpdate = miscManager.getClientVersion(version, versionCode, channel, clientType);
             return APIResultWrap.ok(versionUpdate);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
     @ApiOperation(value = "Server API 发送消息")
     @RequestMapping(value = "/send_message", method = RequestMethod.POST)
-    public APIResult sendMessage(@RequestBody SendMessageParam sendMessageParam) throws ServiceException {
+    public APIResult sendMessage(@RequestBody SendMessageParam sendMessageParam) {
+        try {
             String conversationType = sendMessageParam.getConversationType();
             String targetId = sendMessageParam.getConversationType();
             String objectName = sendMessageParam.getConversationType();
@@ -115,12 +122,17 @@ public class MiscController extends BaseController {
             Integer currentUserId = getCurrentUserId();
             miscManager.sendMessage(currentUserId, conversationType, N3d.decode(targetId), objectName, content, pushContent, targetId);
             return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
     @ApiOperation(value = "截屏通知状态设置")
     @RequestMapping(value = "/set_screen_capture", method = RequestMethod.POST)
-    public APIResult setScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
+    public APIResult setScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) {
+        try {
             Integer conversationType = screenCaptureParam.getConversationType();
             String targetId = screenCaptureParam.getTargetId();
             Integer noticeStatus = screenCaptureParam.getNoticeStatus();
@@ -133,12 +145,17 @@ public class MiscController extends BaseController {
 
             miscManager.setScreenCapture(currentUserId, N3d.decode(targetId), conversationType, noticeStatus);
             return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 
     @ApiOperation(value = "获取截屏通知状态")
     @RequestMapping(value = "/get_screen_capture", method = RequestMethod.POST)
-    public APIResult<Object> getScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
+    public APIResult<Object> getScreenCapture(@RequestBody ScreenCaptureParam screenCaptureParam) {
+        try {
             Integer conversationType = screenCaptureParam.getConversationType();
             String targetId = screenCaptureParam.getTargetId();
 
@@ -155,11 +172,16 @@ public class MiscController extends BaseController {
                 result.put("status", screenStatuses.getStatus());
             }
             return APIResultWrap.ok(MiscUtils.encodeResults(result));
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     @ApiOperation(value = "发送截屏通知消息")
     @RequestMapping(value = "/send_sc_msg", method = RequestMethod.POST)
-    public APIResult sendScreenCaptureMsg(@RequestBody ScreenCaptureParam screenCaptureParam) throws ServiceException {
+    public APIResult sendScreenCaptureMsg(@RequestBody ScreenCaptureParam screenCaptureParam) {
+        try {
             Integer conversationType = screenCaptureParam.getConversationType();
             String targetId = screenCaptureParam.getTargetId();
 
@@ -171,6 +193,10 @@ public class MiscController extends BaseController {
             miscManager.sendScreenCaptureMsg(currentUserId, N3d.decode(targetId), conversationType);
 
             return APIResultWrap.ok();
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
 

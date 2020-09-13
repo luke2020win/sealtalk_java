@@ -69,7 +69,12 @@
 
     </select>
 
-
-
+    <!-- 批量插入保存群 -->
+    <insert id="insertCountGroupFavsList" keyProperty="id" useGeneratedKeys="true" parameterType="java.util.List" >
+        insert into group_favs(userId, groupId, createdAt, updatedAt) values
+        <foreach collection="groupFavsList" item="item" index="index" separator=",">
+            (#{item.userId},#{item.groupId},#{item.createdAt},#{item.updatedAt})
+        </foreach>
+    </insert>
 
 </mapper>

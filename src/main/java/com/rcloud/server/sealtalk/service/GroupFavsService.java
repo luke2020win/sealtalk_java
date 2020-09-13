@@ -50,4 +50,8 @@ public class GroupFavsService extends AbstractBaseService<GroupFavs, Integer> {
     public Integer queryCountGroupFavs(Integer userId){
         return mapper.queryCountGroupFavsWithGroupByUserId(userId);
     }
+
+    public int insertCountGroupFavsList(List<GroupFavs> groupFavsList){
+        return mapper.insertCountGroupFavsList(groupFavsList);
+    }
 }

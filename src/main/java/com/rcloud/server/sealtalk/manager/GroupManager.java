@@ -212,6 +212,9 @@ public class GroupManager extends BaseManager {
             groupSyncsService.saveOrUpdate(groups.getId(), GroupSyncs.INVALID, GroupSyncs.INVALID);
         }
 
+        // 给加入群的人，加入联系人记录
+        favListNoException(groups.getId(), megerUserIdList);
+
         if (veirfyNeedUserList.size() > 0) {
             for (int id : veirfyNeedUserList) {
                 UserStatusDTO userStatusDTO = new UserStatusDTO();
@@ -427,11 +430,10 @@ public class GroupManager extends BaseManager {
      * @param memberIds
      */
     public List<UserStatusDTO> addMember(Integer currentUserId, Integer groupId, Integer[] memberIds) throws ServiceException {
-
-        //返回结果对象
+        // 返回结果对象
         List<UserStatusDTO> userStatusDTOList = new ArrayList<>();
 
-        //查询当前用户在群组中的角色是不是管理者
+        // 查询当前用户在群组中的角色是不是管理者
         boolean hasManagerRole = true;
         Example example = new Example(GroupMembers.class);
         example.createCriteria().andEqualTo("groupId", groupId)
@@ -478,20 +480,22 @@ public class GroupManager extends BaseManager {
                 userStatusDTOList.add(userStatusDTO);
 
             }
+
             batchSaveOrUpdateGroupReceiver(groups, currentUserId, verifyOpendUserIds, verifyOpendUserIds, type, GroupReceivers.GROUP_RECEIVE_STATUS_WAIT);
+
             //发送好友邀请消息 TODO
             sendGroupApplyMessage(currentUserId, verifyOpendUserIds, groups.getId(), groups.getName(), GroupReceivers.GROUP_RECEIVE_STATUS_WAIT, type);
         }
 
         //处理 verifyClosedUserIds 关闭认证的用户
         if (verifyClosedUserIds.size() > 0) {
-
             //当自己不是管理者 && 群组开启了入群认证时, 需要管理员同意
             if (!hasManagerRole && isGroupVerifyOpened) {
                 //更新为待管理员审批状态, 更新多个, 发消息
                 Example example2 = new Example(GroupMembers.class);
                 example2.createCriteria().andEqualTo("groupId", groupId)
                         .andIn("role", ImmutableList.of(GroupRole.MANAGER, GroupRole.CREATOR));
+
                 //查询出所有管理者(Manager,Creator),
                 List<GroupMembers> groupMembersList = groupMembersService.getByExample(example2);
                 List<Integer> managerIds = new ArrayList<>();
@@ -508,12 +512,14 @@ public class GroupManager extends BaseManager {
                     userStatusDTO.setStatus(UserAddStatus.WAIT_MANAGER.getCode());
                     userStatusDTOList.add(userStatusDTO);
                 }
+
                 //更新为待管理员处理状态, 并批量发消息
                 batchSaveOrUpdateGroupReceiver(groups, currentUserId, verifyClosedUserIds, managerIds, type, GroupReceivers.GROUP_RECEIVE_STATUS_WAIT);
                 //发送好友邀请消息 TODO
                 sendGroupApplyMessage(currentUserId, verifyClosedUserIds, groups.getId(), groups.getName(), GroupReceivers.GROUP_RECEIVE_STATUS_WAIT, type);
 
-            } else {
+            }
+            else {
                 //如果没有开启群验证或者有管理员角色 !isGroupVerifyOpened || hasManagerRole --> 直接加群
                 for (Integer userId : verifyClosedUserIds) {
                     UserStatusDTO userStatusDTO = new UserStatusDTO();
@@ -521,8 +527,10 @@ public class GroupManager extends BaseManager {
                     userStatusDTO.setStatus(UserAddStatus.GROUP_ADDED.getCode());
                     userStatusDTOList.add(userStatusDTO);
                 }
+
                 addMember0(groupId, verifyClosedUserIds, currentUserId);
             }
+
             //删除群组退出列表
             groupExitedListsService.deleteGroupExitedListItems(groupId, verifyClosedUserIds);
         }
@@ -545,24 +553,22 @@ public class GroupManager extends BaseManager {
             throw new ServiceException(ErrorCode.GROUP_UNKNOWN_ERROR);
         }
 
-        transactionTemplate.execute(new TransactionCallback<Boolean>() {
-            @Override
-            public Boolean doInTransaction(TransactionStatus transactionStatus) {
-                //更新group的群成员数量
-                groupsService.updateMemberCount(groups.getId(), groups.getMemberCount() + userIds.size(), timestamp);
-                //批量插入Groupmember
-                groupMembersService.batchSaveOrUpdate(groupId, userIds, timestamp, null);
+        transactionTemplate.execute(transactionStatus -> {
+            //更新group的群成员数量
+            groupsService.updateMemberCount(groups.getId(), groups.getMemberCount() + userIds.size(), timestamp);
+            //批量插入Groupmember
+            groupMembersService.batchSaveOrUpdate(groupId, userIds, timestamp, null);
 
-                //更新GroupReceiver 等待审核状态记录为已过期状态
-                GroupReceivers groupReceivers = new GroupReceivers();
-                groupReceivers.setStatus(GroupReceivers.GROUP_RECEIVE_STATUS_EXPIRED);
-                Example example = new Example(GroupReceivers.class);
-                example.createCriteria().andEqualTo("groupId", groupId)
-                        .andIn("receiverId", userIds);
-                groupReceiversService.updateByExampleSelective(groupReceivers, example);
-                return true;
-            }
+            //更新GroupReceiver 等待审核状态记录为已过期状态
+            GroupReceivers groupReceivers = new GroupReceivers();
+            groupReceivers.setStatus(GroupReceivers.GROUP_RECEIVE_STATUS_EXPIRED);
+            Example example = new Example(GroupReceivers.class);
+            example.createCriteria().andEqualTo("groupId", groupId)
+                    .andIn("receiverId", userIds);
+            groupReceiversService.updateByExampleSelective(groupReceivers, example);
+            return true;
         });
+
         //调用融云接口加入群组
         rongCloudClient.joinGroup(MiscUtils.encodeIds(userIds), N3d.encode(groupId), groups.getName());
 
@@ -588,6 +594,15 @@ public class GroupManager extends BaseManager {
         messageData.put("timestamp", timestamp);
         //发送群组通知 TODO
         sendGroupNotificationMessageBySystem(groupId, messageData, currentUserId, GroupOperationType.Add);
+
+
+        GroupFavs groupFavs = new GroupFavs();
+        groupFavs.setUserId(currentUserId);
+        groupFavs.setGroupId(groupId);
+        groupFavs.setCreatedAt(new Date());
+        groupFavs.setUpdatedAt(groupFavs.getCreatedAt());
+
+        favListNoException(groupId, userIds);
     }
 
 
@@ -647,11 +662,14 @@ public class GroupManager extends BaseManager {
                 //如果失败，插入GroupSync表进行记录 组信息同步失败记录
                 groupSyncsService.saveOrUpdate(groups.getId(), null, GroupSyncs.INVALID);
             }
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             //如果失败，插入GroupSync表进行记录 组信息同步失败记录
             groupSyncsService.saveOrUpdate(groups.getId(), null, GroupSyncs.INVALID);
         }
+
+        // 默认将进入群的人保存通讯录
+        favNoException(currentUserId, groupId);
 
         //清除相关缓存
         CacheUtil.delete(CacheUtil.USER_GROUP_CACHE_PREFIX + currentUserId);
@@ -1196,7 +1214,6 @@ public class GroupManager extends BaseManager {
         return;
     }
 
-
     /**
      * 保存群组到通信录
      *
@@ -1217,6 +1234,64 @@ public class GroupManager extends BaseManager {
                 throw new ServiceException(ErrorCode.ALREADY_EXISTS_GROUP);
             }
             throw new ServiceException(ErrorCode.SERVER_ERROR);
+        }
+        return;
+    }
+
+    /**
+     * 保存群组到通信录
+     *
+     * @param currentUserId
+     * @param groupId
+     */
+    public void favNoException(Integer currentUserId, Integer groupId) {
+        GroupFavs groupFavs = new GroupFavs();
+        groupFavs.setUserId(currentUserId);
+        groupFavs.setGroupId(groupId);
+        groupFavs.setCreatedAt(new Date());
+        groupFavs.setUpdatedAt(groupFavs.getCreatedAt());
+        try {
+            groupFavsService.saveSelective(groupFavs);
+        } catch (Exception e) {
+            if (e.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException) {
+                //throw new ServiceException(ErrorCode.ALREADY_EXISTS_GROUP);
+            }
+            //throw new ServiceException(ErrorCode.SERVER_ERROR);
+        }
+        return;
+    }
+
+    /**
+     * 保存群组到通信录
+     *
+     * @param groupId
+     */
+    public void favListNoException(Integer groupId, List<Integer> userIds) {
+        if(StringUtils.isEmpty(groupId)) {
+            return;
+        }
+
+        if(userIds == null || userIds.isEmpty()) {
+            return;
+        }
+
+        List<GroupFavs> groupFavsList = new ArrayList<>();
+        for (Integer userId : userIds) {
+            GroupFavs groupFavs = new GroupFavs();
+            groupFavs.setUserId(userId);
+            groupFavs.setGroupId(groupId);
+            groupFavs.setCreatedAt(new Date());
+            groupFavs.setUpdatedAt(groupFavs.getCreatedAt());
+            groupFavsList.add(groupFavs);
+        }
+
+        try {
+            groupFavsService.insertCountGroupFavsList(groupFavsList);
+        } catch (Exception e) {
+            if (e.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException) {
+                //throw new ServiceException(ErrorCode.ALREADY_EXISTS_GROUP);
+            }
+            //throw new ServiceException(ErrorCode.SERVER_ERROR);
         }
         return;
     }
@@ -2227,6 +2302,9 @@ public class GroupManager extends BaseManager {
             //如果失败，插入GroupSync表进行记录 组信息同步失败记录
             groupSyncsService.saveOrUpdate(newGroups.getId(), GroupSyncs.INVALID, GroupSyncs.INVALID);
         }
+
+        // 给加入群的人，加入联系人记录
+        favListNoException(groups.getId(), megerUserIdList);
 
         if (veirfyNeedUserList.size() > 0) {
             for (int id : veirfyNeedUserList) {
