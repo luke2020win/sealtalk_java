@@ -119,7 +119,6 @@ public class RequestInterceptor implements HandlerInterceptor {
             }
 
             if (!excludeUrlSet.contains(uri)) {
-                log.info("该用"+uri+"地址需要判断cookie");
                 //不在排除auth认证的url，需要进行身份认证
                 String authToken = getAuthToken(request);
                 if (authToken == null) {
@@ -153,10 +152,12 @@ public class RequestInterceptor implements HandlerInterceptor {
             }
 
             if (!excludeUrlSet.contains(uri)) {
-                log.info("该用"+uri+"地址需要判断cookie");
-                //不在排除auth认证的url，需要进行身份认证
-                Cookie authCookie = getAuthCookie(request);
-                if (authCookie == null) {
+                String authToken = getAuthFromCookie(request);
+                if (StringUtils.isEmpty(authToken)) {
+                    authToken = getAuthToken(request);
+                }
+
+                if (StringUtils.isEmpty(authToken)) {
                     response.setStatus(403);
                     response.getWriter().write("Not loged in.");
                     return false;
@@ -164,17 +165,11 @@ public class RequestInterceptor implements HandlerInterceptor {
 
                 Integer currentUserId = null;
                 try {
-                    currentUserId = getCurrentUserIdFromCookie(authCookie);
+                    currentUserId = getCurrentUserId(authToken);
                     log.info("preHandle currentUserId:" + currentUserId);
                     serverApiParams.setCurrentUserId(currentUserId);
                 } catch (Exception e) {
                     log.info("获取currentUserId异常,error: " + e.getMessage(), e);
-                }
-
-                if(currentUserId != null && userManager.checkBlackUser(currentUserId)) {
-                    log.info("该用户为黑名单用户");
-                    response.setStatus(ErrorCode.USER_IS_DISABLE.getErrorCode());
-                    return false;
                 }
 
                 if (currentUserId == null) {
@@ -182,6 +177,13 @@ public class RequestInterceptor implements HandlerInterceptor {
                     response.getWriter().write("Invalid cookie value");
                     log.info("Invalid cookie value");
                     return false;
+                }
+                else {
+                    if(userManager.checkBlackUser(currentUserId)) {
+                        log.info("该用户为黑名单用户");
+                        response.setStatus(ErrorCode.USER_IS_DISABLE.getErrorCode());
+                        return false;
+                    }
                 }
             }
         }
@@ -196,10 +198,18 @@ public class RequestInterceptor implements HandlerInterceptor {
         ServerApiParamHolder.remove();
     }
 
-    private Integer getCurrentUserIdFromCookie(Cookie authCookie) throws ServiceException {
-        String cookieValue = authCookie.getValue();
-        log.info("getCurrentUserIdFromCookie cookieValue:"+cookieValue);
-        return getCurrentUserId(cookieValue);
+    private String getAuthFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                log.info("getAuthCookie " + cookie.getName() + "=" + cookie.getValue());
+                if (cookie != null && cookie.getName().equals(sealtalkConfig.getAuthCookieName())) {
+                    log.info("getAuthFromCookie authValue:"+cookie.getValue());
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 
     private Integer getCurrentUserId(String value) throws ServiceException {

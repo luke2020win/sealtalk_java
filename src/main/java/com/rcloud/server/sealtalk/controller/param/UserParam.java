@@ -10,6 +10,10 @@ import lombok.Data;
  */
 @Data
 public class UserParam {
+    public static Integer  TYPE_WECHAT = 1;
+    public static Integer  TYPE_QQ = 2;
+    public static Integer  TYPE_DOUYIN = 3;
+
     private String region;
     private String phone;
     private String code;
@@ -17,6 +21,10 @@ public class UserParam {
     private String nickname;
     private String password;
     private String verification_token;
+
+    private Integer openType;
+
+    private String openId;
 
     private String oldPassword;
     private String newPassword;

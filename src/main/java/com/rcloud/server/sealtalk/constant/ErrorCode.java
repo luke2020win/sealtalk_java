@@ -35,6 +35,7 @@ public enum ErrorCode {
     //register error
     INVALID_PASSWORD(400, "Password must have no space.",400),
     INVALID_NICKNAME_LENGTH(400, "Length of nickname invalid.",400),
+    INVALID_OPEN_TYPE(400, "三方登陆参数错误",400),
     INVALID_PASSWORD_LENGHT(400, "Length of password invalid.",400),
     INVALID_VERIFICATION_TOKEN(400, "Invalid verification_token.",400),
     UNKNOWN_VERIFICATION_TOKEN(404, "Unknown verification_token.",404),

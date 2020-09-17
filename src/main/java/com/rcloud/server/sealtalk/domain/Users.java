@@ -23,10 +23,13 @@ public class Users implements Serializable {
     @GeneratedValue(generator = "JDBC")
     private Integer id;
 
+    @Column(name="region")
     private String region;
 
+    @Column(name="phone")
     private String phone;
 
+    @Column(name="nickname")
     private String nickname;
 
     @Column(name="portraitUri")
@@ -38,9 +41,19 @@ public class Users implements Serializable {
     @Column(name="passwordSalt")
     private String passwordSalt;
 
+    @Column(name="dyOpenId")
+    private String dyOpenId;
+
+    @Column(name="wxOpenId")
+    private String wxOpenId;
+
+    @Column(name="qqOpenId")
+    private String qqOpenId;
+
     @Column(name="rongCloudToken")
     private String rongCloudToken;
 
+    @Column(name="gender")
     private String gender;
 
     @Column(name="channel")
@@ -76,6 +89,7 @@ public class Users implements Serializable {
     @Column(name="groupCount")
     private Integer groupCount;
 
+    @Column(name="timestamp")
     private Long timestamp;
 
     @Column(name="createdAt")
@@ -412,6 +426,30 @@ public class Users implements Serializable {
         this.clientType = clientType;
     }
 
+    public String getWxOpenId() {
+        return wxOpenId;
+    }
+
+    public void setWxOpenId(String wxOpenId) {
+        this.wxOpenId = wxOpenId;
+    }
+
+    public String getQqOpenId() {
+        return qqOpenId;
+    }
+
+    public void setQqOpenId(String qqOpenId) {
+        this.qqOpenId = qqOpenId;
+    }
+
+    public String getDyOpenId() {
+        return dyOpenId;
+    }
+
+    public void setDyOpenId(String dyOpenId) {
+        this.dyOpenId = dyOpenId;
+    }
+
     @Override
     public String toString() {
         return "Users{" +
@@ -422,7 +460,11 @@ public class Users implements Serializable {
                 ", portraitUri='" + portraitUri + '\'' +
                 ", passwordHash='" + passwordHash + '\'' +
                 ", passwordSalt='" + passwordSalt + '\'' +
-                ", rongCloudToken='" + rongCloudToken + '\'' +
+
+                ", dyOpenId='" + dyOpenId + '\'' +
+                ", wxOpenId='" + wxOpenId + '\'' +
+                ", qqOpenId='" + qqOpenId + '\'' +
+
                 ", gender='" + gender + '\'' +
                 ", clientType='" + clientType + '\'' +
                 ", channel='" + channel + '\'' +

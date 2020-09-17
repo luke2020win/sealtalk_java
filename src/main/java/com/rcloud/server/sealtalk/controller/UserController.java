@@ -163,7 +163,6 @@ public class UserController extends BaseController {
             }
     }
 
-
     /**
      * 校验验证码(云片)
      * 1、region处理，去掉前缀 + 号
@@ -256,7 +255,6 @@ public class UserController extends BaseController {
             }
     }
 
-
     /**
      * 0、xss 转义处理 昵称字段
      * 1、密码不能有空格
@@ -273,22 +271,26 @@ public class UserController extends BaseController {
     @ApiOperation(value = "注册新用户")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public APIResult<Object> register(@RequestBody UserParam userParam, HttpServletResponse response){
-
             try {
                 String nickname = userParam.getNickname();
                 String password = userParam.getPassword();
-                String verification_token = userParam.getVerification_token();
+                String verificationToken = userParam.getVerification_token();
 
                 nickname = MiscUtils.xss(nickname, ValidateUtils.NICKNAME_MAX_LENGTH);
-                checkRegisterParam(nickname, password, verification_token);
+                ValidateUtils.checkPassword(password);
+                ValidateUtils.checkNickName(nickname);
+                ValidateUtils.checkUUID(verificationToken);
 
                 ServerApiParams serverApiParams = getServerApiParams();
-                Integer id = userManager.register(nickname, password, verification_token, serverApiParams);
+                Users users = userManager.register(nickname, password, verificationToken, serverApiParams);
 
                 //设置cookie
-                setCookie(response, id);
+                setCookie(response, users.getId());
+
                 Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put("id", N3d.encode(id));
+                resultMap.put("id", N3d.encode(users.getId()));
+                resultMap.put("token", users.getRongCloudToken());
+                resultMap.put("authToken", createAuthToken(users.getId()));
 
                 return APIResultWrap.ok(resultMap);
             }
@@ -297,10 +299,53 @@ public class UserController extends BaseController {
             }
     }
 
-    private void checkRegisterParam(String nickname, String password, String verificationToken) throws ServiceException {
-        ValidateUtils.checkPassword(password);
-        ValidateUtils.checkNickName(nickname);
-        ValidateUtils.checkUUID(verificationToken);
+    /**
+     * 0、xss 转义处理 昵称字段
+     * 1、密码不能有空格
+     * 2、昵称长度[1,32]
+     * 3、密码长度[6,20]
+     * 4、verificationToken token是uuid格式
+     * 5、verificationToken 是否在verification_codes表中存在
+     * 6、检查该手机号(Region+phone)是否已经注册过，已经注册过，返回400
+     * 7、如果没有注册过，hash生成密码，插入user表
+     * 8、然后插入DataVersion表，然后设置cookie，缓存nickname，
+     * 9、然后上报管理后台
+     * 10、返回注册成功，200，用户主键Id编码
+     */
+    @ApiOperation(value = "微信注册新用户")
+    @RequestMapping(value = "/register_other", method = RequestMethod.POST)
+    public APIResult<Object> registerOther(@RequestBody UserParam userParam, HttpServletResponse response){
+        try {
+            Integer openType = userParam.getOpenType();
+            String openId = userParam.getOpenId();
+            String portraitUri = userParam.getPortraitUri();
+            String nickname = userParam.getNickname();
+            String gender = userParam.getGender();
+            String verificationToken = userParam.getVerification_token();
+
+            // 验证参数
+            nickname = MiscUtils.xss(nickname, ValidateUtils.NICKNAME_MAX_LENGTH);
+            ValidateUtils.notEmpty(openId);
+            ValidateUtils.checkOpenType(openType);
+            ValidateUtils.checkNickName(nickname);
+            ValidateUtils.checkUUID(verificationToken);
+
+            ServerApiParams serverApiParams = getServerApiParams();
+            Users users = userManager.registerOther(openId, openType, nickname, portraitUri, gender, verificationToken, serverApiParams);
+
+            //设置cookie
+            setCookie(response, users.getId());
+
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("id", N3d.encode(users.getId()));
+            resultMap.put("token", users.getRongCloudToken());
+            resultMap.put("authToken", createAuthToken(users.getId()));
+
+            return APIResultWrap.ok(resultMap);
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
     }
 
     /**
@@ -315,7 +360,6 @@ public class UserController extends BaseController {
     @ApiOperation(value = "用户登录")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public APIResult<Object> login(@RequestBody UserParam userParam, HttpServletResponse response){
-
             try {
                 String region = userParam.getRegion();
                 String phone = userParam.getPhone();
@@ -355,6 +399,34 @@ public class UserController extends BaseController {
             }
     }
 
+
+    @ApiOperation(value = "用户微信登录")
+    @RequestMapping(value = "/login_other", method = RequestMethod.POST)
+    public APIResult<Object> loginOther(@RequestBody UserParam userParam, HttpServletResponse response){
+        try {
+            Integer openType = userParam.getOpenType();
+            String openId = userParam.getOpenId();
+            // 为空判断
+            ValidateUtils.notEmpty(openId);
+            ValidateUtils.checkOpenType(openType);
+
+            ServerApiParams serverApiParams = getServerApiParams();
+            Users users = userManager.loginOther(openId, openType, serverApiParams);
+
+            //设置cookie  userId加密存入cookie,登录成功后的其他请求，当前登录用户useId获取从cookie中获取
+            setCookie(response, users.getId());
+
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("id", users.getId());
+            resultMap.put("token", users.getRongCloudToken());
+            resultMap.put("authToken", createAuthToken(users.getId()));
+            //对result编码
+            return APIResultWrap.ok(MiscUtils.encodeResults(resultMap));
+        }
+        catch (ServiceException e) {
+            return APIResultWrap.error(e);
+        }
+    }
 
     @ApiOperation(value = "用户注销")
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
@@ -622,9 +694,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "同步用户的好友、黑名单、群组、群组成员数据")
     @RequestMapping(value = "/sync/{version}", method = RequestMethod.GET)
-    public APIResult<Object> syncInfo(@ApiParam(name = "version", value = "请求的版本号(时间戳)", required = true, type = "String", example = "xxx")
-                                      @PathVariable("version") String version){
-
+    public APIResult<Object> syncInfo(@ApiParam(name = "version", value = "请求的版本号(时间戳)", required = true, type = "String", example = "xxx") @PathVariable("version") String version) {
             try {
                 ValidateUtils.checkTimeStamp(version);
 

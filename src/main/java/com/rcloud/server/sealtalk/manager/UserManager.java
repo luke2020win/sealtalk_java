@@ -7,6 +7,7 @@ import com.rcloud.server.sealtalk.configuration.ProfileConfig;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
 import com.rcloud.server.sealtalk.constant.SmsServiceType;
+import com.rcloud.server.sealtalk.controller.param.UserParam;
 import com.rcloud.server.sealtalk.domain.*;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import com.rcloud.server.sealtalk.interceptor.ServerApiParamHolder;
@@ -265,8 +266,8 @@ public class UserManager extends BaseManager {
         return verificationCodes.getToken();
     }
 
-    public Integer register(String nickname, String password, String verificationToken, ServerApiParams serverApiParams) throws ServiceException {
-
+    public Users register(String nickname, String password, String verificationToken, ServerApiParams serverApiParams) throws ServiceException {
+        log.info(TAG+"register "+"nickname:"+nickname+" password:"+password+" verificationToken:"+verificationToken);
         VerificationCodes verificationCodes = verificationCodesService.getByToken(verificationToken);
 
         if (verificationCodes == null) {
@@ -279,22 +280,161 @@ public class UserManager extends BaseManager {
         Users users = usersService.getOne(param);
 
         if (users != null) {
-            throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
+            String wxOpenId = users.getWxOpenId();
+            String qqOpenId = users.getQqOpenId();
+            if(StringUtils.isEmpty(wxOpenId) && StringUtils.isEmpty(qqOpenId)) {
+                throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
+            }
+            else {
+                int salt = getSalt();
+                String hashStr = MiscUtils.hash(password, salt);
+                String ip = serverApiParams.getRequestUriInfo().getIp();
+                updatePasswordAndNickName(nickname, users.getId(), salt, hashStr, ip);
+                //缓存nickname
+                CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + users.getId(), nickname);
+                return users;
+            }
+        }
+        else {
+            //如果没有注册过，密码hash
+            int salt = getSalt();
+            String hashStr = MiscUtils.hash(password, salt);
+            String ip = serverApiParams.getRequestUriInfo().getIp();
+            String clientType = serverApiParams.getRequestUriInfo().getClientType();
+            String channel = serverApiParams.getRequestUriInfo().getChannel();
+            String region = verificationCodes.getRegion();
+            String phone = verificationCodes.getPhone();
+            String portraituri = sealtalkConfig.getRongcloudDefaultPortraitUrl();
+
+            log.info(TAG+"register "+"portraituri"+portraituri);
+            log.info(TAG+"register "+"region"+region+" phone"+phone+" nickname"+nickname+" hashStr"+hashStr+" salt:"+salt);
+            log.info(TAG+"register "+" ip:" + ip+" clientType:"+clientType+" channel:"+channel);
+
+            // 注册用户
+            Users u = register0(null, null, nickname, region, phone, portraituri, null, salt, hashStr, ip, clientType, channel);
+
+            //缓存nickname
+            CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
+
+            return u;
+        }
+    }
+
+    /**
+     * @param openId
+     * @param openType
+     * @param nickname
+     * @param portraitUri
+     * @param gender
+     * @param verificationToken
+     * @param serverApiParams
+     * @return
+     * @throws ServiceException
+     */
+    public Users registerOther(String openId, Integer openType, String nickname, String portraitUri, String gender, String verificationToken, ServerApiParams serverApiParams) throws ServiceException {
+        log.info(TAG+" registerOther "+" openId:"+openId+" openType:"+openType+" nickname:"+nickname+" portraitUri:"+portraitUri+" verificationToken:"+verificationToken);
+
+        VerificationCodes verificationCodes = verificationCodesService.getByToken(verificationToken);
+        if (verificationCodes == null) {
+            throw new ServiceException(ErrorCode.UNKNOWN_VERIFICATION_TOKEN);
         }
 
-        //如果没有注册过，密码hash
-        int salt = RandomUtil.randomBetween(1000, 9999);
-        String hashStr = MiscUtils.hash(password, salt);
-        String ip = serverApiParams.getRequestUriInfo().getIp();
-        String clientType = serverApiParams.getRequestUriInfo().getClientType();
-        String channel = serverApiParams.getRequestUriInfo().getChannel();
-        log.info("register ip:" + ip+" clientType:"+clientType+" channel:"+channel);
-        Users u = register0(nickname, verificationCodes.getRegion(), verificationCodes.getPhone(), salt, hashStr, ip, clientType, channel);
+        Users param = new Users();
+        param.setRegion(verificationCodes.getRegion());
+        param.setPhone(verificationCodes.getPhone());
+        Users users = usersService.getOne(param);
 
-        //缓存nickname
-        CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
+        if (users != null) {
+            if(checkOpenEmpty(openType, users)) {
+                String ip = serverApiParams.getRequestUriInfo().getIp();
+                String portraituri = checkPortraitUri(users.getId(), users.getNickname(), users.getPortraitUri(), portraitUri);
+                updateWechatRegister(users.getId(), openId, openType, portraituri, ip);
+                return users;
+            }
+            else {
+                throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
+            }
+        }
+        else {
+            String region = verificationCodes.getRegion();
+            String phone = verificationCodes.getPhone();
+            //如果没有注册过，密码hash
+            int salt = getSalt();
+            String hashStr = MiscUtils.hash(String.valueOf(salt), salt);
+            String portraituri = StringUtils.isEmpty(portraitUri) ? sealtalkConfig.getRongcloudDefaultPortraitUrl() : portraitUri;
+            String ip = serverApiParams.getRequestUriInfo().getIp();
+            String clientType = serverApiParams.getRequestUriInfo().getClientType();
+            String channel = serverApiParams.getRequestUriInfo().getChannel();
 
-        return u.getId();
+            log.info(TAG+"registerOther "+"openId:"+openId);
+            log.info(TAG+"registerOther "+"portraituri:"+portraituri);
+            log.info(TAG+"registerOther "+"region:"+region+" phone:"+phone+" nickname:"+nickname+" gender:"+gender+" hashStr:"+hashStr+" salt:"+salt);
+            log.info(TAG+"registerOther "+" ip:" + ip+" clientType:"+clientType+" channel:"+channel);
+
+            // 注册用户
+            Users u = register0(openId, openType, nickname, region, phone, portraituri, gender, salt, hashStr, ip, clientType, channel);
+
+            //缓存nickname
+            CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
+
+            return u;
+        }
+    }
+
+    /**
+     * @param openType
+     * @param users
+     * @return
+     */
+    private static boolean checkOpenEmpty(Integer openType, Users users) throws ServiceException {
+        ValidateUtils.checkOpenType(openType);
+
+        if(openType == UserParam.TYPE_WECHAT && StringUtils.isEmpty(users.getWxOpenId())) {
+            return true;
+        }
+        else if(openType == UserParam.TYPE_QQ && StringUtils.isEmpty(users.getQqOpenId())) {
+            return true;
+        }
+        else if(openType == UserParam.TYPE_DOUYIN && StringUtils.isEmpty(users.getDyOpenId())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param portraitUri
+     * @param newPortraitUri
+     * @return
+     */
+    private String checkPortraitUri(Integer userId, String nickName, String portraitUri, String newPortraitUri) {
+        if(StringUtils.isEmpty(portraitUri) && StringUtils.isEmpty(newPortraitUri)) {
+            return sealtalkConfig.getRongcloudDefaultPortraitUrl();
+        }
+
+        if(!portraitUri.equals(sealtalkConfig.getRongcloudDefaultPortraitUrl())) {
+            return portraitUri;
+        }
+
+        //调用融云刷新用户信息
+        boolean bRet = true;
+        try {
+            Result result = rongCloudClient.updateUser(N3d.encode(userId), nickName, newPortraitUri);
+            if (!result.getCode().equals(200)) {
+                log.error("RongCloud Server API Error code: {},errorMessage: {}", result.getCode(), result.getErrorMessage());
+                bRet = false;
+            }
+        }
+        catch (Exception e) {
+            log.error("invoke rongCloudClient updateUser exception: " + e.getMessage(), e);
+            bRet = false;
+        }
+
+        if(bRet) {
+            return newPortraitUri;
+        }
+
+        return portraitUri;
     }
 
     /**
@@ -308,40 +448,131 @@ public class UserManager extends BaseManager {
      * @param hashStr
      * @return
      */
-    private Users register0(String nickname, String region, String phone, int salt, String hashStr, String ip, String clientType, String channel) {
+    private Users register0(String openId, Integer openType, String nickname, String region, String phone, String portraitUri, String gender, int salt, String hashStr, String ip, String clientType, String channel) throws ServiceException {
+
+        Users users = insertUsers(openId, openType, nickname, region, phone, portraitUri, gender, salt, hashStr, ip, clientType, channel);
+
+        String rongCloudToken = "";
+        if (StringUtils.isEmpty(rongCloudToken)) {
+            //如果user表中的融云token为空，调用融云sdk 获取token
+            //如果用户头像地址为空，采用默认头像地址
+
+            TokenResult tokenResult = rongCloudClient.register(N3d.encode(users.getId()), users.getNickname(), users.getPortraitUri());
+            if (!Constants.CODE_OK.equals(tokenResult.getCode())) {
+                throw new ServiceException(ErrorCode.SERVER_ERROR, "'RongCloud Server API Error Code: " + tokenResult.getCode());
+            }
+
+            rongCloudToken = tokenResult.getToken();
+
+            Users u = new Users();
+            u.setRongCloudToken(rongCloudToken);
+            updateUserById(u);
+
+            users.setRongCloudToken(rongCloudToken);
+        }
+
+        return users;
+    }
+
+    /**
+     * @param openId
+     * @param openType
+     * @param nickname
+     * @param region
+     * @param phone
+     * @param portraitUri
+     * @param gender
+     * @param salt
+     * @param hashStr
+     * @param ip
+     * @param clientType
+     * @param channel
+     * @return
+     */
+    private Users insertUsers(String openId, Integer openType, String nickname, String region, String phone, String portraitUri, String gender, int salt, String hashStr, String ip, String clientType, String channel) {
         return transactionTemplate.execute(transactionStatus -> {
             //插入user表
-            Users u = new Users();
-            u.setNickname(nickname);
-            u.setRegion(region);
-            u.setPhone(phone);
+            Users users = new Users();
+
+            users.setRegion(region);
+            users.setPhone(phone);
+
+            if(!StringUtils.isEmpty(nickname)) {
+                users.setNickname(nickname);
+            }
+
+            if(!StringUtils.isEmpty(portraitUri)) {
+                users.setPortraitUri(portraitUri);
+            }
+            else {
+                users.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
+            }
+
+            if(!StringUtils.isEmpty(gender)) {
+                users.setGender(gender);
+            }
+
+            users.setPasswordHash(hashStr);
+            users.setPasswordSalt(String.valueOf(salt));
+            users.setIp(ip);
 
             if(!StringUtils.isEmpty(clientType)) {
-                u.setClientType(clientType);
+                users.setClientType(clientType);
             }
 
             if(!StringUtils.isEmpty(channel)) {
-                u.setChannel(channel);
+                users.setChannel(channel);
             }
 
-            u.setIp(ip);
-            u.setPasswordHash(hashStr);
-            u.setPasswordSalt(String.valueOf(salt));
-            u.setCreatedAt(new Date());
-            u.setUpdatedAt(u.getCreatedAt());
-            u.setPortraitUri(sealtalkConfig.getRongcloudDefaultPortraitUrl());
+            if(openType == UserParam.TYPE_WECHAT) {
+                users.setWxOpenId(openId);
+            }
+            else if(openType == UserParam.TYPE_QQ) {
+                users.setQqOpenId(openId);
+            }
+            else if(openType == UserParam.TYPE_DOUYIN) {
+                users.setDyOpenId(openId);
+            }
 
-            usersService.saveSelective(u);
+            users.setCreatedAt(new Date());
+            users.setUpdatedAt(users.getCreatedAt());
 
+            usersService.saveSelective(users);
 
             //插入DataVersion表
             DataVersions dataVersions = new DataVersions();
-            dataVersions.setUserId(u.getId());
+            dataVersions.setUserId(users.getId());
             dataVersionsService.saveSelective(dataVersions);
 
-            return u;
+            return users;
         });
+    }
 
+    private void updateWechatRegister(Integer id, String wxOpenId, Integer openType, String portraituri, String ip) {
+        long timestamp = System.currentTimeMillis();
+        //修改昵称
+        Users users = new Users();
+        users.setId(id);
+
+        if(openType == UserParam.TYPE_WECHAT) {
+            users.setWxOpenId(wxOpenId);
+        }
+        else if(openType == UserParam.TYPE_QQ) {
+            users.setQqOpenId(wxOpenId);
+        }
+        else if(openType == UserParam.TYPE_DOUYIN) {
+            users.setDyOpenId(wxOpenId);
+        }
+
+        if(!StringUtils.isEmpty(portraituri)) {
+            users.setPortraitUri(portraituri);
+        }
+
+        users.setIp(ip);
+        users.setTimestamp(timestamp);
+        users.setUpdatedAt(new Date());
+        usersService.updateByPrimaryKeySelective(users);
+        return;
     }
 
     /**
@@ -355,6 +586,7 @@ public class UserManager extends BaseManager {
      */
     public Pair<Integer, String> login(String region, String phone, String password, ServerApiParams serverApiParams) throws ServiceException {
         log.info(TAG+" login "+" region:"+region+" phone:"+phone+" password:"+password);
+
         Users param = new Users();
         param.setRegion(region);
         param.setPhone(phone);
@@ -365,17 +597,14 @@ public class UserManager extends BaseManager {
             throw new ServiceException(ErrorCode.USER_NOT_EXIST);
         }
 
-        log.info(TAG+" login "+" salt:"+u.getPasswordSalt());
         //校验密码是否正确
         String passwordHash = MiscUtils.hash(password, Integer.valueOf(u.getPasswordSalt()));
-        log.info(TAG+" login "+" passwordHash:"+passwordHash);
-        log.info(TAG+" login "+" u.getPasswordHash():"+u.getPasswordHash());
 
         if (!passwordHash.equals(u.getPasswordHash())) {
             throw new ServiceException(ErrorCode.USER_PASSWORD_WRONG);
         }
 
-        log.info("login id:" + u.getId() + " nickname:" + u.getNickname());
+        log.info(TAG+" login "+"id:" + u.getId() + " nickname:" + u.getNickname()+" salt:"+u.getPasswordSalt()+" passwordHash:"+passwordHash);
         //缓存nickname
         CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
 
@@ -394,25 +623,21 @@ public class UserManager extends BaseManager {
         }
 
         //同步前记录日志
-        log.info("'Sync groups: {}", idNamePariMap);
+        log.info(TAG+" login "+" Sync groups: {}", idNamePariMap);
 
         //调用融云sdk 将登录用户的userid，与groupIdName信息同步到融云
         try {
             Result result = rongCloudClient.syncGroupInfo(N3d.encode(u.getId()), groupsList);
             if (!Constants.CODE_OK.equals(result.getCode())) {
-                log.error("Error sync user's group list failed,code:" + result.getCode());
+                log.error(TAG+" login "+"Error sync user's group list failed,code:" + result.getCode());
             }
         } catch (Exception e) {
-            log.error("Error sync user's group list error:" + e.getMessage(), e);
+            log.error(TAG+" login "+"Error sync user's group list error:" + e.getMessage(), e);
         }
 
 
         String token = u.getRongCloudToken();
-        log.error("login id:" + u.getId());
-        log.error("login n3d id:" + N3d.encode(u.getId()));
-        log.error("login token:" + token);
-        log.error("login nickname:" + u.getNickname());
-        log.error("login portraitUri:" + u.getPortraitUri());
+        log.info(TAG+" login "+"login id:" + u.getId()+ " n3did:" + N3d.encode(u.getId())+" token:" + token+" nickname:" + u.getNickname()+" portraitUri:" + u.getPortraitUri());
 
         if (StringUtils.isEmpty(token)) {
             //如果user表中的融云token为空，调用融云sdk 获取token
@@ -444,6 +669,100 @@ public class UserManager extends BaseManager {
     }
 
     /**
+     * @param openId
+     * @param openType
+     * @param serverApiParams
+     * @return
+     * @throws ServiceException
+     */
+    public Users loginOther(String openId, Integer openType, ServerApiParams serverApiParams) throws ServiceException {
+        log.info(TAG+" loginOther "+" openId:"+openId+" openType:"+openType);
+
+        Users param = new Users();
+        if(openType == UserParam.TYPE_WECHAT) {
+            param.setWxOpenId(openId);
+        }
+        else if(openType == UserParam.TYPE_QQ) {
+            param.setQqOpenId(openId);
+        }
+        else if(openType == UserParam.TYPE_DOUYIN) {
+            param.setDyOpenId(openId);
+        }
+        Users u = usersService.getOne(param);
+
+        //判断用户是否存在
+        if (u == null) {
+            throw new ServiceException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 判断是否在黑名单
+        checkBlackUser(u.getRegion(), u.getPhone());
+
+        //缓存nickname
+        CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + u.getId(), u.getNickname());
+
+        //查询该用户所属的所有组,同步到融云
+        List<Groups> groupsList = new ArrayList<>();
+        Map<String, String> idNamePariMap = new HashMap<>();
+        List<GroupMembers> groupMembersList = groupMembersService.queryGroupMembersWithGroupByMemberId(u.getId());
+        if (!CollectionUtils.isEmpty(groupMembersList)) {
+            for (GroupMembers gm : groupMembersList) {
+                Groups groups = gm.getGroups();
+                if (groups != null) {
+                    groupsList.add(groups);
+                    idNamePariMap.put(N3d.encode(groups.getId()), groups.getName());
+                }
+            }
+        }
+
+        //同步前记录日志
+        log.info(TAG+" loginOther "+" Sync groups: {}", idNamePariMap);
+
+        //调用融云sdk 将登录用户的userid，与groupIdName信息同步到融云
+        try {
+            Result result = rongCloudClient.syncGroupInfo(N3d.encode(u.getId()), groupsList);
+            if (!Constants.CODE_OK.equals(result.getCode())) {
+                log.error(TAG+" loginOther "+"Error sync user's group list failed,code:" + result.getCode());
+            }
+        } catch (Exception e) {
+            log.error(TAG+" loginOther "+"Error sync user's group list error:" + e.getMessage(), e);
+        }
+
+
+        String rongCloudToken = u.getRongCloudToken();
+        log.info(TAG+" loginOther "+" id:" + u.getId()+ " n3did:" + N3d.encode(u.getId())+" rongCloudToken:" + rongCloudToken+" nickname:" + u.getNickname()+" portraitUri:" + u.getPortraitUri());
+
+        if (StringUtils.isEmpty(rongCloudToken)) {
+            //如果user表中的融云token为空，调用融云sdk 获取token
+            //如果用户头像地址为空，采用默认头像地址
+            String portraitUri = StringUtils.isEmpty(u.getPortraitUri()) ? sealtalkConfig.getRongcloudDefaultPortraitUrl() : u.getPortraitUri();
+            TokenResult tokenResult = rongCloudClient.register(N3d.encode(u.getId()), u.getNickname(), portraitUri);
+            if (!Constants.CODE_OK.equals(tokenResult.getCode())) {
+                throw new ServiceException(ErrorCode.SERVER_ERROR, "'RongCloud Server API Error Code: " + tokenResult.getCode());
+            }
+            rongCloudToken = tokenResult.getToken();
+        }
+
+        String ip = serverApiParams.getRequestUriInfo().getIp();
+        String clientType = serverApiParams.getRequestUriInfo().getClientType();
+        String channel = serverApiParams.getRequestUriInfo().getChannel();
+        log.info("loginOther ip:" + ip+" clientType:"+clientType+" channel:"+channel);
+
+        //获取后根据userId更新表中token
+        Users users = new Users();
+        users.setId(u.getId());
+        users.setRongCloudToken(rongCloudToken);
+        users.setIp(ip);
+        users.setChannel(channel);
+        users.setClientType(clientType);
+        users.setUpdatedAt(new Date());
+        usersService.updateByPrimaryKeySelective(users);
+
+        //返回userId、rongCloudToken
+        return users;
+    }
+
+    /**
      * 重置密码
      *
      * @param password
@@ -459,7 +778,7 @@ public class UserManager extends BaseManager {
         }
 
         //新密码hash,修改user表密码字段
-        int salt = RandomUtil.randomBetween(1000, 9999);
+        int salt = getSalt();
         String hashStr = MiscUtils.hash(password, salt);
 
         String ip = serverApiParams.getRequestUriInfo().getIp();
@@ -472,7 +791,7 @@ public class UserManager extends BaseManager {
      */
     public void resetPwd(String region, String phone) throws ServiceException {
         //新密码hash,修改user表密码字段
-        int salt = RandomUtil.randomBetween(1000, 9999);
+        int salt = getSalt();
         String hashStr = MiscUtils.hash("abc123", salt);
         updatePassword(region, phone, salt, hashStr, null);
     }
@@ -499,7 +818,7 @@ public class UserManager extends BaseManager {
         }
 
         //新密码hash,修改user表密码字段
-        int salt = RandomUtil.randomBetween(1000, 9999);
+        int salt = getSalt();
         String hashStr = MiscUtils.hash(newPassword, salt);
         String ip = serverApiParams.getRequestUriInfo().getIp();
 
@@ -512,6 +831,7 @@ public class UserManager extends BaseManager {
         Users param = new Users();
         param.setRegion(region);
         param.setPhone(phone);
+
         Users users = usersService.getOne(param);
         if(users == null) {
             throw new ServiceException(ErrorCode.USER_NOT_EXIST);
@@ -524,6 +844,45 @@ public class UserManager extends BaseManager {
         }
         users.setUpdatedAt(new Date());
         usersService.updateByPrimaryKey(users);
+    }
+
+    /**
+     * 设置当前用户的昵称
+     *
+     * @param nickname
+     * @param currentUserId
+     * @throws ServiceException
+     */
+    public void updatePasswordAndNickName(String nickname, Integer currentUserId, int salt, String hashStr, String ip) throws ServiceException {
+
+        long timestamp = System.currentTimeMillis();
+        //修改昵称
+        Users users = new Users();
+        users.setId(currentUserId);
+        users.setNickname(nickname);
+        users.setPasswordSalt(String.valueOf(salt));
+        users.setPasswordHash(hashStr);
+        users.setIp(ip);
+        users.setTimestamp(timestamp);
+        users.setUpdatedAt(new Date());
+        usersService.updateByPrimaryKeySelective(users);
+
+        //调用融云刷新用户信息
+        try {
+            Result result = rongCloudClient.updateUser(N3d.encode(currentUserId), nickname, null);
+            if (!result.getCode().equals(200)) {
+                log.error("RongCloud Server API Error code: {},errorMessage: {}", result.getCode(), result.getErrorMessage());
+            }
+        } catch (Exception e) {
+            log.error("invoke rongCloudClient updateUser exception: " + e.getMessage(), e);
+        }
+        //缓存用户昵称
+        CacheUtil.set(CacheUtil.NICK_NAME_CACHE_PREFIX + currentUserId, nickname);
+
+        //清空缓存、更新版本
+        clearCacheAndUpdateVersion(currentUserId, timestamp);
+
+        return;
     }
 
     /**
@@ -1296,15 +1655,16 @@ public class UserManager extends BaseManager {
             throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
         }
 
-        ServerApiParams serverApiParams = ServerApiParamHolder.get();
-        String ip = serverApiParams.getRequestUriInfo().getIp();
-        log.info("addUser ip:" + ip);
-
         //如果没有注册过，密码hash
-        int salt = RandomUtil.randomBetween(1000, 9999);
+        int salt = getSalt();
         String hashStr = MiscUtils.hash(password, salt);
+        String ip = ServerApiParamHolder.get().getRequestUriInfo().getIp();
+        String portraituri = sealtalkConfig.getRongcloudDefaultPortraitUrl();
 
-        Users u = register0(nickname, region, phone, salt, hashStr, ip, null, null);
+        log.info(TAG+"addUser "+"portraituri"+portraituri);
+        log.info(TAG+"addUser "+"region"+region+" phone"+phone+" nickname"+nickname+" hashStr"+hashStr+" salt:"+salt);
+
+        Users u = register0(null, null, nickname, region, phone, portraituri, null,  salt, hashStr, ip, null, null);
         log.info("addUser id:" + u.getId());
     }
 
@@ -1443,6 +1803,12 @@ public class UserManager extends BaseManager {
         if (userBlack != null) {
             throw new ServiceException(ErrorCode.USER_IS_DISABLE);
         }
+    }
+
+
+    private int getSalt() {
+        int salt = RandomUtil.randomBetween(1000, 9999);
+        return salt;
     }
 }
 

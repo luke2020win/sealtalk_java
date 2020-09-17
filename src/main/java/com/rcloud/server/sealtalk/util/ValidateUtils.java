@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.rcloud.server.sealtalk.configuration.SealtalkConfig;
 import com.rcloud.server.sealtalk.constant.Constants;
 import com.rcloud.server.sealtalk.constant.ErrorCode;
+import com.rcloud.server.sealtalk.controller.param.UserParam;
+import com.rcloud.server.sealtalk.domain.Users;
 import com.rcloud.server.sealtalk.exception.ServiceException;
 import org.springframework.util.StringUtils;
 
@@ -25,7 +27,7 @@ public class ValidateUtils {
 
     public static final int NICKNAME_MIN_LENGTH = 1;
 
-    public static final int NICKNAME_MAX_LENGTH = 32;
+    public static final int NICKNAME_MAX_LENGTH = 64;
 
     public static final int FRIEND_REQUEST_MESSAGE_MIN_LENGTH = 0;
 
@@ -110,6 +112,13 @@ public class ValidateUtils {
             throw new ServiceException(ErrorCode.INVALID_NICKNAME_LENGTH);
         }
     }
+
+    public static void checkOpenType(Integer openType) throws ServiceException {
+        if (openType != UserParam.TYPE_WECHAT && openType != UserParam.TYPE_QQ && openType != UserParam.TYPE_DOUYIN) {
+            throw new ServiceException(ErrorCode.INVALID_OPEN_TYPE);
+        }
+    }
+
 
     public static void checkUUID(String verificationToken) throws ServiceException {
         if (!ValidateUtils.checkUUIDStr(verificationToken)) {
