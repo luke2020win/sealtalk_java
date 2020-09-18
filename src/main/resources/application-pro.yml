@@ -24,9 +24,9 @@ sealtalk-config:
   #  融云短信服务提供的注册用户短信模板 Id
   rongcloud_sms_register_template_id: 3931946
   #  融云颁发的 App Key
-  rongcloud_app_key: 'cpj2xarlche4n'
+  rongcloud_app_key: 'pgyu6atqpm4fu'
   #  融云颁发的 App Secret
-  rongcloud_app_secret: 'QUtrcndCsZm7GU'
+  rongcloud_app_secret: 'Ep7zGyZqEWD7D'
   #融云 Api Url
   rongcloud_api_url: 'api-sg01.ronghub.com'
   #默认头像地址
@@ -67,8 +67,8 @@ sealtalk-config:
   #*************************************数据库配置******************************************************#
   db_name: 'hotchat'
   db_user: 'root'
-  db_password: 'nkn88uuAla&h#'
-  db_host: '172.21.148.117'
+  db_password: 'nkn88uuAla&h#pro'
+  db_host: '172.21.148.119'
   db_port: '3306'
 
 

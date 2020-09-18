@@ -23,7 +23,6 @@ public class UserParam {
     private String verification_token;
 
     private Integer openType;
-
     private String openId;
 
     private String oldPassword;
