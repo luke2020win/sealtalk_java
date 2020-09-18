@@ -345,15 +345,11 @@ public class UserManager extends BaseManager {
         Users users = usersService.getOne(param);
 
         if (users != null) {
-            if(checkOpenEmpty(openType, users)) {
-                String ip = serverApiParams.getRequestUriInfo().getIp();
-                String portraituri = checkPortraitUri(users.getId(), users.getNickname(), users.getPortraitUri(), portraitUri);
-                updateWechatRegister(users.getId(), openId, openType, portraituri, ip);
-                return users;
-            }
-            else {
-                throw new ServiceException(ErrorCode.PHONE_ALREADY_REGIESTED);
-            }
+            ValidateUtils.checkOpenType(openType);
+            String ip = serverApiParams.getRequestUriInfo().getIp();
+            String portraituri = checkPortraitUri(users.getId(), users.getNickname(), users.getPortraitUri(), portraitUri);
+            updateWechatRegister(users.getId(), openId, openType, portraituri, ip);
+            return users;
         }
         else {
             String region = verificationCodes.getRegion();
@@ -382,27 +378,8 @@ public class UserManager extends BaseManager {
     }
 
     /**
-     * @param openType
-     * @param users
-     * @return
-     */
-    private static boolean checkOpenEmpty(Integer openType, Users users) throws ServiceException {
-        ValidateUtils.checkOpenType(openType);
-
-        if(openType == UserParam.TYPE_WECHAT && StringUtils.isEmpty(users.getWxOpenId())) {
-            return true;
-        }
-        else if(openType == UserParam.TYPE_QQ && StringUtils.isEmpty(users.getQqOpenId())) {
-            return true;
-        }
-        else if(openType == UserParam.TYPE_DOUYIN && StringUtils.isEmpty(users.getDyOpenId())) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
+     * @param userId
+     * @param nickName
      * @param portraitUri
      * @param newPortraitUri
      * @return
