@@ -52,6 +52,7 @@ public class RequestInterceptor implements HandlerInterceptor {
 
     public static final String X_FORWARDED_FOR = "X-Forwarded-For";
     public static final String UNKNOWN = "unknown";
+    public static final String LOCAL_IP = "127.0.0.1";
     public static final String PROXY_CLIENT_IP = "Proxy-Client-IP";
     public static final String WL_PROXY_CLIENT_IP = "WL-Proxy-Client-IP";
     public static final String HTTP_CLIENT_IP = "HTTP_CLIENT_IP";
@@ -91,7 +92,7 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        response.setHeader("Access-Control-Allow-Origin",sealtalkConfig.getCorsHosts());
+        response.setHeader("Access-Control-Allow-Origin","*");
         response.setHeader("Access-Control-Allow-Methods","*");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type,x-requested-with,Authorization,token,Accept,Referer,User-Agent");
         response.setHeader("Access-Control-Allow-Credentials", "true");
@@ -224,19 +225,6 @@ public class RequestInterceptor implements HandlerInterceptor {
         return Integer.parseInt(split[1]);
     }
 
-    private Cookie getAuthCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                log.info("getAuthCookie " + cookie.getName() + "=" + cookie.getValue());
-                if (cookie.getName().equals(sealtalkConfig.getAuthCookieName())) {
-                    return cookie;
-                }
-            }
-        }
-        return null;
-    }
-
     private String getAuthToken(HttpServletRequest request) {
         String authToken = request.getHeader("Authorization");
         log.info("getAuthToken Authorization:"+authToken);
@@ -247,17 +235,26 @@ public class RequestInterceptor implements HandlerInterceptor {
         String ip = getIpAddress(request);
         ip = StringUtil.isEmpty(ip) ? "" : ip;
         String uri = request.getRequestURI();
-        String remoteAddress = request.getRemoteAddr();
         String channel = request.getHeader("channel");
         String clientType = request.getHeader("clientType");
+        String remoteAddress = getRemoteAddr(request);
+
         RequestUriInfo requestUriInfo = new RequestUriInfo();
         requestUriInfo.setUri(uri);
         requestUriInfo.setRemoteAddress(remoteAddress);
         requestUriInfo.setIp(ip);
-        requestUriInfo.setChannel(clientType);
+        requestUriInfo.setClientType(clientType);
         requestUriInfo.setChannel(channel);
-        requestUriInfo.setIp(ip);
         return requestUriInfo;
+    }
+
+    private String getRemoteAddr(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
+        if (StringUtil.isEmpty(remoteAddr) || LOCAL_IP.equalsIgnoreCase(remoteAddr)) {
+            remoteAddr =  getIpAddress(request);
+        }
+
+        return remoteAddr;
     }
 
     private String getIpAddress(HttpServletRequest request) {
@@ -277,6 +274,11 @@ public class RequestInterceptor implements HandlerInterceptor {
         if (StringUtil.isEmpty(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
+
+        if("0:0:0:0:0:0:0:1".equals(ip)) {
+            ip = "127.0.0.1";
+        }
+
         return ip;
     }
 }

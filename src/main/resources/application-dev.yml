@@ -50,8 +50,7 @@ sealtalk-config:
   n3d_key: 'abcdef12345678'
   #认证 Cookie 主域名 如果没有正式域名，请修改本地 hosts 文件配置域名
   auth_cookie_domain: 'localhost'
-  #跨域支持所需配置的域名信息，包括请求服务器的域名和端口号，如果是 80 端口可以省略端口号。如：http://web.sealtalk.im
-  cors_hosts: 'http://localhost'
+
   # 允许的请求方法
   allow_methods: 'GET,POST,PUT,DELETE,HEAD,OPTIONS'
   #是否开启万能验证码 0-不开启 1-开启
