@@ -11,14 +11,14 @@ server:
 
 spring:
   profiles:
-    active: dev     # 环境配置：  dev 开发环境   test-测试环境    beta 预发环境    pro 生产环境
+    active: test     # 环境配置：  dev 开发环境   test-测试环境    beta 预发环境    pro 生产环境
   flyway:
     enabled: true
     # 禁止清理数据库表
     clean-disabled: true
     baseline-description: baselines
     # 如果数据库不是空表，需要设置成 true，否则启动报错
-    baseline-on-migrate: true
+    baseline-on-migrate: false
     baseline-version: 2
   swagger2:
     enabled: true

@@ -6,7 +6,7 @@
 
   <groupId>com.csj.hotchat.server</groupId>
   <artifactId>hotchat-server</artifactId>
-  <version>5.0.4-SNAPSHOT</version>
+  <version>5.0.5-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <!--  服务名称以及描述-->
