@@ -75,6 +75,9 @@ public class SealtalkConfig {
     @Value("${sealtalk-config.auth_cookie_domain}")
     private String authCookieDomain;
 
+    @Value("${sealtalk-config.cors_hosts}")
+    private String corsHosts;
+
     @Value("${sealtalk-config.is_open_pass_code}")
     private Integer isOpenPassCode;
 

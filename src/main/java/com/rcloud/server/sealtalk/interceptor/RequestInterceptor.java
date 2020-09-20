@@ -21,6 +21,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -63,6 +65,8 @@ public class RequestInterceptor implements HandlerInterceptor {
      */
     public static final Set<String> excludeUrlSet = new CopyOnWriteArraySet<>();
 
+    public static final Set allowedOrigins = new CopyOnWriteArraySet<>();
+
     @Resource
     private SealtalkConfig sealtalkConfig;
 
@@ -81,10 +85,20 @@ public class RequestInterceptor implements HandlerInterceptor {
         if (!StringUtils.isEmpty(excludeUrls)) {
             String[] excludeUrlArray = excludeUrls.split(",");
             for (String excludeUrl : excludeUrlArray) {
-                log.info("preHandle excludeUrl="+excludeUrl.trim());
+                log.info("postConstruct excludeUrl="+excludeUrl.trim());
                 excludeUrlSet.add(excludeUrl.trim());
             }
         }
+
+        String corsHosts = sealtalkConfig.getCorsHosts();
+        if (!StringUtils.isEmpty(corsHosts)) {
+            String[] corsHostsArray = corsHosts.split(",");
+            for (String corsHost : corsHostsArray) {
+                log.info("postConstruct corsHost:"+corsHost.trim());
+                allowedOrigins.add(corsHost.trim());
+            }
+        }
+
     }
 
     // 进行逻辑判断，如果ok就返回true，不行就返回false，返回false就不会处理请求
@@ -92,10 +106,9 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        response.setHeader("Access-Control-Allow-Origin","*");
-        response.setHeader("Access-Control-Allow-Methods","*");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type,x-requested-with,Authorization,token,Accept,Referer,User-Agent");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
+        // 处理response
+        handeResponse(request, response);
+
         if(request.getMethod().equals("OPTIONS")){
             response.setStatus(HttpServletResponse.SC_OK);
             return false;
@@ -191,6 +204,21 @@ public class RequestInterceptor implements HandlerInterceptor {
 
         ServerApiParamHolder.put(serverApiParams);
         return true;
+    }
+
+    /**
+     * @param request
+     * @param response
+     */
+    private void handeResponse(HttpServletRequest request, HttpServletResponse response) {
+        String originHeader = request.getHeader("Origin");
+        if (allowedOrigins.contains(originHeader)) {
+            response.setHeader("Access-Control-Allow-Origin", originHeader);
+            response.setHeader("Access-Control-Allow-Methods","*");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type,x-requested-with,Authorization,token,Accept,Referer,User-Agent");
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+        }
+
     }
 
     // afterCompletion：在 DispatcherServlet 完全处理完请求后被调用，可用于清理资源等。
